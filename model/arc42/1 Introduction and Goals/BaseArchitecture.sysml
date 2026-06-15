@@ -6,7 +6,7 @@ package BaseArchitecture {
     // It provides the foundational context for all subsequent requirements and design activities.
 
     // 1. Controller definition
-    part def ShutterController specializes SystemIdea::WindowRollerShutterControllerIdea {
+    part def ShutterController {
         doc
         /* Window Roller Shutter controller. */
         part controlLogic {
@@ -35,5 +35,5 @@ package BaseArchitecture {
         connect remoteInterface to controlLogic;
     }
 
-
+    //satisfy SystemIdea::WindowRollerShutterControllerIdea;
 } // package BaseArchitecture

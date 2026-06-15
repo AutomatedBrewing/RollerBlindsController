@@ -1,65 +1,78 @@
 package L0_Requirements {
     private import Stakeholders::*;
     private import BaseArchitecture::*;
+    private import DerivationConnections::*;
+    private import SystemObjectives::*;
 
-    requirement def Functional {
-        requirement def coreFunction {
+    requirement Functional {
+        requirement controlRollerShutter {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             stakeholder user : Stakeholders::User;
             doc
-            /* The controller shall control window roller shutters. */
+            /* The controller shall control the movement of window roller shutters. */
 
             frame user.controllerNeed;
             frame ProblemStatement::NeedOfWindowRollerShutterController;
         }
 
-        requirement def fullShutterMovement specializes SystemObjectives::easeOfUse {
+        requirement localControl {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* Short press of the wallswitch moves shutter to end position - up or down, depending on
-             * what button was pressed.
-             */
+            /* The user shall be able to control the shutter using a wall switch. */
 
             frame user.controllerNeed;
+            connection : Derivation connect SystemObjectives::localControl to localControl;
         }
 
-        requirement def partialShutterMovement specializes SystemObjectives::easeOfUse {
+        requirement remoteControl {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* Long press of the wallswitch moves shutter as long as user holds the button in direction
-             * of end position - up or down, depending on what button was pressed.
-             */
+            /* An external system shall be able to control the shutter. */
+
             frame user.controllerNeed;
+            connection : Derivation connect SystemObjectives::remoteControl to remoteControl;
         }
 
-        requirement def controlledByWallswitch specializes SystemObjectives::localControl {
+        requirement fullShutterMovement {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The user shall be able to control the controller using wallswitch. */
+            /* The controller shall allow automatic movement of the shutter to a fully open or fully closed position. */
 
             frame user.controllerNeed;
+            connection : Derivation connect SystemObjectives::easeOfUse to fullShutterMovement;
         }
 
-        requirement def controlledByExternalSystem specializes SystemObjectives::remoteControl {
+        requirement manualPositioning {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The external system shall be able to control the controller. */
+            /* The controller shall allow positioning of the shutter between the fully open and fully closed positions. */
 
             frame user.controllerNeed;
+            connection : Derivation connect SystemObjectives::easeOfUse to manualPositioning;
+        }
+
+        requirement stopShutterMovement {
+            subject controller : BaseArchitecture::ShutterController;
+            stakeholder user : Stakeholders::User;
+            doc
+            /* The controller shall stop the shutter movement upon user or external system request. */
+
+            frame user.controllerNeed;
+            connection : Derivation connect SystemObjectives::easeOfUse to stopShutterMovement;
         }
     }
 
-    requirement def Quality {
-        requirement def easeOfInstallation specializes SystemObjectives::easeOfUse {
+    requirement Quality {
+        requirement easeOfInstallation {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder installer : Stakeholders::Installer;
             doc
-            /* The system shall enable installation and configuration by non-technical users within 30 minutes, achieving 90% success rate. */
+            /* A first-time installer shall be able to install and configure the controller within 30 minutes. */
 
             attribute maximumInstallationTime subsets ISQ::duration;
             require constraint {
@@ -69,32 +82,35 @@ package L0_Requirements {
             frame installer.durationOfInstallation {
                 redefines durationOfInstallation = maximumInstallationTime;
             }
+            connection : Derivation connect SystemObjectives::easeOfUse to easeOfInstallation;
         }
 
-        requirement def availability specializes SystemObjectives::reliability{
+        requirement availability {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The system shall achieve 99.8% uptime. */
+            /* The controller shall achieve at least 99.8% operational availability. */
 
             attribute upTime;
 
             require constraint {
-                upTime >= 98.8
+                upTime >= 99.8
             }
+            connection : Derivation connect SystemObjectives::reliability to availability;
         }
 
-        requirement def reliability specializes SystemObjectives::reliability{
+        requirement reliability {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The system shall handle 10,000 operation cycles without failure. */
+            /* The controller shall perform at least 10,000 shutter operation cycles without failure. */
 
             attribute succesfulOperations;
 
             require constraint {
-                succesfulOperations > 10000
+                succesfulOperations >= 10000
             }
+            connection : Derivation connect SystemObjectives::reliability to reliability;
         }
     }
 } // package L0_Requirements

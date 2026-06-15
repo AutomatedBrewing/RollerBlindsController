@@ -75,9 +75,9 @@ package Stakeholders {
     part def Installer specializes Stakeholder {
         doc
         /* Professional installer who:
-        - connects controller to wallswitch, external system and power supply.
-        - configures the system during setup.
-        */
+         * - connects controller to wallswitch, external system and power supply.
+         * - configures the system during setup.
+         */
 
         concern durationOfInstallation : DurationOfInstallation [1] subsets concerns;
         concern easeOfConfiguration : EaseOfConfiguration [1] subsets concerns;

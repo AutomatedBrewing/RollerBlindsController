@@ -63,10 +63,11 @@ package Stakeholders {
 
         attribute width subsets ISQ::length;
         attribute length subsets ISQ::length;
+        attribute height subsets ISQ::length;
 
         require constraint {
             doc
-            /* Controller shall fit into typical flush-mounted junction box. */
+            /* Controller shall fit into typical ⌀60 flush-mounted junction box. */
         }
     }
 

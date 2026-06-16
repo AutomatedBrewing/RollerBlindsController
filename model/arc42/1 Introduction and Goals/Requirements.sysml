@@ -20,20 +20,18 @@ package L0_Requirements {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The user shall be able to control the shutter using a wall switch. */
+            /* The controller shall support local control of the shutter. */
 
             frame user.controllerNeed;
-            connection : Derivation connect SystemObjectives::localControl to localControl;
         }
 
         requirement remoteControl {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* An external system shall be able to control the shutter. */
+            /* The controller shall support remote control of the shutter. */
 
             frame user.controllerNeed;
-            connection : Derivation connect SystemObjectives::remoteControl to remoteControl;
         }
 
         requirement fullShutterMovement {
@@ -43,7 +41,6 @@ package L0_Requirements {
             /* The controller shall allow automatic movement of the shutter to a fully open or fully closed position. */
 
             frame user.controllerNeed;
-            connection : Derivation connect SystemObjectives::easeOfUse to fullShutterMovement;
         }
 
         requirement manualPositioning {
@@ -53,7 +50,6 @@ package L0_Requirements {
             /* The controller shall allow positioning of the shutter between the fully open and fully closed positions. */
 
             frame user.controllerNeed;
-            connection : Derivation connect SystemObjectives::easeOfUse to manualPositioning;
         }
 
         requirement stopShutterMovement {
@@ -63,7 +59,6 @@ package L0_Requirements {
             /* The controller shall stop the shutter movement upon user or external system request. */
 
             frame user.controllerNeed;
-            connection : Derivation connect SystemObjectives::easeOfUse to stopShutterMovement;
         }
     }
 
@@ -82,7 +77,6 @@ package L0_Requirements {
             frame installer.durationOfInstallation {
                 redefines durationOfInstallation = maximumInstallationTime;
             }
-            connection : Derivation connect SystemObjectives::easeOfUse to easeOfInstallation;
         }
 
         requirement availability {
@@ -96,7 +90,6 @@ package L0_Requirements {
             require constraint {
                 upTime >= 99.8
             }
-            connection : Derivation connect SystemObjectives::reliability to availability;
         }
 
         requirement reliability {
@@ -110,7 +103,13 @@ package L0_Requirements {
             require constraint {
                 succesfulOperations >= 10000
             }
-            connection : Derivation connect SystemObjectives::reliability to reliability;
+        }
+
+        requirement safety {
+            subject controller : BaseArchitecture::ShutterController;
+            stakeholder user : Stakeholders::User;
+            doc
+            /* The controller shall not cause any harm to the user or controlled window roller shutter. */
         }
     }
 } // package L0_Requirements

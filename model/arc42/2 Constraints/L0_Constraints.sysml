@@ -6,6 +6,9 @@ package L0_Constraints {
     private import SystemObjectives::*;
     private import DerivationConnections::*;
 
+    comment
+    /* Constraints limits the solution space. */
+
     package Business {
         requirement costEffective {
             subject controller : BaseArchitecture::ShutterController;
@@ -23,7 +26,6 @@ package L0_Constraints {
             frame manufacturer.costConcern {
                 redefines cost = manufacturingCost;
             }
-            connection : Derivation connect SystemObjectives::affordability to self;
         }
     } // package Business
 
@@ -113,7 +115,6 @@ package L0_Constraints {
             doc
             /* The controller shall provide galvanic isolation for all external input interfaces. */
         }
-
     } // package Electrical
 
     package Architectural {

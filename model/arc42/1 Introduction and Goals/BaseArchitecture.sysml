@@ -1,39 +1,50 @@
 package BaseArchitecture {
     private import SystemIdea::*;
 
-    // --- System Context (L0) ---
-    // This defines the system under consideration and its key stakeholders.
-    // It provides the foundational context for all subsequent requirements and design activities.
+    comment
+    /* The Base Architecture is a description of the architectural and
+     * technical decisions that are preset at the project start.
+     */
 
-    // 1. Controller definition
+    part def ControlUnit {
+        doc
+        /* Processes commands and determines shutter movement behaviour. */
+    }
+
+    part def MotorDriver {
+        doc
+        /* Switches motor power circuits to drive the shutter upwards or downwards. */
+    }
+
+    part def WallswichInterface {
+        doc
+        /* Receives commands from a locally connected wall switch. */
+    }
+
+    part def RemoteInterface {
+        doc
+        /* Receives commands from an external automation or control system. */
+    }
+
+    part def PowerSupply {
+        doc
+        /* Converts and distributes electrical power required by controller components. */
+    }
+
     part def ShutterController {
         doc
         /* Window Roller Shutter controller. */
-        part controlLogic {
-            doc
-            /* Controls behaviour of the motorDriver based on the local and remote interfaces. */
-        }
-        part motorDriver {
-            doc
-            /* Controls the window roller shutter motor movement. */
-        }
-        part localInterface
-        {
-            doc /* Handles commands from wallswitch. */
-        }
-        part remoteInterface
-        {
-            doc /* Handles commands from external system. */
-        }
-        part powerSupply
-        {
-            doc /* Delivers power to all controller's components. */
-        }
+
+        part controlLogic : ControlUnit;
+        part motorDriver : MotorDriver;
+        part localInterface : WallswichInterface;
+        part remoteInterface : RemoteInterface;
+        part powerSupply : PowerSupply;
 
         connect controlLogic to motorDriver;
         connect localInterface to controlLogic;
         connect remoteInterface to controlLogic;
-    }
 
-    //satisfy SystemIdea::WindowRollerShutterControllerIdea;
+        satisfy SystemIdea::systemIdea;
+    }
 } // package BaseArchitecture

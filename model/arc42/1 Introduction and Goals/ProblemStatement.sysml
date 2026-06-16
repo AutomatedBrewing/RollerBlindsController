@@ -1,4 +1,10 @@
 package ProblemStatement {
+    comment
+    /* The Problem Statement is a clear and concise statement of
+     * an unwelcome situation that the system of interest should
+     * resolve.
+     */
+
     concern NeedOfWindowRollerShutterController {
         doc
         /* Users need a way to control window roller shutters in both

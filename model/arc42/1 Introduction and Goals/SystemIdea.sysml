@@ -1,6 +1,11 @@
 package SystemIdea {
     private import ProblemStatement::*;
 
+    comment
+    /* The System Idea describes the core idea and leading features
+     * of the system.
+     */
+     
     requirement systemIdea {
         doc
         /* The Window Roller Shutter Controller (WRSC) is a compact control system

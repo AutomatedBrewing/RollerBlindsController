@@ -3,59 +3,58 @@ package SystemContext {
     private import BaseArchitecture::*;
     private import SystemIdea::*;
 
-    // --- System Context (L0) ---
-    // This defines the system under consideration and its relationships with key stakeholders.
-    // It provides the foundational context for all subsequent requirements and design activities.
+    comment
+    /* The System Context lists the external entities that interact
+     * with the system and shows relevant structures between and
+     * inside the external entities.
+     */
 
-    //  External actors definition (System boundaries)
+    // External actors definition (System boundaries)
     part def WallSwitch {
         doc
         /* Controls the controller. */
     }
 
-    part def ExternalSystem {
+    part def HomeAutomationSystem {
         doc
-        /* Controls the controller. */
+        /* Remotely controls the controller. */
     }
 
-    part def PowerSource {
+    part def PowerSupply {
         doc
         /* Delivers power to the controller. */
     }
 
-    part def WindowShutter {
+    part def WindowRollerShutter {
         doc
         /* Covers the window. */
     }
 
     // Context diagram
     part def SystemContext {
-
         part shutterController : ShutterController;
-        
+
         /* External actors */
         part wallSwitch : WallSwitch;
-        part externalSystem : ExternalSystem;        
-        part powerSource : PowerSource;
-        part windowShutter : WindowShutter;
+        part homeAutomationSystem : HomeAutomationSystem;
+        part powerSupply : PowerSupply;
+        part windowRollerShutter : WindowRollerShutter;
 
         /* Stakeholders */
         part user : Stakeholders::User;
         part manufacturer : Stakeholders::Manufacturer;
         part installer : Stakeholders::Installer;
 
-        doc /* Stakeholders relationships. */
+        /* Stakeholders relationships. */
         connect user to wallSwitch;
+        connect user to homeAutomationSystem;
         connect manufacturer to shutterController;
         connect installer to shutterController;
-        connect installer to wallSwitch;
-        connect installer to windowShutter;
 
         /* Subsystems connection. */
-        connect wallSwitch to shutterController.localInterface;
-        connect externalSystem to shutterController.remoteInterface;
-        connect powerSource to shutterController.powerSupply;
-        connect shutterController.motorDriver to windowShutter;
+        connect wallSwitch to shutterController;
+        connect homeAutomationSystem to shutterController;
+        connect powerSupply to shutterController;
+        connect shutterController to windowRollerShutter;
     }
-
-}
+} // package SystemContext

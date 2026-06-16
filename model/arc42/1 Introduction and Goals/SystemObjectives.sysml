@@ -1,6 +1,10 @@
 package SystemObjectives {
-    private import SystemIdea::*;
     private import Requirements::*;
+
+    comment
+    /* The System Objectives represent the main objectives of the
+     * vendor or owner of the system.
+     */
 
     requirement affordability {
         subject controller : BaseArchitecture::ShutterController;

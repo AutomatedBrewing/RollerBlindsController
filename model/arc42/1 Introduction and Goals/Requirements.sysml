@@ -1,8 +1,6 @@
 package L0_Requirements {
     private import Stakeholders::*;
     private import BaseArchitecture::*;
-    private import DerivationConnections::*;
-    private import SystemObjectives::*;
 
     requirement Functional {
         requirement controlRollerShutter {

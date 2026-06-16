@@ -1,7 +1,7 @@
 package L0_Structure {
     private import ISQ::voltage;
     private import SI::V;
-    private import ContextAndScope::*;
+    //private import ContextAndScope::*;
 
     /* CONNECTIONS */
 

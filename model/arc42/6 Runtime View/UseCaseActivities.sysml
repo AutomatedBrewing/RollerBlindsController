@@ -1,4 +1,10 @@
 package UseCaseActivities {
+    /* The Use Case Activities specify the functional decomposition
+     * of the System Use Cases and, thus, the overall system in the
+     * problem space. They define the sequence of execution and
+     * object flow between the system functions.
+     */
+
     enum def MovementDirection {
         enum up;
         enum down;
@@ -101,15 +107,13 @@ package UseCaseActivities {
         then action assembleWallswitch;
     }
 
-    action def ConfigureController
-    {
+    action def ConfigureController {
         first start;
         then action moveShutterToClosePosition;
         then action activateConfigurationMode;
-        then fork
-        {
+        then fork {
             perform action openShutterManually : OpenShutterManually;
-                then finish;
+            then finish;
 
             action countActionTime;
         }
@@ -128,5 +132,4 @@ package UseCaseActivities {
     /* Installation */
     action installController : InstallController;
     action configureController : ConfigureController;
-
 } // package UseCaseActivities

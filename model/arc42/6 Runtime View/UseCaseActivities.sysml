@@ -1,6 +1,4 @@
 package UseCaseActivities {
-
-    
     enum def MovementDirection {
         enum up;
         enum down;
@@ -92,4 +90,43 @@ package UseCaseActivities {
             accept stopRequest : StopRequest;
         }
     }
+
+    /* INSTALLATION */
+    action def InstallController {
+        first start;
+        then action turnOffPowerSupplyForShutters;
+        then action disassembleWallswitch;
+        then action connectController;
+        then action verifyWorking;
+        then action assembleWallswitch;
+    }
+
+    action def ConfigureController
+    {
+        first start;
+        then action moveShutterToClosePosition;
+        then action activateConfigurationMode;
+        then fork
+        {
+            perform action openShutterManually : OpenShutterManually;
+                then finish;
+
+            action countActionTime;
+        }
+        join finish;
+        then action saveCountedTime;
+        then action exitConfigurationMode;
+    }
+
+    /* Usages */
+    /* Normal operation */
+    action openShutterAutomatically : OpenShutterAutomatically;
+    action closeShutterAutomatically : CloseShutterAutomatically;
+    action openShutterManually : OpenShutterManually;
+    action closeShutterManually : CloseShutterManually;
+
+    /* Installation */
+    action installController : InstallController;
+    action configureController : ConfigureController;
+
 } // package UseCaseActivities

@@ -37,4 +37,17 @@ package Tracebility
     connection : Derivation connect L0_Requirements::Quality::safety to L0_Constraints::Electrical::inputIsolation;
     connection : Derivation connect SystemObjectives::rollerShutterCompatibility to L0_Constraints::Architectural::noPositionFeedback;
     connection : Derivation connect SystemObjectives::rollerShutterCompatibility to L0_Constraints::Architectural::timeBasedOperation;
+
+
+    /* Use case activities are derived from Use Cases. */
+    connection : Derivation connect SystemUseCases::openRollerShutter to UseCaseActivities::openShutterAutomatically;
+    connection : Derivation connect SystemUseCases::closeRollerShutter to UseCaseActivities::closeShutterAutomatically;
+    connection : Derivation connect SystemUseCases::positionRollerShutter to UseCaseActivities::openShutterManually;
+    connection : Derivation connect SystemUseCases::positionRollerShutter to UseCaseActivities::closeShutterManually;
+    connection : Derivation connect SystemUseCases::stopRollerShutterMovement to UseCaseActivities::openShutterAutomatically;
+    connection : Derivation connect SystemUseCases::stopRollerShutterMovement to UseCaseActivities::closeShutterAutomatically;
+    connection : Derivation connect SystemUseCases::stopRollerShutterMovement to UseCaseActivities::openShutterManually;
+    connection : Derivation connect SystemUseCases::stopRollerShutterMovement to UseCaseActivities::closeShutterManually;
+    connection : Derivation connect SystemUseCases::installController to UseCaseActivities::installController;
+    connection : Derivation connect SystemUseCases::configureController to UseCaseActivities::configureController;
 }

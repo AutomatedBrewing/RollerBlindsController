@@ -8,6 +8,7 @@ package UseCaseActivities {
     enum def MovementDirection {
         enum up;
         enum down;
+        enum none;
     }
 
     enum def MovementMode {
@@ -21,7 +22,16 @@ package UseCaseActivities {
         attribute mode : MovementMode;
     }
 
-    item def StopRequest;
+    enum def StopReason
+    {
+        enum timeout;
+        enum userRequest;
+    }
+
+    item def StopRequest
+    {
+        attribute reason : StopReason;
+    }
 
     /* ------ Actions */
     action def StartShutterMovement {

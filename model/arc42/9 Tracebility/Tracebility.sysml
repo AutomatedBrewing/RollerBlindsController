@@ -50,4 +50,7 @@ package Tracebility
     connection : Derivation connect SystemUseCases::stopRollerShutterMovement to UseCaseActivities::closeShutterManually;
     connection : Derivation connect SystemUseCases::installController to UseCaseActivities::installController;
     connection : Derivation connect SystemUseCases::configureController to UseCaseActivities::configureController;
+
+    /* Functional architecture is derived from UseCaseActivities. */
+
 }

@@ -1,4 +1,21 @@
 package UseCaseActivities {
+    private import UseCaseActivities::*;
+    private import BaseArchitecture::ShutterController;
+    private import ScalarValues::Boolean;
+
+    /* The Functional Architecture strengthens the functional aspect
+     * and is a technology-independent functional description of the
+     * system.
+     *      The functional architecture view of a completed system architecture should, at minimum, define the following:
+     *
+     * - the functional capabilities that the system uses to fulfill mission objectives and meet stakeholder needs;
+     * - the required inputs and outputs for those system functions;
+     * - the steps through which the system will transform provided inputs into the desired outputs;
+     * - the grouping of those steps into independently executable sub-functions, if sub-functions are being employed, with corresponding definitions of the inputs and outputs for those sub-functions;
+     * - the variations in the inputs, outputs, and execution of the system's function/sub-functions for each system mode, if the system has multiple modes; and
+     * - the internal and external interfaces enabling input flow and output flow for each defined function, sub-function, and auxiliary function.
+     */
+
     /* The Use Case Activities specify the functional decomposition
      * of the System Use Cases and, thus, the overall system in the
      * problem space. They define the sequence of execution and
@@ -16,93 +33,155 @@ package UseCaseActivities {
         enum manual;
     }
 
-    /* ------ Requests */
+    enum def StopReason {
+        enum timeout;
+        enum userRequest;
+    }
+
+    item def StopRequest {
+        attribute reason : StopReason;
+    }
+
+    item def ControlCommand {
+        attribute direction : MovementDirection;
+        attribute mode : MovementMode;
+    }
+
     item def MovementRequest {
         attribute direction : MovementDirection;
         attribute mode : MovementMode;
     }
 
-    enum def StopReason
-    {
-        enum timeout;
-        enum userRequest;
+    item def MotorState {
+        attribute direction : MovementDirection;
+        attribute enable : Boolean;
     }
 
-    item def StopRequest
-    {
-        attribute reason : StopReason;
+    item def ShutterState {
+        attribute moving : Boolean;
+        attribute direction : MovementDirection;
     }
 
-    /* ------ Actions */
+    action def ReceiveControlRequest {
+        accept userWish : ControlCommand via BaseArchitecture::ShutterController::localInterface;
+        accept userWish : ControlCommand via BaseArchitecture::ShutterController::remoteInterface;
+        out userWish;
+    }
+
+    action def DetermineMovementRequest {
+        in userWish : ControlCommand;
+        out request : MovementRequest;
+    }
+
     action def StartShutterMovement {
         in request : MovementRequest;
+        out motorState : MotorState;
+        out shutterState : ShutterState;
+
+        assign shutterState.moving := true;
+        assign shutterState.direction := request.direction;
     }
 
-    action def WaitForStopCondition {
+    action def MonitorStopCondition {
+        in request : MovementRequest;
         in attribute timeout subsets ISQ::duration;
-        then fork {
-            accept after timeout;
-            then finish;
+        out stopRequest : StopRequest;
 
-            accept stopRequest : StopRequest;
-            then finish;
+        fork {
+            action listenForStopCommand {
+                accept stopReq : ControlCommand;
+                then assign stopRequest.reason := StopReason::userRequest;
+            }
+
+            action monitorTimeout {
+                accept after timeout;
+                assign stopRequest.reason := StopReason::timeout;
+            }
         }
-
-        join finish;
     }
 
-    action def StopShutterMovement;
+    action def MonitorUserInterruption {
+        in request : MovementRequest;
+        out stopRequest : StopRequest;
+        accept stopReq : ControlCommand;
+        then assign stopRequest.reason := StopReason::userRequest;
+    }
 
-    action def ShutterMovementProcess {
-        in movementRequest : MovementRequest;
-        in attribute movementTimeout subsets ISQ::duration;
+    action def StopShutterMovement {
+        in stopRequest : StopRequest;
+        out motorState : MotorState;
+        out shutterState : ShutterState; // Zmiana stanu na "not moving"
 
+        assign shutterState.moving := false;
+        assign shutterState.direction := MovementDirection::none;
+    }
+
+    action def ControlRollerShutter {
+        in attribute timeout subsets ISQ::duration;
+        out motorState : MotorState;
+        out shutterState : ShutterState;
+
+        /* Order */
         first start;
-        then action startShutterMovement : StartShutterMovement {
-            in redefines request = movementRequest;
-        }
-        then action waitForStopCondition : WaitForStopCondition {
-            in attribute redefines timeout = movementTimeout;
-        }
+        then action receiveControlRequest : ReceiveControlRequest;
+        then action determineMovementRequest : DetermineMovementRequest;
+        then action startShutterMovement : StartShutterMovement;
+        then action monitorStopCondition : MonitorStopCondition;
         then action stopShutterMovement : StopShutterMovement;
+
+        /* Flows */
+        flow from receiveControlRequest.userWish to determineMovementRequest.userWish;
+        flow from determineMovementRequest.request to startShutterMovement.request;
+        flow from timeout to monitorStopCondition.timeout;
+        flow from determineMovementRequest.request to monitorStopCondition.request;
+
+        /* Control flow */
+        flow from monitorStopCondition.stopRequest to stopShutterMovement.stopRequest;
+
+        /* Shutter and motor states are exported out of the system. */
+        flow from startShutterMovement.motorState to motorState;
+        flow from stopShutterMovement.motorState to motorState;
+
+        flow from startShutterMovement.shutterState to shutterState;
+        flow from stopShutterMovement.shutterState to shutterState;
     }
 
-    action def OpenShutterAutomatically specializes ShutterMovementProcess {
+    action def OpenShutterAutomatically specializes ControlRollerShutter {
         item request : MovementRequest {
             redefines direction = MovementDirection::up;
             redefines mode = MovementMode::automatic;
         }
-        in redefines movementRequest = request;
+        send request to receiveControlRequest;
     }
 
-    action def CloseShutterAutomatically specializes ShutterMovementProcess {
+    action def CloseShutterAutomatically specializes ControlRollerShutter {
         item request : MovementRequest {
             redefines direction = MovementDirection::down;
             redefines mode = MovementMode::automatic;
         }
-        in redefines movementRequest = request;
+        send request to receiveControlRequest;
     }
 
-    action def OpenShutterManually specializes ShutterMovementProcess {
+    action def OpenShutterManually specializes ControlRollerShutter {
         item request : MovementRequest {
             redefines direction = MovementDirection::up;
             redefines mode = MovementMode::manual;
         }
-        in redefines movementRequest = request;
+        send request to receiveControlRequest;
 
-        action waitForStopCondition redefines waitForStopCondition {
+        action waitForStopCondition : MonitorUserInterruption redefines monitorStopCondition {
             accept stopRequest : StopRequest;
         }
     }
 
-    action def CloseShutterManually specializes ShutterMovementProcess {
+    action def CloseShutterManually specializes ControlRollerShutter {
         item request : MovementRequest {
             redefines direction = MovementDirection::down;
             redefines mode = MovementMode::manual;
         }
-        in redefines movementRequest = request;
+        send request to receiveControlRequest;
 
-        action waitForStopCondition redefines waitForStopCondition {
+        action waitForStopCondition : MonitorUserInterruption redefines monitorStopCondition {
             accept stopRequest : StopRequest;
         }
     }

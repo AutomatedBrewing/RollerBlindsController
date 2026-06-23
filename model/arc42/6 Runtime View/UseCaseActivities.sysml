@@ -3,19 +3,6 @@ package UseCaseActivities {
     private import BaseArchitecture::ShutterController;
     private import ScalarValues::Boolean;
 
-    /* The Functional Architecture strengthens the functional aspect
-     * and is a technology-independent functional description of the
-     * system.
-     *      The functional architecture view of a completed system architecture should, at minimum, define the following:
-     *
-     * - the functional capabilities that the system uses to fulfill mission objectives and meet stakeholder needs;
-     * - the required inputs and outputs for those system functions;
-     * - the steps through which the system will transform provided inputs into the desired outputs;
-     * - the grouping of those steps into independently executable sub-functions, if sub-functions are being employed, with corresponding definitions of the inputs and outputs for those sub-functions;
-     * - the variations in the inputs, outputs, and execution of the system's function/sub-functions for each system mode, if the system has multiple modes; and
-     * - the internal and external interfaces enabling input flow and output flow for each defined function, sub-function, and auxiliary function.
-     */
-
     /* The Use Case Activities specify the functional decomposition
      * of the System Use Cases and, thus, the overall system in the
      * problem space. They define the sequence of execution and
@@ -187,28 +174,46 @@ package UseCaseActivities {
     }
 
     /* INSTALLATION */
+    action def TurnOffPowerSupplyForShutters;
+    action def DisassembleWallswitch;
+    action def ConnectController;
+    action def VerifyWorking;
+    action def AssembleWallswitch;
+
     action def InstallController {
         first start;
-        then action turnOffPowerSupplyForShutters;
-        then action disassembleWallswitch;
-        then action connectController;
-        then action verifyWorking;
-        then action assembleWallswitch;
+        then action turnOffPowerSupplyForShutters : TurnOffPowerSupplyForShutters;
+        then action disassembleWallswitch : DisassembleWallswitch;
+        then action connectController : ConnectController;
+        then action verifyWorking : VerifyWorking;
+        then action assembleWallswitch : AssembleWallswitch;
     }
+
+    action def MoveShutterToClosePosition;
+    action def ActivateConfigurationMode;
+    action def NotifyUserAboutActivationOfConfigurationMode;
+    action def CountActionTime;
+    action def SaveCountedTime;
+    action def ExitConfigurationMode;
+    action def NotifyUserAboutDeactivationOfConfigurationMode;
 
     action def ConfigureController {
         first start;
-        then action moveShutterToClosePosition;
-        then action activateConfigurationMode;
+        then action moveShutterToClosePosition : MoveShutterToClosePosition;
+        then action activateConfigurationMode : ActivateConfigurationMode;
+        then action notifyUserAboutActivationOfConfiugurationMode
+            : NotifyUserAboutActivationOfConfigurationMode;
         then fork {
             perform action openShutterManually : OpenShutterManually;
             then finish;
 
-            action countActionTime;
+            action countActionTime : CountActionTime;
         }
         join finish;
-        then action saveCountedTime;
-        then action exitConfigurationMode;
+        then action saveCountedTime : SaveCountedTime;
+        then action exitConfigurationMode : ExitConfigurationMode;
+        then action notifyUserAboutDeactivationOfConfiugurationMode
+            : NotifyUserAboutDeactivationOfConfigurationMode;
     }
 
     /* Usages */

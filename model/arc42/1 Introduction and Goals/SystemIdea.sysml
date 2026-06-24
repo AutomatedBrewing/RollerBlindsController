@@ -6,7 +6,7 @@ package SystemIdea {
      * of the system.
      */
      
-    requirement systemIdea {
+    concern systemIdea {
         doc
         /* The Window Roller Shutter Controller (WRSC) is a compact control system
          * that enables convenient opening and closing of window roller shutters

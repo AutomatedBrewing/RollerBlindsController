@@ -1,6 +1,7 @@
 package SystemUseCases {
     private import BaseArchitecture::*;
     private import Stakeholders::*;
+    private import SystemContext::**;
     private import L0_Requirements::*;
 
     /* The System Use Cases are the services and the essential ends
@@ -8,51 +9,16 @@ package SystemUseCases {
      * these services.
      */
 
-    use case openRollerShutter {
+
+    use case controlRollerShutter {
         subject controller : BaseArchitecture::ShutterController;
         actor user : Stakeholders::User;
         actor homeAutomationSystem : SystemContext::HomeAutomationSystem;
 
         objective {
             doc
-            /* Move the roller shutter towards the open position. */
+            /* Change shutter state: open, close, move to position or stop current movement.  */
             require L0_Requirements::Functional.controlRollerShutter;
-        }
-    }
-
-    use case closeRollerShutter {
-        subject controller : BaseArchitecture::ShutterController;
-        actor user : Stakeholders::User;
-        actor homeAutomationSystem : SystemContext::HomeAutomationSystem;
-
-        objective {
-            doc
-            /* Move the roller shutter towards the closed position. */
-            require L0_Requirements::Functional.controlRollerShutter;
-        }
-    }
-
-    use case positionRollerShutter {
-        subject controller : BaseArchitecture::ShutterController;
-        actor user : Stakeholders::User;
-        actor homeAutomationSystem : SystemContext::HomeAutomationSystem;
-
-        objective {
-            doc
-            /* Move the roller shutter to a desired intermediate position. */
-            require L0_Requirements::Functional.manualPositioning;
-        }
-    }
-
-    use case stopRollerShutterMovement {
-        subject controller : BaseArchitecture::ShutterController;
-        actor user : Stakeholders::User;
-        actor homeAutomationSystem : SystemContext::HomeAutomationSystem;
-
-        objective {
-            doc
-            /* Stop the current roller shutter movement. */
-            require L0_Requirements::Functional.stopShutterMovement;
         }
     }
 

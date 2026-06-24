@@ -1,7 +1,7 @@
 package UseCaseActivities {
-    private import UseCaseActivities::*;
     private import BaseArchitecture::ShutterController;
     private import ScalarValues::Boolean;
+    private import ISQ::*; // Import międzynarodowego systemu ilości (dla czasu/duration)
 
     /* The Use Case Activities specify the functional decomposition
      * of the System Use Cases and, thus, the overall system in the
@@ -9,6 +9,9 @@ package UseCaseActivities {
      * object flow between the system functions.
      */
 
+    // =========================================================================
+    // Definicje domenowe (Słownik danych - Problem Space)
+    // =========================================================================
     enum def MovementDirection {
         enum up;
         enum down;
@@ -49,9 +52,12 @@ package UseCaseActivities {
         attribute direction : MovementDirection;
     }
 
+    // =========================================================================
+    // Definicje abstrakcyjnych akcji (Bloki funkcjonalne czarnej skrzynki)
+    // =========================================================================
     action def ReceiveControlRequest {
         accept userWish : ControlCommand via BaseArchitecture::ShutterController::localInterface;
-        accept userWish : ControlCommand via BaseArchitecture::ShutterController::remoteInterface;
+        accept remoteWish : ControlCommand via BaseArchitecture::ShutterController::remoteInterface;
         out userWish;
     }
 
@@ -89,7 +95,9 @@ package UseCaseActivities {
 
     action def MonitorUserInterruption {
         in request : MovementRequest;
+        in attribute timeout subsets ISQ::duration;
         out stopRequest : StopRequest;
+
         accept stopReq : ControlCommand;
         then assign stopRequest.reason := StopReason::userRequest;
     }
@@ -97,18 +105,21 @@ package UseCaseActivities {
     action def StopShutterMovement {
         in stopRequest : StopRequest;
         out motorState : MotorState;
-        out shutterState : ShutterState; // Zmiana stanu na "not moving"
+        out shutterState : ShutterState;
 
         assign shutterState.moving := false;
         assign shutterState.direction := MovementDirection::none;
     }
 
+    // =========================================================================
+    // Base Use Case Activity
+    // =========================================================================
     action def ControlRollerShutter {
         in attribute timeout subsets ISQ::duration;
         out motorState : MotorState;
         out shutterState : ShutterState;
 
-        /* Order */
+        /* Execution sequence. */
         first start;
         then action receiveControlRequest : ReceiveControlRequest;
         then action determineMovementRequest : DetermineMovementRequest;
@@ -116,64 +127,66 @@ package UseCaseActivities {
         then action monitorStopCondition : MonitorStopCondition;
         then action stopShutterMovement : StopShutterMovement;
 
-        /* Flows */
+        /* Object Flows */
         flow from receiveControlRequest.userWish to determineMovementRequest.userWish;
         flow from determineMovementRequest.request to startShutterMovement.request;
         flow from timeout to monitorStopCondition.timeout;
         flow from determineMovementRequest.request to monitorStopCondition.request;
-
-        /* Control flow */
         flow from monitorStopCondition.stopRequest to stopShutterMovement.stopRequest;
 
-        /* Shutter and motor states are exported out of the system. */
+        /* Mapowanie stanów na wyjście systemu */
         flow from startShutterMovement.motorState to motorState;
         flow from stopShutterMovement.motorState to motorState;
-
         flow from startShutterMovement.shutterState to shutterState;
         flow from stopShutterMovement.shutterState to shutterState;
     }
 
+    // =========================================================================
+    // Processes specialization
+    // =========================================================================
+
     action def OpenShutterAutomatically specializes ControlRollerShutter {
-        item request : MovementRequest {
-            redefines direction = MovementDirection::up;
-            redefines mode = MovementMode::automatic;
+        action redefines receiveControlRequest {
+            out redefines userWish : ControlCommand {
+                attribute redefines direction = MovementDirection::up;
+                attribute redefines mode = MovementMode::automatic;
+            }
         }
-        send request to receiveControlRequest;
     }
 
     action def CloseShutterAutomatically specializes ControlRollerShutter {
-        item request : MovementRequest {
-            redefines direction = MovementDirection::down;
-            redefines mode = MovementMode::automatic;
+        action redefines receiveControlRequest {
+            out redefines userWish : ControlCommand {
+                attribute redefines direction = MovementDirection::down;
+                attribute redefines mode = MovementMode::automatic;
+            }
         }
-        send request to receiveControlRequest;
     }
 
     action def OpenShutterManually specializes ControlRollerShutter {
-        item request : MovementRequest {
-            redefines direction = MovementDirection::up;
-            redefines mode = MovementMode::manual;
+        action redefines receiveControlRequest {
+            out redefines userWish : ControlCommand {
+                attribute redefines direction = MovementDirection::up;
+                attribute redefines mode = MovementMode::manual;
+            }
         }
-        send request to receiveControlRequest;
 
-        action waitForStopCondition : MonitorUserInterruption redefines monitorStopCondition {
-            accept stopRequest : StopRequest;
-        }
+        action waitForStopCondition : MonitorUserInterruption redefines monitorStopCondition;
     }
 
     action def CloseShutterManually specializes ControlRollerShutter {
-        item request : MovementRequest {
-            redefines direction = MovementDirection::down;
-            redefines mode = MovementMode::manual;
+        action redefines receiveControlRequest {
+            out redefines userWish : ControlCommand {
+                attribute redefines direction = MovementDirection::down;
+                attribute redefines mode = MovementMode::manual;
+            }
         }
-        send request to receiveControlRequest;
-
-        action waitForStopCondition : MonitorUserInterruption redefines monitorStopCondition {
-            accept stopRequest : StopRequest;
-        }
+        action waitForStopCondition : MonitorUserInterruption redefines monitorStopCondition;
     }
 
-    /* INSTALLATION */
+    // =========================================================================
+    // Installation and configuration.
+    // =========================================================================
     action def TurnOffPowerSupplyForShutters;
     action def DisassembleWallswitch;
     action def ConnectController;
@@ -192,38 +205,51 @@ package UseCaseActivities {
     action def MoveShutterToClosePosition;
     action def ActivateConfigurationMode;
     action def NotifyUserAboutActivationOfConfigurationMode;
-    action def CountActionTime;
-    action def SaveCountedTime;
+
+    action def CountActionTime {
+        in shutterStateIn : ShutterState;
+        out measuredTime subsets ISQ::duration;
+    }
+
+    action def SaveCountedTime {
+        in timeToSave subsets ISQ::duration;
+    }
+
     action def ExitConfigurationMode;
     action def NotifyUserAboutDeactivationOfConfigurationMode;
 
     action def ConfigureController {
+        action runMovement : OpenShutterManually;
+        action countActionTime : CountActionTime;
+
         first start;
         then action moveShutterToClosePosition : MoveShutterToClosePosition;
         then action activateConfigurationMode : ActivateConfigurationMode;
         then action notifyUserAboutActivationOfConfiugurationMode
             : NotifyUserAboutActivationOfConfigurationMode;
-        then fork {
-            perform action openShutterManually : OpenShutterManually;
-            then finish;
 
-            action countActionTime : CountActionTime;
+        then fork {
+            action runMovement;
+            action countActionTime;
         }
-        join finish;
-        then action saveCountedTime : SaveCountedTime;
-        then action exitConfigurationMode : ExitConfigurationMode;
-        then action notifyUserAboutDeactivationOfConfiugurationMode
-            : NotifyUserAboutDeactivationOfConfigurationMode;
+
+            then action saveCountedTime : SaveCountedTime;
+            then action exitConfigurationMode : ExitConfigurationMode;
+            then action notifyUserAboutDeactivationOfConfiugurationMode
+                : NotifyUserAboutDeactivationOfConfigurationMode;
+
+        /* Przepływy dla konfiguratora */
+        flow from runMovement.shutterState to countActionTime.shutterStateIn;
+        flow from countActionTime.measuredTime to saveCountedTime.timeToSave;
     }
 
-    /* Usages */
-    /* Normal operation */
+    // =========================================================================
+    // Action Usages
+    // =========================================================================
     action openShutterAutomatically : OpenShutterAutomatically;
     action closeShutterAutomatically : CloseShutterAutomatically;
     action openShutterManually : OpenShutterManually;
     action closeShutterManually : CloseShutterManually;
-
-    /* Installation */
     action installController : InstallController;
     action configureController : ConfigureController;
 } // package UseCaseActivities

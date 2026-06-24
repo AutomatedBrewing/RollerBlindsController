@@ -16,7 +16,7 @@ package BaseArchitecture {
         /* Switches motor power circuits to drive the shutter upwards or downwards. */
     }
 
-    part def WallswichInterface {
+    part def WallSwitchInterface {
         doc
         /* Receives commands from a locally connected wall switch. */
     }
@@ -37,7 +37,7 @@ package BaseArchitecture {
 
         part controlLogic : ControlUnit;
         part motorDriver : MotorDriver;
-        part localInterface : WallswichInterface;
+        part localInterface : WallSwitchInterface;
         part remoteInterface : RemoteInterface;
         part powerSupply : PowerSupply;
 

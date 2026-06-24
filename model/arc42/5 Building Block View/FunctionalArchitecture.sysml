@@ -15,30 +15,45 @@ package FunctinalArchitecture {
      */
 
     part def RollerShutterControllerFunctions {
-        part requestAcquisition {
+        port requestInput {
+            in attribute request;
+        }
+
+        port shutterMotor {
+            out attribute isEnabled;
+            out attribute direction;
+        }
+
+        part requestAcquisitionFunctions {
+            port requestInput {
+                in attribute request;
+            }
+            port requestOutput {
+                out attribute request;
+            }
             perform action receiveRequest : ReceiveControlRequest;
             perform action receiveStop : MonitorUserInterruption;
         }
 
-        part controlLogic {
+        part controlLogicFunctions {
             perform action parseRequest : DetermineMovementRequest;
             perform action scheduleShutterMovement : ControlRollerShutter;
         }
 
-        part shutterControl {
+        part shutterControlFunctions {
             perform action startMovement : StartShutterMovement;
             perform action stoptMovement : StopShutterMovement;
         }
 
-        part timeCounting {
+        part timeCountingFunctions {
             perform action countTime : CountActionTime;
         }
 
-        part handleMemory {
+        part memoryFunctions {
             perform action saveTime : SaveCountedTime;
         }
 
-        part userNotification {
+        part userNotificationFunctions {
             perform action notifyUserAboutActivationOfConfiugurationMode
                 : NotifyUserAboutActivationOfConfigurationMode;
             perform action notifyUserAboutDeactivationOfConfiugurationMode

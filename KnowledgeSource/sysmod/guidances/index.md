@@ -1,0 +1,21 @@
+# SYSMOD Guidance
+
+* [How to Analyze the Problem](analyze-problem.md) - A step-by-step guide for analyzing and documenting the problem statement, including use of the Problem Statement model template and workshop tools for problem space exploration.
+* [How to Model Risks](model-risks.md) - A step-by-step guide for modeling risks in the SysML model using SYSMOD risk elements in a table view within the system model.
+* [How to Model Requirements](model-requirements.md) - A step-by-step guide for modeling requirements in the SysML model using SYSMOD requirement stereotypes, tables, and optional coverage of base architecture constraints.
+* [How to Model Stakeholders](model-stakeholders.md) - A step-by-step guide for modeling stakeholders in the SysML model using SYSMOD extendedStakeholder elements in a table view.
+* [How to Model the Base Architecture](model-base-architecture.md) - A step-by-step guide for modeling the Base Architecture in the SysML model using block definition and internal block diagrams with SYSMOD system stereotypes.
+* [How to Model the Domain Knowledge](model-domain-knowledge.md) - A step-by-step guide for modeling domain knowledge in the SysML model using SYSMOD domainBlock elements in block definition diagrams with value types and units.
+* [How to Model the Logical Architecture](model-logical-architecture.md) - A step-by-step guide for modeling the Logical Architecture in the SysML model using block definition and internal block diagrams with system and systemContext stereotypes.
+* [How to Model the Product Architecture](model-product-architecture.md) - A step-by-step guide for modeling the Product Architecture in the SysML model, similar to the Logical Architecture but with concrete specialization of architectural elements.
+* [How to Model the System Context](model-system-context.md) - A step-by-step guide for modeling the System Context in the SysML model using block definition and internal block diagrams with SYSMOD actor and systemContext stereotypes.
+* [How to Model the System Idea](model-system-idea.md) - A step-by-step guide for modeling the System Idea in the SysML model using the systemIdea property of the SYSMOD system stereotype.
+* [How to Model System Objectives](model-system-objectives.md) - A step-by-step guide for modeling the System Objectives in the SysML model using SYSMOD objective elements and relating them to stakeholders.
+* [How to Model System Processes](model-system-processes.md) - A step-by-step guide for modeling System Processes in the SysML model using SYSMOD systemProcess stereotype and activity or state machine diagrams.
+* [How to Model System States](model-system-states.md) - A step-by-step guide for modeling system states in the SysML model using SysML StateMachine and state machine diagrams with states, transitions, and use case activity effects.
+* [How to Model System Use Cases](model-system-use-cases.md) - A step-by-step guide for modeling System Use Cases in the SysML model using SYSMOD systemUseCase and continuousUseCase stereotypes in use case diagrams and tables.
+* [How to Model the Test Architecture](model-test-architecture.md) - A step-by-step guide for modeling the Test Architecture in the SysML model using block definition and internal block diagrams with SYSMOD system stereotypes and test context.
+* [How to Model Use Case Activities](model-use-case-activities.md) - A step-by-step guide for modeling Use Case Activities in the SysML model using activity diagrams with CallBehaviorActions, control flows, and object flows.
+* [How to Revise an Architecture with Scenarios](revise-architecture-scenarios.md) - A step-by-step guide for creating scenarios in the SysML model using SysML Interaction and sequence diagrams to validate architecture against use case activity paths.
+* [How to Set up an Initial Package Structure](setup-package-structure.md) - A step-by-step guide for creating the initial SysML model package structure that organizes system modeling aspects and scales to models of any size.
+* [How to Specify Test Cases](specify-test-cases.md) - A step-by-step guide for specifying test cases in the SysML model using SYSMOD systemTestCase and modelTestCase stereotypes with verify relationships to requirements.

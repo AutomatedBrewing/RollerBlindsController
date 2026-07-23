@@ -1,0 +1,12 @@
+# SysML v2 Libraries
+
+* [Analysis Domain Library](analysis-domain-library.md) - The Analysis Domain Library provides SysML v2 base types and metadata for trade-study analysis cases, sampled-function modeling, state-space representation, and analysis tool integration.
+* [Cause and Effect Library](cause-effect-library.md) - The Cause and Effect Library provides SysML v2 language-extension metadata and connection definitions for modeling multicausation relationships between occurrences.
+* [Geometry Domain Library](geometry-domain-library.md) - The Geometry Domain Library provides SysML v2 definitions for geometric shape items and spatially-extended physical items that act as three-dimensional spatial frames of reference.
+* [Kernel Data Type Library](kernel-data-type-library.md) - The Kernel Data Type Library defines the standard scalar, vector, and collection data types that underpin all typed values in KerML and SysML v2.
+* [Kernel Function Library](kernel-function-library.md) - The Kernel Function Library defines the standard built-in functions for all primitive and collection value types used across KerML and SysML v2.
+* [Kernel Semantic Library](kernel-semantic-library.md) - The Kernel Semantic Library defines the foundational semantic types and behavioral constructs of the KerML language upon which all SysML v2 models are built.
+* [Metadata Domain Library](metadata-domain-library.md) - The Metadata Domain Library provides standard metadata annotation definitions for model status tracking, risk assessment, image annotation, and parameter-of-interest designation in SysML v2 models.
+* [Quantities and Units Library](quantities-units-library.md) - The Quantities and Units Library provides SysML v2 definitions for physical quantities, measurement references, SI units, ISQ quantity kinds, and common unit systems aligned with ISO 80000 standards.
+* [Requirement Derivation Library](requirement-derivation-library.md) - The Requirement Derivation Library provides SysML v2 language-extension metadata and connection definitions for explicitly modeling how higher-level requirements are derived into lower-level requirements.
+* [Systems Library](systems-library.md) - The Systems Library defines the complete set of SysML v2 base types for structural, behavioral, constraint, requirement, flow, state, case, and view modeling constructs used in systems engineering.

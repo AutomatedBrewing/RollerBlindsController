@@ -2,11 +2,6 @@ package FunctionalArchitecture {
     private import DomainKnowledge::*;
     private import UseCaseActivities::*;
     private import ISQ::*;
-    // Import only the abstract root, NOT the wildcard: SystemArchitecture_Taxonomy
-    // also declares a same-named abstract header 'FunctionalArchitecture' (see
-    // that file's own header comment), which collides with this enclosing
-    // package's own name if wildcard-imported, breaking name resolution
-    // throughout this file (Syside reference-error fix).
     private import SystemArchitecture_Taxonomy::SystemArchitecture;
 
     /* The Functional Architecture provides a technology-independent functional
@@ -18,30 +13,6 @@ package FunctionalArchitecture {
      *
      * This artifact is the primary source for allocation to Logical Architecture
      * (SM-PRD-20) and Product Architecture (SM-PRD-21) components.
-     *
-     * FAS sub-function input matrix (UCA → FE mapping):
-     *   ReceiveControlRequest              → requestAcquisitionFunctions
-     *   DetermineMovementRequest           → controlLogicFunctions
-     *   MonitorStopCondition               → movementSupervisionFunctions (via SuperviseMovementStop)
-     *   MonitorUserInterruption            → movementSupervisionFunctions (via SuperviseMovementStop)
-     *   StartShutterMovement               → shutterControlFunctions
-     *   StopShutterMovement                → shutterControlFunctions
-     *   MoveShutterToClosePosition         → shutterControlFunctions
-     *   ActivateConfigurationMode          → configurationControlFunctions (via ActivateConfigurationModeFE)
-     *   ExitConfigurationMode              → configurationControlFunctions (via ExitConfigurationModeFE)
-     *   CountActionTime                    → timeCountingFunctions (via CountActionTimeFE)
-     *   SaveCountedTime                    → memoryFunctions
-     *   LoadTimingProfile                  → memoryFunctions
-     *   NotifyUser…ConfigurationMode (×2)  → userNotificationFunctions (via DispatchConfigModeNotification)
-     *   ControlRollerShutter (orchestrator)→ RollerShutterControllerFunctions (composite)
-     *
-     * NOTE: SuperviseMovementStop, DispatchConfigModeNotification,
-     * ActivateConfigurationModeFE and ExitConfigurationModeFE are FA-layer
-     * action defs (see "FA-level action def refinement" below) introduced to
-     * close formal-review findings F2 (UC_03 notification wiring), F4
-     * (mode-based monitor dispatch) and F5 (timeout reduction) — see
-     * model_issues.md. Each still traces to its underlying UCA action(s) via
-     * `specializes`/composition, preserving Traceability Rule 1.
      */
 
     // =========================================================================
@@ -50,55 +21,47 @@ package FunctionalArchitecture {
     // =========================================================================
 
     port def ControlCommandPort {
-        doc /* Carries a typed ControlCommand from request-acquisition to control-logic. */
+        doc
+        /* Carries a typed ControlCommand from request-acquisition to control-logic. */
         out item command : ControlCommand;
     }
 
     port def MovementRequestPort {
-        doc /* Carries a validated MovementRequest from control-logic to downstream FEs. */
+        doc
+        /* Carries a validated MovementRequest from control-logic to downstream FEs. */
         out item request : MovementRequest;
     }
 
     port def StopRequestPort {
-        doc /* Carries a StopRequest from movement-supervision to the motor-stop function. */
+        doc
+        /* Carries a StopRequest from movement-supervision to the motor-stop function. */
         out item stopRequest : StopRequest;
     }
 
     port def MotorStatePort {
-        doc /* Carries MotorState to the system output boundary (shutter motor relay). */
+        doc
+        /* Carries MotorState to the system output boundary (shutter motor relay). */
         out item motorState : MotorState;
     }
 
     port def ShutterStatePort {
-        doc /* Carries observable ShutterState for internal FA use (time-counting, UC_03). */
+        doc
+        /* Carries observable ShutterState for internal FA use (time-counting, UC_03). */
         out item shutterState : ShutterState;
     }
 
     port def TravelTimePort {
-        doc /* Carries a TravelTime measurement from time-counting to memory functions. */
+        doc
+        /* Carries a TravelTime measurement from time-counting to memory functions. */
         out item travelTime : TravelTime;
-    }
-
-    port def TimingProfilePort {
-        doc /* Carries the stored TimingProfile from memory to movement-supervision. */
-        out item profile : TimingProfile;
     }
 
     port def ConfigModeEventPort {
         doc
         /* Carries a typed ConfigModeEvent from configuration-control functions
-         * to user-notification functions (F2 fix, see model_issues.md). */
+         * to user-notification functions (F2 fix, see model_issues.md).
+         */
         out item modeEvent : ConfigModeEvent;
-    }
-
-    port def ConflictEventPort {
-        doc
-        /* Carries a typed ConflictEvent from control-logic functions to
-         * user-notification functions, so a suppressed simultaneous UP+DOWN
-         * command is surfaced as an observable user indication rather than
-         * silent inaction. Added to close Major finding M2 (system model
-         * review corrective pass; realizes REQ-S-02, conflictIndication). */
-        out item conflictEvent : ConflictEvent;
     }
 
     // -------------------------------------------------------------------------
@@ -110,15 +73,19 @@ package FunctionalArchitecture {
     // -------------------------------------------------------------------------
 
     port def DiagnosticRequestPort {
-        doc /* Carries a typed DiagnosticRequest from the system boundary
-             * (technician-triggered field diagnosis) to diagnosticsFunctions. */
+        doc
+        /* Carries a typed DiagnosticRequest from the system boundary
+         * (technician-triggered field diagnosis) to diagnosticsFunctions.
+         */
         out item request : DiagnosticRequest;
     }
 
     port def DiagnosticResultPort {
-        doc /* Carries a typed DiagnosticResult from diagnosticsFunctions to
-             * the system boundary, giving the field-diagnosis outcome an
-             * observable, testable interface (REQ-Q-04/REQ-Q-05). */
+        doc
+        /* Carries a typed DiagnosticResult from diagnosticsFunctions to
+         * the system boundary, giving the field-diagnosis outcome an
+         * observable, testable interface (REQ-Q-04/REQ-Q-05).
+         */
         out item result : DiagnosticResult;
     }
 
@@ -128,7 +95,8 @@ package FunctionalArchitecture {
          * userNotificationFunctions, so a classified fault is surfaced as an
          * observable user indication (REQ-Q-04). Mirrors ConflictEventPort
          * exactly. Closes CRIT-2: this is the FA-layer precursor of
-         * ProductInterfaces::FaultIndicationPort. */
+         * ProductInterfaces::FaultIndicationPort.
+         */
         out item faultEvent : FaultIndicationEvent;
     }
 
@@ -137,134 +105,63 @@ package FunctionalArchitecture {
     // =========================================================================
 
     action def CountActionTimeFE specializes CountActionTime {
-        doc
-        /* FA-layer refinement of CountActionTime (delegated from UCActivities).
-         * Closes formal-review finding F11 (see model_issues.md): replaces the
-         * previous doc-only stub with an explicit decision structure. Each
-         * invocation classifies one incoming ShutterState value as either the
-         * interval-start marker (moving becomes true) or the interval-end
-         * marker (moving becomes false) for one movement direction; the
-         * containing timeCountingFunctions element (see below) invokes this
-         * action once per ShutterState event on its shutterStateIn port, and
-         * accumulates the two markers to derive measuredTime. The actual
-         * timestamp/duration arithmetic between the two markers is a
-         * timing-platform capability allocated during Logical/Product
-         * Architecture (SM-PRD-20/21) — keeping this FA-level action
-         * technology-independent per SysMod abstraction-level guidance. */
 
         action recordIntervalStart {
-            doc /* shutterStateIn.moving == true: travel interval begins. */
+            doc
+            /* shutterStateIn.moving == true: travel interval begins. */
         }
         action recordIntervalEnd {
-            doc /* shutterStateIn.moving == false: travel interval ends;
-                  * measuredTime is derived from the elapsed interval. */
+            doc
+            /* shutterStateIn.moving == false: travel interval ends;
+             * measuredTime is derived from the elapsed interval.
+             */
         }
 
         first start;
         decide;
-        if shutterStateIn.moving == true then recordIntervalStart;
-        else recordIntervalEnd;
+            if shutterStateIn.moving == true then recordIntervalStart;
+            else recordIntervalEnd;
     }
 
     action def ActivateConfigurationModeFE specializes ActivateConfigurationMode {
-        doc
-        /* FA-layer refinement adding the typed ConfigModeEvent output needed to
-         * close formal-review finding F2 (see model_issues.md): the bare
-         * UCA-level ActivateConfigurationMode declares no output, so this
-         * refinement adds one to drive userNotificationFunctions. */
-
         out item modeEvent : ConfigModeEvent;
         assign modeEvent.kind := ConfigModeTransition::activated;
     }
 
     action def ExitConfigurationModeFE specializes ExitConfigurationMode {
-        doc
-        /* FA-layer refinement adding the typed ConfigModeEvent output needed to
-         * close formal-review finding F2 (see model_issues.md). */
-
         out item modeEvent : ConfigModeEvent;
         assign modeEvent.kind := ConfigModeTransition::deactivated;
     }
 
-    action def DetermineMovementRequestFE specializes DetermineMovementRequest {
-        doc
-        /* FA-layer refinement adding the typed ConflictEvent output needed to
-         * close Major finding M2 (system model review corrective pass; see
-         * model_issues.md). Does not alter DetermineMovementRequest's existing
-         * UCA-level signature/behavior (UC_01e conflict suppression is
-         * unchanged); this refinement only adds the missing notification
-         * signal so the suppressed state becomes observable downstream,
-         * preserving Traceability Rule 1. */
-
-        // ConflictEvent carries no attributes (pure occurrence signal, see
-        // DomainKnowledge) so no 'assign' is needed -- its mere production is
-        // the signal.
-        out item conflictEvent : ConflictEvent;
-    }
-
     action def DispatchConfigModeNotification {
-        doc
-        /* FA-layer dispatcher closing formal-review finding F2 (see
-         * model_issues.md): routes an incoming ConfigModeEvent to the UCA
-         * notification action matching its transition (activated →
-         * NotifyUserAboutActivationOfConfigurationMode; deactivated →
-         * NotifyUserAboutDeactivationOfConfigurationMode). */
-
         in item modeEvent : ConfigModeEvent;
 
-        action notifyConfigActivation   : NotifyUserAboutActivationOfConfigurationMode;
+        action notifyConfigActivation : NotifyUserAboutActivationOfConfigurationMode;
         action notifyConfigDeactivation : NotifyUserAboutDeactivationOfConfigurationMode;
 
         first start;
         decide;
-        if modeEvent.kind == ConfigModeTransition::activated then notifyConfigActivation;
-        else notifyConfigDeactivation;
+            if modeEvent.kind == ConfigModeTransition::activated then notifyConfigActivation;
+            else notifyConfigDeactivation;
     }
 
     action def SuperviseMovementStop {
-        doc
-        /* FA-layer supervisory action closing formal-review findings F4
-         * (mode-based stop-monitor dispatch) and F5 (timeout reduction from the
-         * persisted TimingProfile) — see model_issues.md. Extracts the scalar
-         * timeout for the requested direction via computeTimeout, then dispatches
-         * to the UCA-level stop-condition monitor matching the request's
-         * MovementMode. Both underlying UCA actions (MonitorStopCondition,
-         * MonitorUserInterruption) are used unchanged; this action only adds the
-         * missing selection logic around them, preserving Traceability Rule 1. */
-
         in request : MovementRequest;
-        in profile : TimingProfile;
+        in profile : TravelTime;
         out stopRequest : StopRequest;
 
-        action computeTimeout {
-            doc /* F5: extracts direction-specific timeout scalar from TimingProfile
-                  * (down → closeTime, up/other → openTime). */
-            out attribute selectedTimeout subsets ISQ::duration;
-            if request.direction == MovementDirection::down {
-                assign selectedTimeout := profile.closeTime;
-            } else {
-                assign selectedTimeout := profile.openTime;
-            }
-        }
-
-        action monitorAutoStop   : MonitorStopCondition;
+        action monitorAutoStop : MonitorStopCondition;
         action monitorManualStop : MonitorUserInterruption;
 
         first start;
-        then computeTimeout;
         decide;
-        if request.mode == MovementMode::automatic then monitorAutoStop;
-        else monitorManualStop;
+            if request.mode == MovementMode::automatic then monitorAutoStop;
+            else monitorManualStop;
 
-        // F4: mode dispatch; F5: direction-specific timeout from computeTimeout.
-        // Fan-out of request/selectedTimeout to both branches is safe (one source,
-        // two targets; only one branch executes at runtime per the decide above).
-        flow from request                          to monitorAutoStop.request;
-        flow from request                          to monitorManualStop.request;
-        flow from computeTimeout.selectedTimeout   to monitorAutoStop.timeout;
-        flow from computeTimeout.selectedTimeout   to monitorManualStop.timeout;
-        flow from monitorAutoStop.stopRequest      to stopRequest;
-        flow from monitorManualStop.stopRequest    to stopRequest;
+        flow from request to monitorAutoStop.request;
+        flow from request to monitorManualStop.request;
+        flow from monitorAutoStop.stopRequest to stopRequest;
+        flow from monitorManualStop.stopRequest to stopRequest;
     }
 
     // =========================================================================
@@ -277,21 +174,22 @@ package FunctionalArchitecture {
          * Controller. Technology-independent assembly of Functional Elements
          * derived from UseCaseActivities via the FAS method (SM-PRD-18,
          * Tool 11.2). Every FE is traceable to one or more UCA sub-functions
-         * in UseCaseActivities (see Traceability::Traceability). */
+         * in UseCaseActivities (see Traceability::Traceability).
+         */
 
         // ── System boundary ports ─────────────────────────────────────────────
         // NOTE: Physical signal mapping (dry-contact signals → ControlCommand)
         // is deferred to Logical Architecture (SM-PRD-20) via port
         // delegation/binding. The boundary port here represents the abstract
         // functional interface at the system level.
-        port controlInput  : ~ControlCommandPort;
-        port motorOutput   : MotorStatePort;
+        port controlInput : ~ControlCommandPort;
+        port motorOutput : MotorStatePort;
         port shutterOutput : ShutterStatePort;
         // Diagnostics boundary ports (CRIT-1 fix, SMRR corrective pass):
         // exposes diagnosticsFunctions' new request/result interface at the
         // composite boundary, mirroring controlInput/motorOutput exactly.
         port diagnosticRequest : ~DiagnosticRequestPort;
-        port diagnosticResult  : DiagnosticResultPort;
+        port diagnosticResult : DiagnosticResultPort;
 
         // ── Functional Elements ───────────────────────────────────────────────
 
@@ -302,8 +200,9 @@ package FunctionalArchitecture {
              * typed ControlCommand objects. Handles simultaneous local+remote
              * reception via first-wins arbitration (UC_01a–e, ReceiveControlRequest).
              * FAS cluster: functions sharing the principal transformation of
-             * physical control signal → typed ControlCommand. */
-            port commandIn  : ~ControlCommandPort;
+             * physical control signal → typed ControlCommand.
+             */
+            port commandIn : ~ControlCommandPort;
             port commandOut : ControlCommandPort;
             perform action receiveRequest : ReceiveControlRequest;
         }
@@ -316,9 +215,10 @@ package FunctionalArchitecture {
              * FAS cluster: functions sharing the principal transformation of
              * command validation → validated MovementRequest. Also raises a
              * ConflictEvent when a conflict is detected (M2 fix, see
-             * model_issues.md), routed to userNotificationFunctions. */
-            port commandIn   : ~ControlCommandPort;
-            port requestOut  : MovementRequestPort;
+             * model_issues.md), routed to userNotificationFunctions.
+             */
+            port commandIn : ~ControlCommandPort;
+            port requestOut : MovementRequestPort;
             port conflictOut : ConflictEventPort;
             perform action parseRequest : DetermineMovementRequestFE;
         }
@@ -331,7 +231,7 @@ package FunctionalArchitecture {
              * or safety timeout, UC_01c/d, MonitorUserInterruption). The
              * applicable monitor and its scalar timeout are both selected at
              * runtime by SuperviseMovementStop (F4: MovementMode-based monitor
-             * dispatch; F5: TimingProfile-to-timeout reduction by direction —
+             * dispatch; F5: TravelTime-to-timeout reduction by direction —
              * see model_issues.md).
              * FAS cluster: functions sharing the principal transformation of
              * stop-condition detection → StopRequest emission.
@@ -348,11 +248,12 @@ package FunctionalArchitecture {
              * (UC_01e) and release-to-stop (UC_01c/d) behaviors structurally
              * unrealized. Fed from requestAcquisitionFunctions.commandOut
              * (see connection 2b below), mirroring the existing fan-out to
-             * controlLogicFunctions. */
+             * controlLogicFunctions.
+             */
             port commandIn : ~ControlCommandPort;
             port requestIn : ~MovementRequestPort;
-            port timingIn  : ~TimingProfilePort;
-            port stopOut   : StopRequestPort;
+            port timingIn : ~TravelTimePort;
+            port stopOut : StopRequestPort;
             perform action superviseStop : SuperviseMovementStop;
         }
 
@@ -364,13 +265,14 @@ package FunctionalArchitecture {
              * fully closed position as the UC_03 calibration precondition
              * (MoveShutterToClosePosition).
              * FAS cluster: functions sharing the principal transformation of
-             * MotorState management (motor on/off/direction). */
-            port requestIn  : ~MovementRequestPort;
-            port stopIn     : ~StopRequestPort;
-            port motorOut   : MotorStatePort;
+             * MotorState management (motor on/off/direction).
+             */
+            port requestIn : ~MovementRequestPort;
+            port stopIn : ~StopRequestPort;
+            port motorOut : MotorStatePort;
             port shutterOut : ShutterStatePort;
-            perform action startMovement       : StartShutterMovement;
-            perform action stopMovement        : StopShutterMovement;
+            perform action startMovement : StartShutterMovement;
+            perform action stopMovement : StopShutterMovement;
             perform action moveToClosePosition : MoveShutterToClosePosition;
         }
 
@@ -388,12 +290,13 @@ package FunctionalArchitecture {
              * (system model review corrective pass, see model_issues.md;
              * realizes REQ-F-08 / TC_N_002_ConfigMode_ReentryRejected).
              * FAS cluster: functions sharing the principal transformation of
-             * operational mode state management (REQ-F-08, UC_03). */
+             * operational mode state management (REQ-F-08, UC_03).
+             */
             port modeEventOut : ConfigModeEventPort;
-            perform action checkConfigModeState    : CheckConfigurationModeState;
+            perform action checkConfigModeState : CheckConfigurationModeState;
             perform action rejectConfigModeReentry : RejectConfigurationModeReentry;
-            perform action activateConfigMode      : ActivateConfigurationModeFE;
-            perform action exitConfigMode          : ExitConfigurationModeFE;
+            perform action activateConfigMode : ActivateConfigurationModeFE;
+            perform action exitConfigMode : ExitConfigurationModeFE;
         }
 
         part timeCountingFunctions {
@@ -403,9 +306,10 @@ package FunctionalArchitecture {
              * Monitors moving==true → moving==false transitions and produces a
              * typed TravelTime for one movement direction (CountActionTimeFE).
              * FAS cluster: functions sharing the principal transformation of
-             * elapsed-time measurement. */
+             * elapsed-time measurement.
+             */
             port shutterStateIn : ~ShutterStatePort;
-            port durationOut    : TravelTimePort;
+            port durationOut : TravelTimePort;
             perform action countTime : CountActionTimeFE;
         }
 
@@ -414,13 +318,14 @@ package FunctionalArchitecture {
             /* Persists and retrieves timing profile data in non-volatile storage.
              * Write path (UC_03): receives TravelTime from timeCountingFunctions
              * and saves it (SaveCountedTime). Read path (runtime): retrieves the
-             * full TimingProfile and supplies it to movementSupervisionFunctions
+             * full TravelTime and supplies it to movementSupervisionFunctions
              * as the movement timeout (LoadTimingProfile). Closes REQ-F-07
              * (configurableTimingProfile) end-to-end.
              * FAS cluster: functions sharing the principal transformation of
-             * non-volatile data management. */
+             * non-volatile data management.
+             */
             port durationIn : ~TravelTimePort;
-            port timingOut  : TimingProfilePort;
+            port durationOut : TravelTimePort;
             perform action saveTime : SaveCountedTime;
             perform action loadTime : LoadTimingProfile;
         }
@@ -429,22 +334,11 @@ package FunctionalArchitecture {
             doc
             /* Delivers user-visible feedback for configuration mode transitions
              * (activation and deactivation), dispatched from the single typed
-             * ConfigModeEvent received on modeEventIn (F2 fix, see
-             * model_issues.md; DispatchConfigModeNotification routes the event
-             * to the matching UCA notification action). Also delivers the
-             * user-visible conflict indication (M2 fix, see model_issues.md;
-             * realizes REQ-S-02) from conflictEventIn, and (CRIT-2 fix, SMRR
-             * corrective pass) the user-visible fault indication (REQ-Q-04)
-             * from faultEventIn. Decoupled from control logic to allow
-             * independent Logical Architecture realization (e.g., LED,
-             * buzzer, or display indicator).
-             * FAS cluster: functions sharing the principal transformation of
-             * user feedback delivery. */
-            port modeEventIn     : ~ConfigModeEventPort;
-            port conflictEventIn : ~ConflictEventPort;
-            port faultEventIn    : ~FaultIndicationEventPort;
-            perform action dispatchNotification         : DispatchConfigModeNotification;
-            perform action dispatchConflictNotification : NotifyUserAboutConflict;
+             * ConfigModeEvent received on modeEventIn.
+             */
+            in port modeEventIn : ~ConfigModeEventPort;
+            in port conflictEventIn : ~ConflictEventPort;
+            perform action dispatchNotification : DispatchConfigModeNotification;
         }
 
         part diagnosticsFunctions {
@@ -471,10 +365,11 @@ package FunctionalArchitecture {
              * precursor of ProductInterfaces::FaultIndicationPort, routed to
              * userNotificationFunctions exactly like the existing
              * ConflictEvent/ConfigModeEvent pattern). No responsibility is
-             * redesigned -- only the missing interface definition is closed. */
+             * redesigned -- only the missing interface definition is closed.
+             */
             port diagnosticRequestIn : ~DiagnosticRequestPort;
             port diagnosticResultOut : DiagnosticResultPort;
-            port faultEventOut       : FaultIndicationEventPort;
+            port faultEventOut : FaultIndicationEventPort;
             perform action diagnose : DiagnoseAndRepairController;
         }
 
@@ -529,8 +424,7 @@ package FunctionalArchitecture {
         // (F8 fix: replaced untyped 'connect' with a typed 'flow : MotorStateFlow'
         // for full flow-typing parity with the other 5 inter-FE data flows —
         // see model_issues.md §13 finding F8.)
-        flow : MotorStateFlow
-            from shutterControlFunctions.motorOut to motorOutput;
+        flow : MotorStateFlow from shutterControlFunctions.motorOut to motorOutput;
 
         // 6b. shutterControlFunctions → system boundary  [port delegation, ShutterState]
         // Closes F1: UseCaseActivities::ControlRollerShutter declares
@@ -544,12 +438,11 @@ package FunctionalArchitecture {
             from shutterControlFunctions.shutterOut to timeCountingFunctions.shutterStateIn;
 
         // 8. timeCountingFunctions → memoryFunctions  [TravelTime]
-        flow : TravelTimeFlow
-            from timeCountingFunctions.durationOut to memoryFunctions.durationIn;
+        flow : TravelTimeFlow from timeCountingFunctions.durationOut to memoryFunctions.durationIn;
 
-        // 9. memoryFunctions → movementSupervisionFunctions  [TimingProfile, runtime timeout]
-        flow : TimingProfileFlow
-            from memoryFunctions.timingOut to movementSupervisionFunctions.timingIn;
+        // 9. memoryFunctions → movementSupervisionFunctions  [TravelTime, runtime timeout]
+        flow : TravelTimeFlow
+            from memoryFunctions.durationOut to movementSupervisionFunctions.timingIn;
 
         // 10. configurationControlFunctions → userNotificationFunctions  [ConfigModeEvent]
         // Closes F2: previously this interaction was entirely unmodeled — see
@@ -558,7 +451,8 @@ package FunctionalArchitecture {
         // (Traceability::Traceability, lines 113-117) but no FA-level ports or
         // connection; this adds the missing typed interface.
         flow : ConfigModeEventFlow
-            from configurationControlFunctions.modeEventOut to userNotificationFunctions.modeEventIn;
+            from configurationControlFunctions.modeEventOut
+            to userNotificationFunctions.modeEventIn;
 
         // 11. controlLogicFunctions → userNotificationFunctions  [ConflictEvent]
         // Closes Major finding M2 (system model review corrective pass, see
@@ -591,6 +485,7 @@ package FunctionalArchitecture {
             from diagnosticsFunctions.faultEventOut to userNotificationFunctions.faultEventIn;
     }
     /* Package-level usage providing a named feature endpoint for traceability
-     * links (SysML v2 connection ends must reference features, not classifiers). */
+     * links (SysML v2 connection ends must reference features, not classifiers).
+     */
     part rollerShutterControllerFunctions : RollerShutterControllerFunctions;
 } // package FunctionalArchitecture

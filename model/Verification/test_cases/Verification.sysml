@@ -223,7 +223,7 @@ package Verification {
             doc
             /* White-box confirmation that LogicalMovementSupervisor correctly
              * selects and applies the direction-specific timeout from the
-             * received TimingProfile (automatic mode) and correctly reacts to
+             * received TravelTime (automatic mode) and correctly reacts to
              * the relayed ControlCommand stream for release/repeated-press
              * stop detection (manual mode, CRITICAL-1 fix), independent of
              * the black-box VerifyAutomaticOpening/VerifyAutomaticClosing/

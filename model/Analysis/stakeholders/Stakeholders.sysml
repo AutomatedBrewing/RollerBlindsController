@@ -48,7 +48,6 @@ package Stakeholders {
         concern availabilityConcern : Availability [1] subsets concerns;
         concern reliabilityConcern : Reliability [1] subsets concerns;
         concern safetyConcern : SafetyConcern [1] subsets concerns;
-        concern conflictIndicationConcern : ConflictIndicationConcern [1] subsets concerns;
     }
 
     concern def ShutterControllerExistence {
@@ -108,19 +107,6 @@ package Stakeholders {
             /* User wants all user-accessible interfaces of the controller to
              * be safe to touch, with no exposure to hazardous mains-referenced
              * voltage during normal use or installation. */
-        }
-    }
-
-    // Part C-1 fix: backs REQ-S-02 conflictIndication's 'frame user.conflictIndicationConcern'.
-    concern def ConflictIndicationConcern {
-        subject controller : BaseArchitecture::ShutterController;
-
-        require constraint {
-            doc
-            /* User wants a clear, perceivable indication whenever a
-             * simultaneous UP+DOWN command conflict suppresses motor
-             * movement, so the suppressed state is not mistaken for a
-             * silently idle or unresponsive controller. */
         }
     }
 

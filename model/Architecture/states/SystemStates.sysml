@@ -220,7 +220,7 @@ package SystemStates {
          * Ownership (CRIT-4 fix, SMRR corrective pass -- supersedes the
          * State Model Review's original "Producer = GAP-derived placeholder"
          * note below): Producer = ProductComponents::MemoryManagerSoftware,
-         * the sole component that performs the EEPROM TimingProfile read
+         * the sole component that performs the EEPROM TravelTime read
          * (LoadTimingProfile). A read yielding MemoryManagerSoftware.
          * lastReadValid == false IS this event, physically originating from
          * that component's EEPROM read path (first power-on before any
@@ -316,7 +316,7 @@ package SystemStates {
          *
          * - TimingProfileReadFailure: Owner/producer (CRIT-4 fix, SMRR
          *   corrective pass) = ProductComponents::MemoryManagerSoftware,
-         *   the sole component performing the EEPROM TimingProfile read
+         *   the sole component performing the EEPROM TravelTime read
          *   (LoadTimingProfile); a read yielding lastReadValid == false IS
          *   this event (see this attribute def's own doc above -- now
          *   resolved by an explicit producer, superseding the prior
@@ -743,7 +743,7 @@ package SystemStates {
                  * GAP records. The exact shutter position at the moment
                  * power is lost is NOT re-established or verified by any
                  * modeled function; PowerRestored's do action
-                 * (loadTimingProfile) reloads the persisted TimingProfile
+                 * (loadTimingProfile) reloads the persisted TravelTime
                  * only, not the physical shutter position (SCEN_16 GAP).
                  *
                  * State Model Review corrective pass (MAJOR-3): the
@@ -885,11 +885,11 @@ package SystemStates {
                  * PersistenceFailure_FirstPowerOn, SR-9) -- represents the
                  * "configuration required" indication diagnosticsSoftware
                  * reuses its existing fault-classification port pattern to
-                 * flag when no valid TimingProfile can be read (first
+                 * flag when no valid TravelTime can be read (first
                  * power-on or corrupted EEPROM). Entry:
                  * TimingProfileReadFailure (from Nominal). Exit: the ONLY
                  * modeled recovery path is re-running UseCaseActivities::
-                 * ConfigureController to persist a valid TimingProfile
+                 * ConfigureController to persist a valid TravelTime
                  * (ConfigModeEvent[deactivated]) -- no dedicated repair
                  * action is invented; this exit condition is the same one
                  * SCEN_24's own doc identifies as the closest-fit recovery

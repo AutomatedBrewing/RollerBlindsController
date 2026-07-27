@@ -50,7 +50,7 @@
  *   - modeEventOut                   -> ConfigurationManagerSoftware
  *     (configurationControlFunctions).
  *   - durationIn/timingOut           -> MemoryManagerSoftware
- *     (memoryFunctions: persists/retrieves the TimingProfile).
+ *     (memoryFunctions: persists/retrieves the TravelTime).
  * This directly answers the mandatory re-check: memoryFunctions and
  * configurationControlFunctions are now separately replaceable/testable
  * firmware components, as required, without fragmenting the hardware BOM
@@ -81,9 +81,9 @@ package ProductComponents {
     // =========================================================================
     enum def WiringMode {
         momentary; // Edge-triggered/hold-to-run semantics: a brief press starts movement,
-                   // release (or timeout) stops it (push-button wall switch).
-        latching;  // Level-triggered/toggle semantics: the input level itself represents
-                   // the commanded state (toggle switch wall switch).
+        // release (or timeout) stops it (push-button wall switch).
+        latching; // Level-triggered/toggle semantics: the input level itself represents
+        // the commanded state (toggle switch wall switch).
     }
 
     // =========================================================================
@@ -102,16 +102,7 @@ package ProductComponents {
          * LogicalRemoteRequestInterface, and LogicalControlUnit (ADR-007) --
          * NOT strongly coupled, since this single firmware module realizes
          * behavior split across three Logical components.
-         *
-         * PA-2 fix: interprets each channel's raw dry-contact signal
-         * according to the installer-selected 'wiringMode' (momentary:
-         * edge-triggered/hold-to-run -- a command is asserted on signal
-         * edge and released on de-assertion/timeout; latching:
-         * level-triggered/toggle -- the signal level itself represents the
-         * commanded state). This directly completes the
-         * 'signalInterpretation' placeholder both LogicalLocalRequestInterface
-         * and LogicalRemoteRequestInterface explicitly deferred to Product
-         * Architecture (REQ-I-01, RISK-I-01). */
+         */
 
         // First-wins arbitration/debounce-coincidence window: a channel
         // asserting a valid command more than this many milliseconds before
@@ -122,41 +113,23 @@ package ProductComponents {
         // Product Architecture.
         attribute arbitrationWindowMs : Real = 50.0;
 
-        // PA-2 fix: selects which dry-contact interpretation rule
-        // (momentary vs. latching) is applied to BOTH the local and remote
-        // channels. Mirrors the value ConfigurationManagerSoftware sets
-        // during the installer's configuration-mode session (UC_03) and
-        // MemoryManagerSoftware persists -- read here via the shared
-        // ControlMCU-hosted configuration store (internal EEPROM/RAM),
-        // the same "implicit, shared-die" access pattern already used for
-        // 'powerIn' below (no discrete inter-firmware port is modeled for a
-        // value that is, in the real hardware, simply a shared memory-mapped
-        // configuration register readable by every co-resident firmware
-        // module -- not a message passed between them).
         attribute wiringMode : WiringMode = WiringMode::momentary;
 
-        // PA-9 fix (firmware resource budget, model_issues.md item 18):
-        // conservative illustrative estimate of this module's compiled code
-        // size and RAM footprint (globals + worst-case stack), pending
-        // refinement once real firmware is written. See ControlMCU's
-        // rollup doc note for the aggregate headroom check against
-        // flashSizeKB/internalRamBytes.
         attribute estimatedFlashBytes : Natural = 1200;
-        attribute estimatedRamBytes   : Natural = 48;
+        attribute estimatedRamBytes : Natural = 48;
 
-        port localRawIn      : ~DryContactControlPort;
-        port remoteRawIn     : ~DryContactControlPort;
+        port localRawIn : ~DryContactControlPort;
+        port remoteRawIn : ~DryContactControlPort;
         // Arbitrated, conflict-resolved ControlCommand. Fanned out (2 flows,
         // see ControlMCU body) to MovementControlSoftware (normal command
         // processing) and ConfigurationManagerSoftware (mode-trigger
         // detection tap), mirroring the fan-out pattern already established
         // by logicalControlUnit.requestOut in LogicalArchitecture.sysml.
-        port commandOut      : ControlCommandPort;
+        port commandOut : ControlCommandPort;
         // Relays the same arbitrated command onward to
         // MovementSupervisorSoftware AND DiagnosticsSoftware (PA-1 fix,
         // 2 flows), mirroring LogicalControlUnit.commandRelayOut.
         port commandRelayOut : ControlCommandPort;
-        port conflictOut     : ConflictEventPort;
     }
 
     part def MovementControlSoftware {
@@ -165,12 +138,13 @@ package ProductComponents {
          * arbitrated, conflict-resolved ControlCommand and produces the
          * validated MovementRequest consumed by motor-drive and
          * movement-supervision firmware. Loosely allocated from
-         * LogicalControlUnit (ADR-007). */
+         * LogicalControlUnit (ADR-007).
+         */
 
         // PA-9 fix: illustrative firmware resource estimate (see
         // ControlMCU's rollup doc note).
         attribute estimatedFlashBytes : Natural = 400;
-        attribute estimatedRamBytes   : Natural = 16;
+        attribute estimatedRamBytes : Natural = 16;
 
         port commandIn : ~ControlCommandPort;
         // Fanned out (2 flows) to MotorDriveControlSoftware and
@@ -188,17 +162,7 @@ package ProductComponents {
          * for conflict detection, distinguished purely by hold duration) and
          * emits the corresponding ConfigModeEvent (REQ-F-08). Loosely
          * allocated from LogicalControlUnit (ADR-007).
-         *
-         * PA-2 fix: also owns the installer-facing wiring-mode SELECTION
-         * step -- the wall-switch wiring topology (momentary/latching) is
-         * chosen/confirmed during the same configuration-mode session
-         * (UC_03) that already calibrates TimingProfile, treated as
-         * additional configuration data within that existing envelope (no
-         * new use case or activity is introduced, per
-         * productArchitectureRepairPlan.md PA-2 recommended path). The
-         * selected value is persisted by MemoryManagerSoftware alongside
-         * TimingProfile and consumed by CommandArbitrationSoftware for
-         * interpretation. */
+         */
 
         // Minimum simultaneous UP+DOWN hold duration, in seconds,
         // distinguishing a configuration-mode entry/exit gesture from a
@@ -206,65 +170,31 @@ package ProductComponents {
         // left as a qualitative placeholder.
         attribute calibrationHoldThresholdS : Real = 3.0;
 
-        // PA-2 fix: the wall-switch wiring topology selected/confirmed by
-        // the installer during this configuration-mode session (REQ-I-01,
-        // RISK-I-01 mitigation). Default 'momentary' reflects the more
+        // Default 'momentary' reflects the more
         // common residential push-button wall-switch topology; the
         // installer can select 'latching' for toggle-switch installations.
         attribute wiringMode : WiringMode = WiringMode::momentary;
 
-        // PA-9 fix: illustrative firmware resource estimate (see
-        // ControlMCU's rollup doc note).
         attribute estimatedFlashBytes : Natural = 700;
-        attribute estimatedRamBytes   : Natural = 24;
+        attribute estimatedRamBytes : Natural = 24;
 
-        port commandIn    : ~ControlCommandPort;
+        port commandIn : ~ControlCommandPort;
         port modeEventOut : ConfigModeEventPort;
     }
 
     part def MemoryManagerSoftware {
         doc
-        /* Realizes memoryFunctions: persists the measured TimingProfile
+        /* Realizes memoryFunctions: persists the measured TravelTime
          * (openTime/closeTime, REQ-F-07) to the MCU's internal EEPROM during
          * calibration (UC_03, SaveCountedTime) and retrieves it at runtime to
          * supply MovementSupervisorSoftware's timeout. Loosely allocated
          * from LogicalControlUnit (ADR-007). Storage medium is the
          * ControlMCU's own internal EEPROM (ADR-006) -- no discrete external
          * memory component is required.
-         *
-         * PA-2 fix: the same internal EEPROM record also now persists the
-         * installer-selected wiringMode (REQ-I-01/RISK-I-01) alongside
-         * TimingProfile, surviving power cycles exactly like the timing
-         * calibration data. PA-6 fix: also stores the RISK-T-01 timing
-         * margin applied on top of the measured TimingProfile.
-         *
-         * EVENT OWNERSHIP (CRIT-4 fix, SMRR corrective pass): this component
-         * is the explicit architectural producer of
-         * SystemStates::TimingProfileReadFailure, closing the "no
-         * architectural producer" finding (SCEN_24/SR-9). Ownership
-         * rationale: MemoryManagerSoftware is the SOLE component that reads
-         * the EEPROM-persisted TimingProfile record (LoadTimingProfile) --
-         * it is the only physically correct place in the architecture for an
-         * invalid/missing-record read fault to originate. lastReadValid is
-         * the minimal structural signal that makes this ownership explicit:
-         * a read yielding lastReadValid == false IS the
-         * TimingProfileReadFailure event, physically originating from this
-         * component's EEPROM read path (first power-on before any
-         * calibration has been performed, or a corrupted record). This is a
-         * passive, minimal producer model (an observable state attribute on
-         * the existing component), not a new recovery/self-healing behavior.
-         * Routed cross-machine-safe via SystemStates::crossLifecycleEventRelay
-         * exactly as before; only the producer's identity was previously
-         * undocumented. */
+         */
 
-        attribute storageMedium : String = "ControlMCU internal EEPROM (emulated or native), no external memory IC required (ADR-006)";
-
-        // PA-2 fix: persisted copy of ConfigurationManagerSoftware's
-        // installer-selected wiringMode, co-located with TimingProfile in
-        // the same EEPROM record (no new hardware, no discrete
-        // inter-firmware port -- see CommandArbitrationSoftware.wiringMode
-        // doc for the shared-die access rationale).
-        attribute persistedWiringMode : WiringMode = WiringMode::momentary;
+        attribute storageMedium : String =
+            "ControlMCU internal EEPROM (emulated or native), no external memory IC required (ADR-006)";
 
         // PA-6 fix (RISK-T-01_PositioningDrift mitigation, model_issues.md
         // item 18): additional margin applied on top of the measured
@@ -277,7 +207,7 @@ package ProductComponents {
 
         // CRIT-4 fix (SMRR corrective pass): minimal producer signal for
         // SystemStates::TimingProfileReadFailure (see doc above). Reflects
-        // whether the most recent EEPROM TimingProfile read (LoadTimingProfile)
+        // whether the most recent EEPROM TravelTime read (LoadTimingProfile)
         // returned a valid, previously-saved record; false on first power-on
         // before any calibration, or on a corrupted record.
         attribute lastReadValid : Boolean = true;
@@ -285,10 +215,10 @@ package ProductComponents {
         // PA-9 fix: illustrative firmware resource estimate (see
         // ControlMCU's rollup doc note).
         attribute estimatedFlashBytes : Natural = 900;
-        attribute estimatedRamBytes   : Natural = 32;
+        attribute estimatedRamBytes : Natural = 32;
 
         port durationIn : ~TravelTimePort;
-        port timingOut  : TimingProfilePort;
+        port timingOut : TravelTimePort;
     }
 
     part def MovementSupervisorSoftware :> LogicalMovementSupervisor {
@@ -300,7 +230,8 @@ package ProductComponents {
          * feedback) and elapsed travel-time measurement during
          * configuration-mode calibration. Strongly coupled to
          * LogicalMovementSupervisor (ADR-007): identical scope and identical
-         * port set, an unambiguous 1:1 realization. */
+         * port set, an unambiguous 1:1 realization.
+         */
 
         // Software timer tick resolution used for both the automatic-mode
         // end-of-travel timeout and the manual-mode hold-to-run safety
@@ -308,10 +239,8 @@ package ProductComponents {
         // 'supervisionPrinciple' attribute left as a qualitative placeholder.
         attribute timerResolutionMs : Real = 10.0;
 
-        // PA-9 fix: illustrative firmware resource estimate (see
-        // ControlMCU's rollup doc note).
         attribute estimatedFlashBytes : Natural = 1000;
-        attribute estimatedRamBytes   : Natural = 40;
+        attribute estimatedRamBytes : Natural = 40;
     }
 
     part def MotorDriveControlSoftware {
@@ -324,20 +253,18 @@ package ProductComponents {
          * reported is the state MotorDriveControlSoftware itself just
          * commanded). The mains-side switching itself is realized by the
          * companion hardware component, MotorDriveRelayModule. Loosely
-         * allocated from LogicalMotorDrive (ADR-007). */
+         * allocated from LogicalMotorDrive (ADR-007).
+         */
 
-        port requestIn       : ~MovementRequestPort;
-        port stopIn          : ~StopRequestPort;
-        // Fanned out (2 flows) to MovementSupervisorSoftware and
-        // DiagnosticsSoftware, mirroring LogicalMotorDrive.shutterStateOut's
-        // fan-out in LogicalArchitecture.sysml (connections 9 and 13).
+        port requestIn : ~MovementRequestPort;
+        port stopIn : ~StopRequestPort;
         port shutterStateOut : ShutterStatePort;
-        port relayOut        : RelayControlPort;
+        port relayOut : RelayControlPort;
 
         // PA-9 fix: illustrative firmware resource estimate (see
         // ControlMCU's rollup doc note).
         attribute estimatedFlashBytes : Natural = 600;
-        attribute estimatedRamBytes   : Natural = 24;
+        attribute estimatedRamBytes : Natural = 24;
     }
 
     part def UserFeedbackSoftware {
@@ -360,39 +287,40 @@ package ProductComponents {
          * a stopwatch/count, while preserving the same test intent (each
          * event source must remain audibly distinct from the others). No new
          * hardware or notification channel is introduced -- these are
-         * concrete values for the existing buzzerOut GPIO drive pattern. */
+         * concrete values for the existing buzzerOut GPIO drive pattern.
+         */
 
-        attribute feedbackTechnology : String = "Active buzzer (self-oscillating, 3.3V logic-level drive, single GPIO), software-generated beep patterns (ADR-008). Commits the concrete technology LogicalUserNotification's 'feedbackModality' attribute left as a qualitative placeholder.";
+        attribute feedbackTechnology : String =
+            "Active buzzer (self-oscillating, 3.3V logic-level drive, single GPIO), software-generated beep patterns (ADR-008). Commits the concrete technology LogicalUserNotification's 'feedbackModality' attribute left as a qualitative placeholder.";
 
         // MAJ-9 fix: measurable beep-pattern specification, one attribute
         // per event source, each expressed as (pulse count, pulse duration).
         // Distinguishability is by pulse COUNT first (1 vs. 2 vs. 3 pulses),
         // an unambiguous, easily verified acoustic signal.
-        attribute configModeActivationBeepCount     : Natural = 1;   // REQ-F-08 activation: single short beep
-        attribute configModeActivationBeepMs        : Natural = 200;
-        attribute configModeDeactivationBeepCount   : Natural = 2;   // REQ-F-08 deactivation: double short beep
-        attribute configModeDeactivationBeepMs       : Natural = 200;
-        attribute configModeBeepGapMs                : Natural = 150; // silence between pulses within a pattern
-        attribute conflictSuppressionBeepCount       : Natural = 3;   // REQ-S-02: triple short beep (distinct pulse count from both config-mode patterns)
-        attribute conflictSuppressionBeepMs          : Natural = 100;
-        attribute faultNoResponseBeepCount           : Natural = 1;   // REQ-Q-04 noResponseToControlInput: single LONG beep
-        attribute faultNoResponseBeepMs              : Natural = 600;
-        attribute faultMotorDriveBeepCount           : Natural = 2;   // REQ-Q-04 motorDriveFault: double LONG beep
-        attribute faultMotorDriveBeepMs              : Natural = 600;
+        attribute configModeActivationBeepCount : Natural = 1; // REQ-F-08 activation: single short beep
+        attribute configModeActivationBeepMs : Natural = 200;
+        attribute configModeDeactivationBeepCount : Natural = 2; // REQ-F-08 deactivation: double short beep
+        attribute configModeDeactivationBeepMs : Natural = 200;
+        attribute configModeBeepGapMs : Natural = 150; // silence between pulses within a pattern
+        attribute conflictSuppressionBeepCount : Natural = 3; // REQ-S-02: triple short beep (distinct pulse count from both config-mode patterns)
+        attribute conflictSuppressionBeepMs : Natural = 100;
+        attribute faultNoResponseBeepCount : Natural = 1; // REQ-Q-04 noResponseToControlInput: single LONG beep
+        attribute faultNoResponseBeepMs : Natural = 600;
+        attribute faultMotorDriveBeepCount : Natural = 2; // REQ-Q-04 motorDriveFault: double LONG beep
+        attribute faultMotorDriveBeepMs : Natural = 600;
 
-        port modeEventIn        : ~ConfigModeEventPort;
-        port conflictEventIn    : ~ConflictEventPort;
+        port modeEventIn : ~ConfigModeEventPort;
         // PA-1 fix: consumes DiagnosticsSoftware's fault classification and
         // arbitrates a distinct beep pattern (e.g., a fault-specific
         // short/long beep code) on the same shared buzzer used for
         // configuration-mode and conflict feedback.
-        port faultIndicationIn  : ~FaultIndicationPort;
-        port buzzerOut          : BuzzerControlPort;
+        port faultIndicationIn : ~FaultIndicationPort;
+        port buzzerOut : BuzzerControlPort;
 
         // PA-9 fix: illustrative firmware resource estimate (see
         // ControlMCU's rollup doc note).
         attribute estimatedFlashBytes : Natural = 800;
-        attribute estimatedRamBytes   : Natural = 32;
+        attribute estimatedRamBytes : Natural = 32;
     }
 
     part def DiagnosticsSoftware :> LogicalDiagnostics {
@@ -428,24 +356,14 @@ package ProductComponents {
          * technology-committing layer and is where this concretization
          * belongs). Strongly coupled to LogicalDiagnostics (ADR-007): same
          * scope, additively extended interface -- the original
-         * diagnosticStateIn tap is unchanged; only new ports were added. */
+         * diagnosticStateIn tap is unchanged; only new ports were added.
+         */
 
-        // PA-1 fix: command-visibility tap, fed from
-        // CommandArbitrationSoftware.commandRelayOut (see ControlMCU body),
-        // giving DiagnosticsSoftware the second input signal it needs to
-        // distinguish "no command seen" from "command seen, no resulting
-        // movement".
         port commandStateIn : ~ControlCommandPort;
-        // PA-1 fix: fault classification output, consumed by
-        // UserFeedbackSoftware (see ControlMCU body).
-        port faultOut        : FaultIndicationPort;
+        port faultOut : FaultIndicationPort;
 
-        // PA-9 fix: illustrative firmware resource estimate (see
-        // ControlMCU's rollup doc note). Slightly larger than a bare
-        // ShutterState observer would need, to account for the PA-1
-        // classification logic added in this pass.
         attribute estimatedFlashBytes : Natural = 700;
-        attribute estimatedRamBytes   : Natural = 24;
+        attribute estimatedRamBytes : Natural = 24;
     }
 
     // =========================================================================
@@ -471,20 +389,22 @@ package ProductComponents {
          * for arbitration and is the natural place to decode them without
          * duplicating interpretation logic per channel. Loosely allocated
          * from LogicalLocalRequestInterface / LogicalRemoteRequestInterface
-         * (ADR-007). */
+         * (ADR-007).
+         */
 
-        attribute isolationTechnology : String = "Opto-isolator per channel, galvanically isolating the external dry-contact loop from the 3.3V logic domain";
+        attribute isolationTechnology : String =
+            "Opto-isolator per channel, galvanically isolating the external dry-contact loop from the 3.3V logic domain";
         attribute debounceTimeConstantMs : Real = 20.0;
         attribute unitCostPLN : Real = 1.5;
 
-        port ctrlIn     : ~DryContactControlPort;
+        port ctrlIn : ~DryContactControlPort;
         // Conditioned (isolated, debounced, level-shifted) signal, reusing
         // DryContactControlPort's identical two-line (up/down) shape rather
         // than introducing a parallel port type for the same signal
         // topology -- the conditioning changes the signal's electrical
         // domain, not its logical shape.
         port digitalOut : DryContactControlPort;
-        port powerIn    : ~LogicPowerRailPort;
+        port powerIn : ~LogicPowerRailPort;
     }
 
     part def ControlMCU {
@@ -496,66 +416,49 @@ package ProductComponents {
          * hosting relationship modeled via allocation, not specialization
          * (ADR-007), since no single Logical component maps 1:1 to this
          * hardware element.
-         *
-         * PA-9 fix (firmware resource budget, model_issues.md item 18):
-         * summing each hosted firmware module's 'estimatedFlashBytes'
-         * (commandArbitrationSoftware 1200 + movementControlSoftware 400 +
-         * configurationManagerSoftware 700 + memoryManagerSoftware 900 +
-         * movementSupervisorSoftware 1000 + motorDriveControlSoftware 600 +
-         * userFeedbackSoftware 800 + diagnosticsSoftware 700 = 6300 bytes)
-         * leaves ~10 KB of headroom under flashSizeKB's 16384-byte budget
-         * for the runtime/bootloader/stack overhead not itself modeled as a
-         * firmware module. Summing 'estimatedRamBytes' (48+16+24+32+40+24+
-         * 32+24 = 240 bytes) leaves ~780 bytes of headroom under
-         * internalRamBytes' 1024-byte budget for stack/globals. Both sums
-         * confirm positive headroom at this illustrative-estimate stage; no
-         * follow-up sizing action is currently flagged, pending refinement
-         * once real firmware is written. */
+         */
 
-        attribute mcuFamily          : String = "Ultra-low-cost 8-bit MCU, STM8S003F3P6-class";
-        attribute packageType        : String = "TSSOP-20";
-        attribute gpioCount          : Natural = 14;
-        attribute flashSizeKB        : Natural = 16;
+        attribute mcuFamily : String = "Ultra-low-cost 8-bit MCU, STM8S003F3P6-class";
+        attribute packageType : String = "TSSOP-20";
+        attribute gpioCount : Natural = 14;
+        attribute flashSizeKB : Natural = 16;
         attribute internalEepromBytes : Natural = 128;
         // PA-9 fix: STM8S003F3P6-class RAM capacity, needed to check the
         // hosted firmware modules' aggregate 'estimatedRamBytes' against an
         // actual budget (previously no RAM attribute existed at all).
-        attribute internalRamBytes   : Natural = 1024;
-        attribute clockSpeedMHz      : Natural = 16;
-        attribute unitCostPLN        : Real = 2.0;
+        attribute internalRamBytes : Natural = 1024;
+        attribute clockSpeedMHz : Natural = 16;
+        attribute unitCostPLN : Real = 2.0;
 
-        // PA-3 fix (ADR-002 availability rationale, REQ-Q-02): illustrative
-        // MTBF estimate for this component class; to be refined once a
-        // specific MCU part is sourced.
         attribute mtbfHours : Real = 500000.0;
 
-        port localRawIn  : ~DryContactControlPort;
+        port localRawIn : ~DryContactControlPort;
         port remoteRawIn : ~DryContactControlPort;
-        port relayOut    : RelayControlPort;
-        port buzzerOut   : BuzzerControlPort;
-        port powerIn     : ~LogicPowerRailPort;
+        port relayOut : RelayControlPort;
+        port buzzerOut : BuzzerControlPort;
+        port powerIn : ~LogicPowerRailPort;
         // Production-only in-circuit programming/debug interface (ADR-006).
         // Deliberately left unconnected to any other Product component in
         // normal operation -- a documented, intentional gap mirroring the
         // LogicalArchitecture controlPower/mainsPower boundary-port pattern
         // (see LogicalArchitecture.sysml note 'C4 fix').
-        port progPort    : ProgrammingPort;
+        port progPort : ProgrammingPort;
 
         // ── Firmware components ─────────────────────────────────────────────
         part commandArbitrationSoftware : CommandArbitrationSoftware;
-        part movementControlSoftware    : MovementControlSoftware;
+        part movementControlSoftware : MovementControlSoftware;
         part configurationManagerSoftware : ConfigurationManagerSoftware;
-        part memoryManagerSoftware      : MemoryManagerSoftware;
+        part memoryManagerSoftware : MemoryManagerSoftware;
         part movementSupervisorSoftware : MovementSupervisorSoftware;
-        part motorDriveControlSoftware  : MotorDriveControlSoftware;
-        part userFeedbackSoftware       : UserFeedbackSoftware;
-        part diagnosticsSoftware        : DiagnosticsSoftware;
+        part motorDriveControlSoftware : MotorDriveControlSoftware;
+        part userFeedbackSoftware : UserFeedbackSoftware;
+        part diagnosticsSoftware : DiagnosticsSoftware;
 
         // ── Boundary delegations ─────────────────────────────────────────────
-        connect localRawIn  to commandArbitrationSoftware.localRawIn;
+        connect localRawIn to commandArbitrationSoftware.localRawIn;
         connect remoteRawIn to commandArbitrationSoftware.remoteRawIn;
         connect motorDriveControlSoftware.relayOut to relayOut;
-        connect userFeedbackSoftware.buzzerOut   to buzzerOut;
+        connect userFeedbackSoftware.buzzerOut to buzzerOut;
         // powerIn/progPort: no internal connection modeled -- power reaches
         // every firmware component implicitly via the shared MCU die (not a
         // discrete software-level port); progPort is production-only (see
@@ -576,10 +479,6 @@ package ProductComponents {
         flow : ControlCommandFlow
             from commandArbitrationSoftware.commandRelayOut to movementSupervisorSoftware.commandIn;
 
-        // 4. CommandArbitrationSoftware -> UserFeedbackSoftware [ConflictEvent]
-        flow : ConflictEventFlow
-            from commandArbitrationSoftware.conflictOut to userFeedbackSoftware.conflictEventIn;
-
         // 5. MovementControlSoftware -> MotorDriveControlSoftware [MovementRequest]
         // Fan-out leg 1 of 2.
         flow : MovementRequestFlow
@@ -597,7 +496,8 @@ package ProductComponents {
         // 8. MotorDriveControlSoftware -> MovementSupervisorSoftware [ShutterState]
         // Fan-out leg 1 of 2.
         flow : ShutterStateFlow
-            from motorDriveControlSoftware.shutterStateOut to movementSupervisorSoftware.shutterStateIn;
+            from motorDriveControlSoftware.shutterStateOut
+            to movementSupervisorSoftware.shutterStateIn;
 
         // 9. MotorDriveControlSoftware -> DiagnosticsSoftware [ShutterState, passive tap]
         // Fan-out leg 2 of 2.
@@ -608,8 +508,8 @@ package ProductComponents {
         flow : TravelTimeFlow
             from movementSupervisorSoftware.durationOut to memoryManagerSoftware.durationIn;
 
-        // 11. MemoryManagerSoftware -> MovementSupervisorSoftware [TimingProfile]
-        flow : TimingProfileFlow
+        // 11. MemoryManagerSoftware -> MovementSupervisorSoftware [TravelTime]
+        flow : TravelTimeFlow
             from memoryManagerSoftware.timingOut to movementSupervisorSoftware.timingIn;
 
         // 12. ConfigurationManagerSoftware -> UserFeedbackSoftware [ConfigModeEvent]
@@ -644,12 +544,14 @@ package ProductComponents {
          * Provides the galvanic isolation between the low-voltage control
          * domain and the mains-switching domain required by
          * L0_Constraints::Electrical::motorIsolation. Loosely allocated from
-         * LogicalMotorDrive (ADR-007). */
+         * LogicalMotorDrive (ADR-007).
+         */
 
         attribute relaySwitchingCurrentA : Real = 8.0;
         attribute relaySwitchingVoltageV : Real = 230.0;
-        attribute contactConfiguration   : String = "Two SPDT relays (UP/DOWN), interlocked to prevent simultaneous energization";
-        attribute unitCostPLN            : Real = 3.5;
+        attribute contactConfiguration : String =
+            "Two SPDT relays (UP/DOWN), interlocked to prevent simultaneous energization";
+        attribute unitCostPLN : Real = 3.5;
 
         // PA-3 fix (RISK-T-03_MotorRelayWearOut mitigation, REQ-Q-03):
         // minimum switching-cycle rating the sourced relay/triac component
@@ -666,10 +568,10 @@ package ProductComponents {
         // commitment an explicit, in-model target.
         attribute mtbfHours : Real = 100000.0;
 
-        port coilIn      : ~RelayControlPort;
+        port coilIn : ~RelayControlPort;
         port coilPowerIn : ~LogicPowerRailPort;
-        port mainsIn     : ~MainsPowerPort;
-        port driveOut    : ShutterDrivePort;
+        port mainsIn : ~MainsPowerPort;
+        port driveOut : ShutterDrivePort;
     }
 
     part def AudibleNotificationBuzzer {
@@ -688,9 +590,11 @@ package ProductComponents {
          * acoustic signature of the "no power" fault class REQ-Q-04 names;
          * the other two named fault classes ARE actively classified by
          * DiagnosticsSoftware (see its doc) and reported via distinct beep
-         * patterns emitted by this buzzer. */
+         * patterns emitted by this buzzer.
+         */
 
-        attribute buzzerType  : String = "Active (self-oscillating) buzzer, 3.3V logic-level drive, single MCU GPIO (ADR-008)";
+        attribute buzzerType : String =
+            "Active (self-oscillating) buzzer, 3.3V logic-level drive, single MCU GPIO (ADR-008)";
         attribute unitCostPLN : Real = 0.5;
 
         port driveIn : ~BuzzerControlPort;
@@ -724,10 +628,12 @@ package ProductComponents {
          * explicit "no self-healing architecture is planned" scope is
          * unchanged. Routed cross-machine-safe via SystemStates::
          * crossLifecycleEventRelay exactly as before; only the producer's
-         * identity was previously undocumented. */
+         * identity was previously undocumented.
+         */
 
-        attribute regulatorTopology : String = "Linear (LDO) regulator, 12V -> 3.3V, adequate for this product's low aggregate logic-level current draw";
-        attribute unitCostPLN       : Real = 1.5;
+        attribute regulatorTopology : String =
+            "Linear (LDO) regulator, 12V -> 3.3V, adequate for this product's low aggregate logic-level current draw";
+        attribute unitCostPLN : Real = 1.5;
 
         // PA-3 fix (ADR-002 availability rationale, REQ-Q-02): illustrative
         // MTBF estimate for this component class; to be refined once a
@@ -748,7 +654,7 @@ package ProductComponents {
         // ControlMCU, both RequestInterfaceCircuit instances,
         // AudibleNotificationBuzzer, and MotorDriveRelayModule's coil-driver
         // stage.
-        port logicRailOut   : LogicPowerRailPort;
+        port logicRailOut : LogicPowerRailPort;
     }
 
     part def EnclosureAndConnectors {
@@ -772,13 +678,16 @@ package ProductComponents {
          * attributes remain a separate, unbound requirement-layer declaration
          * -- see Constraints.sysml -- a pre-existing gap outside this
          * repair's scope; this fix only concretizes the Product-layer value
-         * these dimensions are checked against by inspection/review.) */
+         * these dimensions are checked against by inspection/review.)
+         */
 
-        attribute width  subsets ISQ::length = 38 [SI::mm];
+        attribute width subsets ISQ::length = 38 [SI::mm];
         attribute length subsets ISQ::length = 38 [SI::mm];
         attribute height subsets ISQ::length = 18 [SI::mm];
-        attribute mountingType : String = "Flush-mounted ⌀60mm wall box, compatible with standard residential wall-switch installations (REQ-Q-01)";
-        attribute connectorType : String = "Screw-terminal blocks for all external wiring (wall switch, remote, control power, mains, motor) -- no soldering required for field replacement (REQ-Q-05)";
+        attribute mountingType : String =
+            "Flush-mounted ⌀60mm wall box, compatible with standard residential wall-switch installations (REQ-Q-01)";
+        attribute connectorType : String =
+            "Screw-terminal blocks for all external wiring (wall switch, remote, control power, mains, motor) -- no soldering required for field replacement (REQ-Q-05)";
         attribute unitCostPLN : Real = 4.0;
     }
 } // package ProductComponents

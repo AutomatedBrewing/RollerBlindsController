@@ -81,10 +81,6 @@ package Traceability
      * downstream tools are updated. */
     connection : Derivation connect SystemObjectives::safety     to L0_Requirements::Safety::safety;
     connection : Derivation connect SystemObjectives::reliability to L0_Requirements::Safety::safety;
-    /* REQ-S-02 (system model review corrective pass, closes Major finding M2):
-     * split out of REQ-S-01 to independently trace the user-facing conflict-
-     * indication behavior. Sourced from the same safety objective. */
-    connection : Derivation connect SystemObjectives::safety to L0_Requirements::Safety::conflictIndication;
 
 
     /* Constraints */
@@ -203,11 +199,6 @@ package Traceability
     connection : Derivation connect UseCaseActivities::moveShutterToClosePosition to FunctionalArchitecture::RollerShutterControllerFunctions::shutterControlFunctions;
     connection : Derivation connect UseCaseActivities::loadTimingProfile to FunctionalArchitecture::RollerShutterControllerFunctions::memoryFunctions;
     connection : Derivation connect UseCaseActivities::diagnoseAndRepairController to FunctionalArchitecture::RollerShutterControllerFunctions::diagnosticsFunctions;
-    /* notifyUserAboutConflict (system model review corrective pass, closes
-     * Major finding M2): the new UC_01e conflict-notification sub-action is
-     * allocated to userNotificationFunctions, mirroring the pattern used for
-     * the two configuration-mode notification actions above. */
-    connection : Derivation connect UseCaseActivities::notifyUserAboutConflict to FunctionalArchitecture::RollerShutterControllerFunctions::userNotificationFunctions;
 
     /* MAJ-5 fix (SMRR corrective pass): five UCA sub-actions were Scenario
      * targets (dead-ending before Functional Architecture) with no outgoing
@@ -219,7 +210,6 @@ package Traceability
      * detectFault/isolateFault/repairOrReplaceUnit are the three UC_04
      * diagnostic sub-steps -> diagnosticsFunctions, mirroring
      * diagnoseAndRepairController's own existing link above. */
-    connection : Derivation connect UseCaseActivities::reportInstallationFault to FunctionalArchitecture::RollerShutterControllerFunctions::userNotificationFunctions;
     connection : Derivation connect UseCaseActivities::rejectConfigurationModeReentry to FunctionalArchitecture::RollerShutterControllerFunctions::userNotificationFunctions;
     connection : Derivation connect UseCaseActivities::detectFault to FunctionalArchitecture::RollerShutterControllerFunctions::diagnosticsFunctions;
     connection : Derivation connect UseCaseActivities::isolateFault to FunctionalArchitecture::RollerShutterControllerFunctions::diagnosticsFunctions;
@@ -260,10 +250,6 @@ package Traceability
 
     /* REQ-S-01 traces to its behavioral use-case counterpart (conflict suppression). */
     connection : Derivation connect L0_Requirements::Safety::safety to SystemUseCases::handleConflictingMovementCommands;
-    /* REQ-S-02 traces to the same use case (system model review corrective
-     * pass, closes Major finding M2): the conflict-indication behavior is a
-     * direct sub-step of UC_01e's activity (notifyUserAboutConflict). */
-    connection : Derivation connect L0_Requirements::Safety::conflictIndication to SystemUseCases::handleConflictingMovementCommands;
     /* REQ-Q-04/REQ-Q-05 trace to UC_04 (system model review corrective pass,
      * closes Major finding M3): previously UC_04 traced only to reliability
      * (REQ-Q-03), which does not itself address field diagnosability or
@@ -300,7 +286,6 @@ package Traceability
     satisfy L0_Requirements::Environmental::regulatedDisposal by BaseArchitecture::shutterController;
     /* Added (system model review corrective pass) for the three requirements
      * introduced/split this pass: REQ-S-02 (M2), REQ-Q-04/REQ-Q-05 (M3). */
-    satisfy L0_Requirements::Safety::conflictIndication by BaseArchitecture::shutterController;
     satisfy L0_Requirements::Quality::diagnosability by BaseArchitecture::shutterController;
     satisfy L0_Requirements::Quality::fieldReplaceability by BaseArchitecture::shutterController;
 
@@ -353,14 +338,7 @@ package Traceability
      * VerifyMaximumSwitchingLoad) and remains correctly out of scope for the
      * Logical Architecture. */
     connection : Derivation connect L0_Requirements::Safety::safety to LogicalArchitecture::RollerShutterControllerLogicalComponents::logicalControlUnit;
-    /* REQ-S-02 → Logical Elements (system model review corrective pass,
-     * closes Major finding M2): logicalControlUnit detects/raises the
-     * conflict (conflictOut port); logicalUserNotification delivers the
-     * user-facing indication (conflictEventIn port). Both are linked,
-     * mirroring the multi-component pattern already used above for
-     * requirements that cross-cut more than one Logical component. */
-    connection : Derivation connect L0_Requirements::Safety::conflictIndication to LogicalArchitecture::RollerShutterControllerLogicalComponents::logicalControlUnit;
-    connection : Derivation connect L0_Requirements::Safety::conflictIndication to LogicalArchitecture::RollerShutterControllerLogicalComponents::logicalUserNotification;
+
 
     /* REQ-Q-02/REQ-Q-03 → Logical Elements (formal Logical Architecture review
      * finding, this pass): previously availability/reliability had zero
@@ -564,9 +542,7 @@ package Traceability
     connection : Derivation connect L0_Requirements::Quality::fieldReplaceability to ProductArchitecture::RollerShutterControllerProductComponents::enclosureAndConnectors;
     connection : Derivation connect L0_Requirements::Safety::safety to ProductComponents::ControlMCU::commandArbitrationSoftware;
     connection : Derivation connect L0_Requirements::Safety::safety to ProductArchitecture::RollerShutterControllerProductComponents::motorDriveRelayModule;
-    connection : Derivation connect L0_Requirements::Safety::conflictIndication to ProductComponents::ControlMCU::commandArbitrationSoftware;
-    connection : Derivation connect L0_Requirements::Safety::conflictIndication to ProductComponents::ControlMCU::userFeedbackSoftware;
-    connection : Derivation connect L0_Requirements::Safety::conflictIndication to ProductArchitecture::RollerShutterControllerProductComponents::userNotificationBuzzer;
+
     /* REQ-E-01 (regulatedDisposal): NEW Product-layer trace -- disposal is a
      * physical-materials concern of the finished enclosure/assembly, with no
      * structural counterpart before this layer. */
@@ -631,13 +607,11 @@ package Traceability
     connection : Derivation connect Scenarios::scen05_ManualHold_SafetyTimeoutStop to UseCaseActivities::monitorUserInterruption;
     connection : Derivation connect Scenarios::scen06_AutomaticMovement_UserStopOverride to UseCaseActivities::monitorStopCondition;
     connection : Derivation connect Scenarios::scen07_ConflictingUpDownCommand_Suppressed to UseCaseActivities::handleConflictingMovementCommands;
-    connection : Derivation connect Scenarios::scen07_ConflictingUpDownCommand_Suppressed to UseCaseActivities::notifyUserAboutConflict;
     connection : Derivation connect Scenarios::scen08_RemoteCommand_HomeAutomationOpen to UseCaseActivities::openShutterAutomatically;
     connection : Derivation connect Scenarios::scen09_LocalAndRemoteSimultaneous_FirstWinsArbitration to UseCaseActivities::receiveControlRequest;
     connection : Derivation connect Scenarios::scen10_InstallController_SuccessfulFirstAttempt to UseCaseActivities::installController;
     connection : Derivation connect Scenarios::scen11_InstallController_WiringFault_RetrySucceeds to UseCaseActivities::installController;
     connection : Derivation connect Scenarios::scen12_InstallController_RepeatedFault_TerminalReport to UseCaseActivities::installController;
-    connection : Derivation connect Scenarios::scen12_InstallController_RepeatedFault_TerminalReport to UseCaseActivities::reportInstallationFault;
     connection : Derivation connect Scenarios::scen13_ConfigureController_TimingCalibration to UseCaseActivities::configureController;
     connection : Derivation connect Scenarios::scen14_ConfigureController_ReentryRejected to UseCaseActivities::rejectConfigurationModeReentry;
     /* SCEN_15/SCEN_16 (power loss/recovery): NO UseCaseActivities link is

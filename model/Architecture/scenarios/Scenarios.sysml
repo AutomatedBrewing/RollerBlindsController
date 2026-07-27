@@ -660,7 +660,7 @@ package Scenarios {
          * mode not already active.
          * Trigger: Installer explicitly activates configuration mode
          * (sustained simultaneous UP+DOWN hold >= calibrationHoldThresholdS).
-         * Postcondition: TimingProfile (openTime, closeTime) measured and
+         * Postcondition: TravelTime (openTime, closeTime) measured and
          * persisted; configuration mode deactivated; user notified of both
          * activation and deactivation. */
 
@@ -832,7 +832,7 @@ package Scenarios {
          * Trigger: controlPower (12V DC) is restored.
          * Postcondition (as far as the architecture supports): ControlMCU
          * re-boots and firmware re-initializes; MemoryManagerSoftware
-         * reloads the persisted TimingProfile (and wiringMode) from
+         * reloads the persisted TravelTime (and wiringMode) from
          * internal EEPROM (survives power cycles by construction, per
          * ProductComponents::MemoryManagerSoftware doc); the controller is
          * ready to accept new commands. The shutter's PHYSICAL position at
@@ -852,7 +852,7 @@ package Scenarios {
         }
         action s3 {
             doc /* Step: timingProfileReloaded -- Product::ControlMCU::memoryManagerSoftware retrieves the
-                 * persisted TimingProfile and wiringMode from internal
+                 * persisted TravelTime and wiringMode from internal
                  * EEPROM (storageMedium attribute; survives power cycles by
                  * construction). Realizes UseCaseActivities::loadTimingProfile,
                  * the one UCA action that IS reused here (it is not
@@ -1193,7 +1193,7 @@ package Scenarios {
          * Postcondition: the out-of-range measurement is NOT persisted as
          * the openTime; the installer is prompted to retry the
          * measurement; configuration mode exits without saving an invalid
-         * TimingProfile value.
+         * TravelTime value.
          * Success criteria: the previously-persisted (or default) timing
          * profile remains unchanged; no out-of-range value ever reaches
          * memoryManagerSoftware's persisted store; the installer receives
@@ -1255,7 +1255,7 @@ package Scenarios {
             doc /* Step: exitConfigModeWithoutSaving -- Configuration mode exits (ExitConfigurationMode,
                  * mirroring SCEN_13 s8) without an out-of-range openTime
                  * having reached memoryManagerSoftware's persisted store;
-                 * the previously-persisted (or default) TimingProfile
+                 * the previously-persisted (or default) TravelTime
                  * value remains authoritative. */
         }
 
@@ -1411,10 +1411,10 @@ package Scenarios {
          * EEPROM, no calibration has ever been performed), OR a worn/
          * corrupted EEPROM cell on a previously-configured unit.
          * Trigger: an automatic-mode movement is requested before any
-         * valid TimingProfile has ever been persisted, or the persisted
+         * valid TravelTime has ever been persisted, or the persisted
          * read returns corrupted/blank data.
          * Postcondition: LogicalMovementSupervisor has no valid
-         * TimingProfile to compute an automatic-mode timeout from;
+         * TravelTime to compute an automatic-mode timeout from;
          * automatic-mode movement is unavailable or behaves with an
          * undefined timeout (behavior currently underspecified -- recorded,
          * not invented, per the GAP below); diagnosticsSoftware flags that
@@ -1428,7 +1428,7 @@ package Scenarios {
          * "configuration required" indication rather than silent
          * malfunction.
          * Traceability rationale: closes SR-9 -- MemoryManagerSoftware's
-         * persistence mechanism (the sole means of keeping TimingProfile/
+         * persistence mechanism (the sole means of keeping TravelTime/
          * wiringMode alive across power cycles, per RISK-T-01's mitigation)
          * had no scenario testing loss/corruption/absence of that
          * persisted state; SCEN_16 already establishes that persisted
@@ -1459,7 +1459,7 @@ package Scenarios {
         action s3 {
             doc /* Step: automaticModeUnavailableOrUsesUndefinedTimeout -- Direct consequence of the s2 gap: LogicalMovementSupervisor
                  * / Product::ControlMCU::movementSupervisorSoftware has no
-                 * valid TimingProfile to compute an automatic-mode timeout
+                 * valid TravelTime to compute an automatic-mode timeout
                  * from. The resulting behavior (movement refused outright,
                  * versus proceeding with an undefined/zero timeout) is
                  * currently underspecified at every architecture layer --

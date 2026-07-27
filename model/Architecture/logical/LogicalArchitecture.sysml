@@ -56,7 +56,7 @@ package LogicalArchitecture {
      * PORT-DEF REUSE DECISION: internal logical-to-logical interfaces reuse
      * FunctionalArchitecture's port defs (ControlCommandPort,
      * MovementRequestPort, StopRequestPort, ShutterStatePort, TravelTimePort,
-     * TimingProfilePort, ConfigModeEventPort) directly, since these already
+     * TravelTimePort, ConfigModeEventPort) directly, since these already
      * wrap the technology-independent DomainKnowledge (SM-PRD-15) flow/item
      * types and introducing a parallel, identically-shaped set of Logical-only
      * port defs would violate DRY without adding information. New port defs
@@ -157,15 +157,7 @@ package LogicalArchitecture {
     // =========================================================================
     // Logical Components
     // =========================================================================
-    // NOTE (per-channel duplication, C7): LogicalLocalRequestInterface and
-    // LogicalRemoteRequestInterface intentionally duplicate an identical
-    // 'signalInterpretation' attribute and ctrlIn/commandOut port pair. This
-    // is a deliberate structural symmetry -- REQ-I-02 requires the remote
-    // channel to be "electrically and behaviorally equivalent" to the local
-    // channel -- not an accidental copy-paste; the two components are kept
-    // distinct (rather than factored into a shared supertype) because they
-    // strongly couple to two separate, independently-existing Base
-    // Architecture parts (WallSwitchInterface, RemoteInterface, ADR-004).
+
 
     part def LogicalLocalRequestInterface :> WallSwitchInterface {
         doc
@@ -229,24 +221,8 @@ package LogicalArchitecture {
         port requestOut      : MovementRequestPort;
         port modeEventOut    : ConfigModeEventPort;
         port durationIn      : ~TravelTimePort;
-        port timingOut       : TimingProfilePort;
-        // commandRelayOut (Logical Architecture review CRITICAL-1 fix, see
-        // model_issues.md): relays the arbitrated ControlCommand (whichever of
-        // localCommandIn/remoteCommandIn won first-wins arbitration) onward to
-        // LogicalMovementSupervisor, giving MonitorStopCondition.
-        // listenForStopCommand / MonitorUserInterruption.listenForRelease a
-        // realized trigger source at the Logical layer. Arbitration visibility
-        // of both channels is exclusive to this component (see class doc
-        // above), so LogicalControlUnit is the only correct source for this
-        // relay -- neither request-interface component nor
-        // LogicalMovementSupervisor itself has the necessary visibility.
+        port timingOut       : TravelTimePort;
         port commandRelayOut : ControlCommandPort;
-        // conflictOut (system model review corrective pass, closes Major
-        // finding M2, see model_issues.md): raises the ConflictEvent detected
-        // during ControlCommand validation (UP+DOWN conflict) to
-        // LogicalUserNotification, mirroring the existing modeEventOut
-        // pattern above.
-        port conflictOut     : ConflictEventPort;
     }
 
     part def LogicalMovementSupervisor {
@@ -266,14 +242,9 @@ package LogicalArchitecture {
                  * deferred to Product Architecture. */
         }
 
-        // commandIn (Logical Architecture review CRITICAL-1 fix, see
-        // model_issues.md): receives the arbitrated ControlCommand relay from
-        // LogicalControlUnit.commandRelayOut (connection 6b below), realizing
-        // the trigger source for the stop/release accept actions described on
-        // LogicalControlUnit.commandRelayOut.
         port commandIn      : ~ControlCommandPort;
         port requestIn      : ~MovementRequestPort;
-        port timingIn       : ~TimingProfilePort;
+        port timingIn       : ~TravelTimePort;
         port stopOut        : StopRequestPort;
         port shutterStateIn : ~ShutterStatePort;
         port durationOut    : TravelTimePort;
@@ -319,16 +290,6 @@ package LogicalArchitecture {
         }
 
         port modeEventIn : ~ConfigModeEventPort;
-        // conflictEventIn (system model review corrective pass, closes Major
-        // finding M2, see model_issues.md): receives the ConflictEvent from
-        // LogicalControlUnit.conflictOut, realizing REQ-S-02
-        // (conflictIndication) so a suppressed simultaneous UP+DOWN command
-        // is surfaced as an observable user indication.
-        port conflictEventIn : ~ConflictEventPort;
-        // faultEventIn (CRIT-2 fix, SMRR corrective pass): receives the
-        // FaultIndicationEvent from LogicalDiagnostics.faultEventOut,
-        // restoring the missing Logical-layer precursor of
-        // ProductComponents::UserFeedbackSoftware.faultIndicationIn.
         port faultEventIn : ~FaultIndicationEventPort;
     }
 
@@ -344,21 +305,7 @@ package LogicalArchitecture {
          * introduced here to provide an allocation anchor for Product
          * Architecture and to keep every FA action def covered by exactly one
          * Logical component (Traceability Rule 1).
-         *
-         * INTERFACE (C3 fix, formal Logical Architecture review; extended by
-         * the CRIT-1/CRIT-2 SMRR corrective pass): a passive, read-only
-         * diagnosticStateIn port taps the existing ShutterState signal
-         * already produced by logicalMotorDrive (see connection 13 below) --
-         * no new DomainKnowledge item/port type was introduced for that tap.
-         * CRIT-1/CRIT-2 additionally mirror the new FunctionalArchitecture::
-         * diagnosticsFunctions ports one-to-one at this layer: a diagnostic-
-         * request input, a diagnostic-result output, and a fault-event
-         * output routed to LogicalUserNotification (connection 14 below),
-         * closing the previously-missing Logical-layer precursor of
-         * ProductComponents::DiagnosticsSoftware.faultOut. The concrete
-         * diagnostic procedure and fault classes covered remain TBD pending
-         * UC_04 elaboration -- only the interface definition is closed here,
-         * per SMRR CRIT-1 instruction ("do not redesign responsibilities"). */
+         **/
 
         attribute diagnosticCoverage : String {
             doc /* Qualitative placeholder for the eventual diagnostic
@@ -411,20 +358,6 @@ package LogicalArchitecture {
         // 2. System boundary → LogicalRemoteRequestInterface  [port delegation]
         connect remoteCtrl to logicalRemoteRequestInterface.ctrlIn;
 
-        // NOTE (C4 fix, formal Logical Architecture review): controlPower and
-        // mainsPower are represented at the Logical Architecture boundary for
-        // full System Context parity (Traceability Rule 3) but have NO
-        // internal logical-component connection: power distribution is a
-        // Product/Physical Architecture concern with no corresponding
-        // Functional Element (BaseArchitecture::PowerModule has no Logical
-        // counterpart -- see ADR_004_LogicalCoupling). This is a documented,
-        // intentional gap, not an omission. Anticipated future ownership
-        // (informative only, to be confirmed at Product Architecture,
-        // SM-PRD-21): controlPower (low-voltage logic supply) is expected to
-        // power all seven Logical components; mainsPower (230V AC) is
-        // expected to be routed only to logicalMotorDrive, which alone
-        // switches it onward via shutterDrive.
-
         // 3. shutterDrive boundary ← LogicalMotorDrive  [port delegation]
         connect logicalMotorDrive.driveOut to shutterDrive;
 
@@ -469,19 +402,13 @@ package LogicalArchitecture {
         flow : TravelTimeFlow
             from logicalMovementSupervisor.durationOut to logicalControlUnit.durationIn;
 
-        // 11. LogicalControlUnit → LogicalMovementSupervisor  [TimingProfile, runtime timeout]
-        flow : TimingProfileFlow
+        // 11. LogicalControlUnit → LogicalMovementSupervisor  [TravelTime, runtime timeout]
+        flow : TravelTimeFlow
             from logicalControlUnit.timingOut to logicalMovementSupervisor.timingIn;
 
         // 12. LogicalControlUnit → LogicalUserNotification  [ConfigModeEvent]
         flow : ConfigModeEventFlow
             from logicalControlUnit.modeEventOut to logicalUserNotification.modeEventIn;
-
-        // 12b. LogicalControlUnit → LogicalUserNotification  [ConflictEvent]
-        // Closes Major finding M2 (system model review corrective pass, see
-        // model_issues.md). Mirrors connection 12 above.
-        flow : ConflictEventFlow
-            from logicalControlUnit.conflictOut to logicalUserNotification.conflictEventIn;
 
         // 13. LogicalMotorDrive → LogicalDiagnostics  [ShutterState, passive tap]
         // (C3 fix: gives logicalDiagnostics its only interface -- a read-only

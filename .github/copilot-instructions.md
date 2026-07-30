@@ -14,8 +14,9 @@ Your expertise covers:
 
 This project models a **Window Roller Shutter Controller** using MBSE/SysML v2.
 
-Current model state (in `model/`), organized by SYSMOD process output rather than by
-arc42 chapter — arc42 is the rendered publication view, not a parallel folder structure.
+Current model state (in `Project/Model/`), organized by SYSMOD process output rather than
+by arc42 chapter — arc42 is the rendered publication view, published to
+`Project/Documentation/arc42/`, not a parallel folder structure.
 The SYSMOD `<System>_` file/folder prefix is omitted since this repo models a single system:
 - `Analysis/problem/` — ProblemStatement, SystemIdea, SystemObjectives
 - `Analysis/stakeholders/` — Stakeholders
@@ -25,17 +26,22 @@ The SYSMOD `<System>_` file/folder prefix is omitted since this repo models a si
 - `Analysis/use_cases/` — UseCases
 - `Analysis/processes/` — SystemProcesses
 - `Analysis/use_case_activities/` — UCActivities
-- `Analysis/domain/` — not yet modelled
-- `Architecture/base/` — BaseArchitecture, Constraints
+- `Analysis/domain/` — DomainKnowledge
+- `Architecture/base/` — BaseArchitecture, Constraints, ADR_001–008 (+ ADR_Common), SystemArchitecture_Taxonomy
 - `Architecture/functional/` — FunctionalArchitecture
-- `Architecture/{logical,product,states,scenarios}/` — not yet modelled
-- `Verification/test_cases/` — Verification
+- `Architecture/logical/` — LogicalArchitecture, FunctionalAllocation
+- `Architecture/product/` — ProductArchitecture, ProductComponents, ProductInterfaces, LogicalToProductAllocation
+- `Architecture/states/` — SystemStates
+- `Architecture/scenarios/` — Scenarios
+- `Verification/test_cases/` — Verification, SystemTestCases
 - `Verification/test_architecture/` — not yet modelled
 - `Traceability/` — Traceability
 
-See `model/README.md` for the full folder tree and rationale.
+See `Project/Model/README.md` for the full folder tree and rationale.
 
-Key actors: WallSwitch, HomeAutomationSystem, PowerSupply, WindowRollerShutter, User, Manufacturer, Installer.
+Key context actors: WallSwitch, HomeAutomationSystem, ControlPowerSupply, MainsPowerSupply,
+WindowRollerShutter. Stakeholders: User, Manufacturer, Installer, MaintenanceTechnician,
+DisposalFacility.
 System under design: `ShutterController` (defined in BaseArchitecture).
 
 ---
@@ -100,4 +106,4 @@ Always answer with all five sections from the cross-mapping file:
 - System package naming: follow existing pattern (`SystemContext`, `L0_Requirements`, `FunctionalArchitecture`, etc.)
 - Existing imports use `private import Package::*` style — maintain this convention.
 - The `ShutterController` is the system of interest (defined in `BaseArchitecture`).
-- Stakeholders are defined in `Stakeholders` package with concerns modeled as `frame` expressions.
+- Stakeholders are defined in `Stakeholders` package as `part def` with `concern` usages typed by `concern def`; downstream `requirement`/`constraint` usages reference those concerns via `frame stakeholder.concernName` expressions (e.g. `Requirements.sysml`, `Constraints.sysml`).

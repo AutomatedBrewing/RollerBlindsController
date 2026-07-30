@@ -29,6 +29,14 @@ model/
     functional/               Functional Architecture
     logical/                   Logical Architecture
     product/                   Product Architecture
+    software/                  Software Architecture (SWA-0x: firmware-internal decomposition)
+      architecture_decisions/    ADR-SW-0xx firmware-specific Architecture Decision Records
+      architecture_constraints/  SWA-01 resource/execution-model/timing constraints
+      solution_strategy/         SWA-02 executive summary bridging Product -> firmware
+      building_block_view/       SWA-03 whitebox decomposition + driver/HAL layer
+      runtime_view/               SWA-04 firmware-execution-level scenarios
+      deployment_view/            SWA-05 resource budget validation
+      cross_cutting_concepts/     SWA-06 firmware-wide conventions + event catalog
     states/                    System States (SystemStates.sysml)
     scenarios/                 Scenarios
   Verification/             Verification-related outputs

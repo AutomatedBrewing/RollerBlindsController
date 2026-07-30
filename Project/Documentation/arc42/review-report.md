@@ -1,21 +1,22 @@
 # arc42 Documentation Review Report (RollerBlindsController)
 
 **System:** Window Roller Shutter Controller (WRSC) — `BaseArchitecture::ShutterController`
-**Scope:** All 12 files in `Doc/arc42/`, reviewed against every `.sysml` file
-under `model/**` per `.github/prompts/generate-arc42-docs.prompt.md` Step 4.
-**Method:** Adversarial re-read of each `Doc/arc42/*.md` file against its
-cited model source, checking (1) Traceability — every ID/claim resolves to a
-real model element, (2) Completeness — every requirement/constraint/ADR/
-risk/verification def/test case in the model has a mention somewhere in
-`Doc/arc42/`, (3) Consistency — no section contradicts another or the model.
-Cross-checked against `model/Traceability/Traceability.sysml` (full file,
-~1130 lines) and `model/Verification/test_cases/{Verification,
-SystemTestCases}.sysml` (69 verification defs total: 28 in
-`Verification.sysml` — 19 black-box across `Functional`/`Quality`/
-`Constraints`/`Environmental` packages, plus 9 white-box across `Logical`/
-`Product` packages — and 36 in `SystemTestCases.sysml`).
-Follows the same report structure as
-`playground/ButtonLedIndicator/model/reviewReport.md`.
+
+**Scope:** All 12 files in `Project/Documentation/arc42/`, reviewed against
+every `.sysml` file under `Project/Model/**` (including
+`Architecture/software/`), per `.github/prompts/generate-arc42-docs.prompt.md`.
+
+**Method:** Adversarial re-read of each `arc42/*.md` file against its cited
+model source, reading `.sysml` files directly (not trusting prior review
+docs) and checking: (1) **Traceability** — every ID/name/value cited resolves
+to a real model element; (2) **Completeness** — every requirement,
+constraint, ADR, risk, verification def, and test case in the model is
+represented somewhere in `arc42/`; (3) **Consistency** — no section
+contradicts another section or the model.
+
+This review supersedes the previous (now-stale) version of this report,
+which predated both the `model/` → `Project/Model/` folder reorganization
+and the entire Software Architecture (`Architecture/software/`) addition.
 
 ---
 
@@ -23,129 +24,115 @@ Follows the same report structure as
 
 ## Overall Assessment
 
-The 12-file `Doc/arc42/` set is a faithful, traceable rendering of the
-`model/**/*.sysml` source. All 18 requirements (REQ-F-01..08, REQ-I-01/02,
-REQ-Q-01..05, REQ-S-01/02, REQ-E-01), all 9 constraint usages
-(`L0_Constraints`), all 8 ADRs (with correct supersede chain: ADR-001
-partially superseded by ADR-006; ADR-006 sub-decision 6 superseded by
-ADR-008), all 8 risks (RISK-T-01/03/04/05, RISK-S-01, RISK-B-01, RISK-SC-01,
-RISK-I-01), all 5 stakeholders, all 9 Functional Elements, all 7 Logical
-components, all 7 top-level Product components + 8 firmware modules, both
-state machines, and all 36 `SystemTestCases` test cases plus all 21
-`Verification.sysml` verification defs (including the 9 component-scoped
-white-box ones) are represented with correct model-ID citations.
-
-During this review pass, **one Critical finding** and **one Minor finding**
-were identified and fixed directly in the `Doc/arc42/` files (see tables
-below); no finding required a change to any `.sysml` model file, consistent
-with this task's "arc42 is a rendered view, never a parallel document"
-constraint.
+An earlier design iteration included several model elements — a
+`MaintenanceTechnician` stakeholder, `REQ-S-02`/`REQ-Q-04`/`REQ-Q-05`,
+`UC_04`, a `DiagnosticsSoftware`/`LogicalDiagnostics` component, and a
+standalone `Verification.sysml` file — that were later removed or folded
+into other files during model baseline cleanup. The arc42 documentation set
+had not been regenerated to match, and had accumulated other independent
+drift (wrong counts, a fabricated runtime scenario, stale attribute values,
+and an orphaned finding-ID citation scheme matching none of this repo's
+three real tracking logs). This pass found and corrected that drift across
+all 12 files.
 
 **Verdict: ACCEPTED. Zero Critical, zero Major findings remain.**
 
-## Critical Findings
-None remain open. **CRIT-DOC-1** was found and fixed during this review pass
-(see table below).
+## Current Model Counts (verified against `.sysml` sources)
 
-## Major Findings
-None found.
-
-## Minor Findings
-One found and fixed during this review pass (see table below).
+| Model artifact | Count | Notes |
+|---|---|---|
+| Requirements | 17 | REQ-F-01..10, REQ-I-01/02, REQ-Q-01..03, REQ-S-01, REQ-E-01 |
+| Constraint usages (`L0_Constraints`) | 9 | CNST-B-01, CNST-P-01, CNST-E-01, CNST-EL-01..04, CNST-A-01/02 |
+| Architecture Decisions | 11 | 8 base (ADR-001..008) + 3 software (ADR-SW-009..011) |
+| Risks | 7 | RISK-T-01/03/04/05, RISK-S-01, RISK-B-01, RISK-I-01 (no `RISK-T-02`, gap in numbering only) |
+| Stakeholders | 4 | Manufacturer, User, Installer, DisposalFacility |
+| Use Cases | UC_01 (5 variants a–e), UC_02, UC_03, UC_05 | UC_04 not assigned |
+| Functional Elements | 8 | `FunctionalArchitecture::RollerShutterControllerFunctions` |
+| Logical components | 6 | `LogicalArchitecture` |
+| Product components (top-level) | 7 | `ProductArchitecture::RollerShutterControllerProductComponents` |
+| Firmware modules | 7 | Hosted on `ControlMCU` |
+| Scenarios | 21 | `SCEN_01`–`17`, `21`–`23`, `25` (`SCEN_18`–`20`, `SCEN_24` not assigned) |
+| State machines | 1 (dual-hosted) | `ControllerLifecycleState`, exhibited at both Logical and Product/Software layers |
+| Test cases (`SystemTestCases`) | 37 | Functional 14, Safety 6, Quality 3, Environmental 1, Boundary 7, Negative 6 |
+| Component-scoped (white-box) verification defs | 8 | 5 `Logical`, 3 `Product` |
+| Domain item/flow/enum defs | 19 | 5 enums, 7 item defs, 7 flow defs |
 
 ---
 
-## Findings Table
+## Findings Table (this pass)
 
-| ID | Severity | File | Finding | Resolution |
+| ID | Severity | Files | Finding | Resolution |
 |---|---|---|---|---|
-| CRIT-DOC-1 | Critical | `11-risks-and-technical-debts.md` | The Technical Debt table misattributed the wiring-mode-mismatch-detection `// GAP:` comment to `SCEN_21`. `SCEN_21` is actually `DisposeController_EndOfLife` (the UC_05 stub gap); the wiring-mode-mismatch gap (appearing twice in the model — once in the scenario's header doc, once in step `s3`) belongs solely to `SCEN_23_LocalControl_WiringModeMismatch`. This was a genuine traceability error: `SCEN_21` does not contain any wiring-mode text in `Scenarios.sysml`. | Corrected the table: `SCEN_21` row now correctly describes the `DisposeController` stub gap; `SCEN_23` row now correctly captures both occurrences of the wiring-mode-mismatch detection gap. Cross-checked against `06-runtime-view.md`, which already had the correct attribution. |
-| MIN-DOC-1 | Minor | `07-deployment-view.md` | Firmware RAM headroom stated as "~264 bytes" summed / "~10 KB flash headroom" — the model's own comment in `ProductComponents.sysml` computes the RAM sum as exactly 240 bytes (48+16+24+32+40+24+32+24), leaving ~780 bytes headroom under the 1024-byte budget, not 264/764. | Corrected to "240 bytes RAM ... ~780 bytes RAM headroom," matching `ProductComponents.sysml`'s own arithmetic comment verbatim. |
+| DOC-01 | Critical | All 12 (except this file) | 42 occurrences of the stale `` `model/... ` `` path prefix, predating the `Project/Model/` folder reorganization. | Mechanical, verified find/replace to `` `Project/Model/... ` ``. |
+| DOC-02 | Critical | `01`, `03`, `10` | Fabricated `MaintenanceTechnician` stakeholder and `REQ-Q-04`/`REQ-Q-05`/`REQ-S-02` requirements — none exist in `Stakeholders.sysml`/`Requirements.sysml`. | Removed the stakeholder row, requirement rows, and every dependent reference (quality-goal table, verification tables, test-case counts). |
+| DOC-03 | Critical | `04`, `05`, `08`, `09`, `12` | Wrong element counts throughout: 9→8 Functional Elements, 7→6 Logical components, 8→7 firmware modules, 9-FE→8-FE. | Corrected every occurrence; cross-checked against `FunctionalArchitecture.sysml`, `LogicalArchitecture.sysml`, `ProductComponents.sysml`. |
+| DOC-04 | Critical | `05` | Fabricated action `DetermineMovementRequestFE`, fabricated `conflictOut` port, fabricated `MoveShutterToClosePosition` action, and a `timeCountingFunctions` realization (`CheckTravelTimeInRange`) not actually present in `FunctionalArchitecture.sysml`. | Removed/corrected all four; fixed the `movementSupervisionFunctions` and `memoryFunctions` port lists to match the real model. |
+| DOC-05 | Critical | `06` | An entire fabricated "Scenario 9" (`SCEN_24`/`TimingProfileReadFailure`) — `SCEN_24` is not assigned in `Scenarios.sysml`. | Removed the scenario and renumbered the subsequent two; rebuilt the header's scenario-range citation (25→21 scenarios) and the "Documented Open Gaps" section from the real `// GAP:` comments. |
+| DOC-06 | Major | `06`, `08` | Stale attribute values: `arbitrationWindowMs` (50ms, real value 100ms), `calibrationHoldThresholdS` (3.0s, real value 5.0s), and state name `AssessingSimultaneousHoldState` (real name `AssessingSimultaneousHold`). | Corrected all three throughout. |
+| DOC-07 | Major | `06` | Wrong gate name `openRangeGuard` — the real gate in `Scenarios.sysml`/`UCActivities.sysml` is `checkOpenTimeInRange`. | Corrected. |
+| DOC-08 | Major | `07`, `08`, `09` | Buzzer described as "passive" in three files; the real `AudibleNotificationBuzzer` is an active, self-oscillating piezo buzzer (ADR-008). A matching "passive piezo buzzer" comment was also found in `ProductArchitecture.sysml` itself (model-side, comment-only). | Corrected all doc occurrences and the model comment. |
+| DOC-09 | Major | `08`, `09` | ADR-008 rendered with two fabricated buzzer purposes ("conflict indication" REQ-S-02, "fault indication" REQ-Q-04) that don't exist; the buzzer's only real purpose is configuration-mode activation/deactivation (REQ-F-08). | Corrected in both files. |
+| DOC-10 | Major | `07` | `SWResourceBudget.sysml`'s own GPIO-accounting comment was internally inconsistent (stated math implying 7 GPIOs remained after quoting a sum of 3 used, then said "leaving 3"). Model-side comment bug, not a doc-staleness issue. | Fixed the comment in `SWResourceBudget.sysml` (no structural/constraint change) and the doc passage that faithfully rendered the same error. |
+| DOC-11 | Major | `10`, `11` | The entire "Verified by" / mitigation columns cited a `Verification.sysml` file and verification-def names (`VerifyReliability`, `VerifySupplyVoltageRange`, `VerifyDiagnosability`, `VerifyConflictNotification`, etc.) that no longer exist — `Verification.sysml` was folded into `SystemTestCases.sysml` during a prior baseline pass. | Replaced every citation with the real `SystemTestCases::TC_*` names; rewrote the Quality Requirements, Quality Scenarios, and Test Case Register tables; fixed a genuine test-case misattribution (`TC_S_004` verifies REQ-F-08's local-only config gate, not a fabricated `conflictSuppressionBeepCount` conflict-indication attribute). |
+| DOC-12 | Major | `07`, `11` | `RISK-SC-01` (a Schedule-category risk) does not exist in `Risks.sysml` — only 7 risks are modeled. | Removed the risk row/reference from both files; corrected risk-count claims from 8 to 7. |
+| DOC-13 | Major | `11` | The Technical Debt / Documented Open Gaps table misattributed a `// GAP:` comment to `SCEN_07` (no gap exists there) and to the nonexistent `SCEN_24`; it omitted the three real gaps at `SCEN_15`, `SCEN_16`, `SCEN_17`; and it under-counted `SCEN_23`'s gap (recorded three times in the model, not twice). | Rebuilt the table from the actual `// GAP:` comments in `Scenarios.sysml`. |
+| DOC-14 | Minor | `01`, `05`, `08`, `09`, `10`, `11`, `12` | Orphaned finding-ID tags (`M2`, `M3`, `MAJ-8`, `PA-2`, `PA-4`, `PA-6`, `PA-9`, `MAJOR-2`, `SR-8`, `CRIT-4`, `C8`) cited throughout, matching none of this repo's three real tracking schemes (`review-report.md`'s own IDs, `Project/Model/REVIEW_FINDINGS.md`'s `MR-*`, `Architecture/software/REVIEW_FINDINGS.md`'s `SWR-*`). | Removed all instances; kept the underlying factual content plainly stated. Real, verifiable `SWR-*` citations (e.g. `SWR-037`, `SWR-027`) were left in place. |
+| DOC-15 | Minor | `01`, `12` | Missing content: `REQ-F-09`/`REQ-F-10` were absent from the requirements table; `ChannelSource` enum and `ControlCommand.source` attribute were absent from the glossary. | Added both. |
+| DOC-16 | Minor | `08` | Concepts 9–11 (Single Shared Timing Source, Event-Dispatcher Execution, Single-Owner EEPROM) omitted their checkable `@metadata` marker names. | Added `SharedTimingSourceMeta`/`EventDispatcherExecutionMeta`/`SingleOwnerEepromMeta` mentions, each with its real applied-to component list. |
+| DOC-17 | Minor | `11` | The deferred ADR prose-tightening item (`SWR-027`, explicitly deferred per `Architecture/software/REMEDIATION_PLAN.md` item 17) had zero representation in the Technical Debt section. | Added a "Software Architecture Technical Debt" entry. |
 
 ---
 
 ## Phase-by-Phase Findings
 
-### Phase 1 — Traceability (every ID resolves to a real model element)
+### Phase 1 — Traceability
 
-Spot-checked every requirement ID, constraint ID, ADR ID, risk ID, and
-verification-def/test-case name cited across all 12 files against
-`grep`-confirmed occurrences in the `.sysml` sources:
+Every requirement, constraint, ADR, risk, verification-def, and test-case ID
+cited across all 12 files was checked directly against its `.sysml` source
+(`grep`/`Select-String`, cross-checked with direct file reads where the
+search tooling returned inconsistent results on some files). All citations
+now resolve to real model elements; the previously-fabricated IDs and names
+listed in the Findings Table above were the only discrepancies found.
 
-- REQ-F-01..08, REQ-I-01/02, REQ-Q-01..05, REQ-S-01/02, REQ-E-01 — all
-  resolve to `Requirements.sysml` usages. ✅
-- All 9 constraint usages in `Constraints.sysml` (`L0_Constraints`) resolve.
-  ✅
-- All 8 ADRs resolve to their respective `ADR_00N_*.sysml` files;
-  `context`/`decision`/`consequences`/`alternatives` text summarized in
-  `09-architecture-decisions.md` matches the source `@ArchDecisionMeta`
-  string values (verified verbatim for ADR-001, ADR-002, ADR-005, ADR-006,
-  ADR-007). ✅
-- All 8 risks resolve to `Risks.sysml`, including the RISK-S-01 severity-
-  escalation rationale (low×high → critical, ALARP convention) quoted
-  accurately. ✅
-- All `verification def` names in `10-quality-requirements.md` (black-box
-  `Verification::{Functional,Quality,Constraints,Environmental}` packages —
-  19 total — and the 9 white-box `Logical`/`Product` verification defs)
-  resolve to `Verification.sysml`. ✅
-- All `TC_*` test case IDs (13 Functional, 4 Safety, 5 Quality, 1
-  Environmental, 7 Boundary, 6 Negative = 36 total) resolve to
-  `SystemTestCases.sysml`. ✅
-- Scenario IDs `SCEN_01`–`SCEN_25` and their UCA/Logical/Product traces in
-  `06-runtime-view.md` cross-checked against `Traceability.sysml`'s
-  Scenario→UCA/Logical/Product blocks (lines ~623–809) — all match, with
-  one exception (CRIT-DOC-1 above, in `11-risks-and-technical-debts.md`,
-  now fixed).
-- Domain glossary terms in `12-glossary.md` (enums, item defs, flow defs)
-  resolve 1:1 to `DomainKnowledge.sysml`. ✅
+### Phase 2 — Completeness
 
-### Phase 2 — Completeness (every model element mentioned somewhere)
+Every requirement, constraint, ADR, risk, and test case in the model is now
+represented in `arc42/` (see the Current Model Counts table above for exact
+figures cross-referenced to the relevant section). `REQ-F-09`/`REQ-F-10`
+(previously omitted) and the software-side technical-debt item (previously
+unrepresented) were the two completeness gaps found and closed.
 
-| Model artifact | Count | Coverage in `Doc/arc42/` |
-|---|---|---|
-| Requirements (`L0_Requirements`) | 18 | 100% — §1.1, §10 |
-| Constraint usages (`L0_Constraints`) | 9 | 100% — §2 |
-| ADRs | 8 | 100% — §9 (also referenced in §2, §4, §5, §7) |
-| Risks | 8 (RISK-T-02 does not exist — numbering gap, not a missing risk) | 100% — §11 |
-| Stakeholders | 5 | 100% — §1.3, §3.1 |
-| Use Cases | 5 (UC_01 has 5 variants) | 100% — referenced throughout §5, §6 |
-| Functional Elements | 9 | 100% — §5.1 |
-| Logical components | 7 | 100% — §5.2 |
-| Product components (top-level) | 7 | 100% — §5.3, §7 |
-| Firmware modules | 8 | 100% — §5.3, §7 |
-| Scenarios | 25 | 11 detailed + 14 referenced/covered via the Documented Open Gaps subsection and cross-references; none omitted from the traceability discussion |
-| State machines | 2 | 100% — §8, Concept 5 |
-| Verification defs (black-box) | 19 | 100% — §10 |
-| Verification defs (white-box) | 9 | 100% — §10 |
-| Test cases (`SystemTestCases`) | 36 | 100% — §10 |
-| Domain item/flow/enum defs | 24 | 100% — §12 |
+### Phase 3 — Consistency
 
-No model element was found to be entirely absent from `Doc/arc42/`.
-
-### Phase 3 — Consistency (no contradictions)
-
-- ADR-001/ADR-006/ADR-008 supersede language checked across §2, §4, §5, §9
-  — consistent everywhere ("ADR-001 partially superseded by ADR-006 [MCU
-  clause only]"; "ADR-006 sub-decision (6) superseded by ADR-008").
-- `totalUnitCostPLN = 14.5` cited identically in §4.4, §5.3, and implicitly
-  in §2 (`costEffective` row) — consistent.
-- RISK-S-01's critical-severity escalation rationale is stated identically
-  in §11 and cross-referenced (not restated) in §2 and §10 — no
-  contradiction.
-- No section marks a superseded ADR or deprecated element as current.
+- ADR-001/ADR-006/ADR-008 supersede language is stated identically across
+  `02`, `04`, `05`, `09` — consistent.
+- Buzzer active/passive characterization is now consistent across `07`, `08`,
+  `09`, and the model itself (`ProductComponents.sysml`,
+  `ProductArchitecture.sysml`).
+- `arbitrationWindowMs`/`calibrationHoldThresholdS` values are now consistent
+  across `06` and `08`.
 - The `noPositionFeedback`/`timeBasedOperation` architectural principle is
-  described consistently across §2, §4, §6 (SCEN_17), §8 (Concept 2), and
-  §11 (RISK-T-01) with no conflicting framing.
+  described consistently across `02`, `04`, `06` (SCEN_17), `08` (Concept 2),
+  and `11` (RISK-T-01), with no conflicting framing.
+- No section describes a removed/superseded element (`DiagnosticsSoftware`,
+  `LogicalDiagnostics`, `Verification.sysml`, `RISK-SC-01`, `SCEN_24`) as
+  currently existing — every remaining mention is an explicit "this no
+  longer exists" clarification.
 
 ---
 
 ## Conclusion
 
-Two findings (1 Critical, 1 Minor) were identified during the adversarial
-review pass and corrected directly in `Doc/arc42/11-risks-and-technical-
-debts.md` and `Doc/arc42/07-deployment-view.md`. No `.sysml` model file
-required any change — all findings were documentation-rendering errors, not
-model defects. With both findings resolved and zero Critical/Major findings
-remaining, the arc42 documentation set is:
+Seventeen findings (5 Critical, 8 Major, 4 Minor) were identified during this
+adversarial review pass and corrected directly in the 12 `arc42/*.md` files.
+Two of these findings also required a comment-only fix to the underlying
+`.sysml` model (`SWResourceBudget.sysml`'s GPIO-accounting comment,
+`ProductArchitecture.sysml`'s buzzer-characterization comment) — in both
+cases the model's actual structure/constraints were already correct; only
+the prose explanation was wrong. No requirement, constraint, ADR, risk, or
+test case was added, removed, or reinterpreted in the model itself.
+
+With all findings resolved and zero Critical/Major findings remaining, the
+arc42 documentation set is:
 
 **VERDICT: ACCEPTED**

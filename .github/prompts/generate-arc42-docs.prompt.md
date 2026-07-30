@@ -1,13 +1,14 @@
 ---
-description: "Generate concise arc42 architecture documentation from the model/ SysML v2 source into /Doc, then review the generated docs for accuracy and consistency against the model."
+description: "Generate concise arc42 architecture documentation from the Project/Model/ SysML v2 source into Project/Documentation/arc42/, then review the generated docs for accuracy and consistency against the model."
 ---
 
 # Generate arc42 Documentation from the Model
 
-Generate the arc42 architecture documentation for this project into `Doc/arc42/`,
-rendered strictly from `model/**/*.sysml`. The model is the single source of
-truth — arc42 is a **rendered view**, not a hand-authored document. Do not
-invent content that has no corresponding model element.
+Generate the arc42 architecture documentation for this project into
+`Project/Documentation/arc42/`, rendered strictly from
+`Project/Model/**/*.sysml`. The model is the single source of truth —
+arc42 is a **rendered view**, not a hand-authored document. Do not invent
+content that has no corresponding model element.
 
 ## Step 1 — Load the mapping rules
 
@@ -15,27 +16,27 @@ Before writing anything, read:
 1. `KnowledgeSource/integration/index.md` — "arc42 Section → Model Source Mapping" table (§ authoritative section→model mapping).
 2. `KnowledgeSource/arc42/sections/<section>.md` for **each** of the 12 sections — defines the required subsections/schema for that section.
 3. `KnowledgeSource/integration/crossmapping/<artifact>.md §3` for every SYSMOD artifact referenced by a section — defines exactly which model elements populate it.
-4. `model/README.md` — current model folder structure, so you know where each artifact actually lives.
+4. `Project/Model/README.md` — current model folder structure, so you know where each artifact actually lives.
 
 ## Step 2 — Extract content from the model, not from memory
 
 For every claim you write, locate the concrete model element backing it
 (package, `part def`, `requirement <'ID'>`, `ADR_NNN`, `verification def`,
-`concern`, etc.) in the actual `.sysml` files under `model/`. Cite the
-element's stable ID or qualified name inline (e.g. `REQ-S-02`, `ADR-008`,
+`concern`, etc.) in the actual `.sysml` files under `Project/Model/`. Cite
+the element's stable ID or qualified name inline (e.g. `REQ-S-02`, `ADR-008`,
 `RISK-T-01`) so every sentence is traceable back to its source.
 
-If a section's model source doesn't exist yet (e.g. `Analysis/domain` is
-"not yet modelled" per `model/README.md`), state that explicitly as
-**"Not yet modelled"** — never fabricate content to fill a gap.
+If a section's model source doesn't exist yet (e.g. `Verification/test_architecture/`
+is "not yet modelled" per `Project/Model/README.md`), state that explicitly
+as **"Not yet modelled"** — never fabricate content to fill a gap.
 
 ## Step 3 — Write the 12 arc42 sections
 
-Create these files in `Doc/arc42/` (numbering matches
+Create these files in `Project/Documentation/arc42/` (numbering matches
 `KnowledgeSource/integration/okf-ontology.md §6.1`):
 
 ```
-Doc/arc42/
+Project/Documentation/arc42/
   01-introduction-and-goals.md
   02-architecture-constraints.md
   03-context-and-scope.md
@@ -62,21 +63,23 @@ Doc/arc42/
 - Do not duplicate full `doc` text verbatim across sections — summarize;
   link back to the `.sysml` file/package for the full text instead.
 - Skip a subsection with one line ("Not yet modelled — see
-  `model/Analysis/domain/`.") rather than padding it.
+  `Project/Model/Verification/test_architecture/`.") rather than padding it.
 
 ## Step 4 — Review pass (mandatory, after all 12 files exist)
 
 Re-read every file you just wrote against the model, adversarially:
-1. **Traceability** — every ID/claim in `Doc/arc42/*.md` resolves to a real
-   element in `model/**/*.sysml`. Flag anything that doesn't.
+1. **Traceability** — every ID/claim in `Project/Documentation/arc42/*.md`
+   resolves to a real element in `Project/Model/**/*.sysml`. Flag anything
+   that doesn't.
 2. **Completeness** — every requirement, ADR, risk, and verification def in
-   the model has a corresponding mention somewhere in `Doc/arc42/`. Flag
-   any model element that's missing from the docs.
+   the model has a corresponding mention somewhere in
+   `Project/Documentation/arc42/`. Flag any model element that's missing
+   from the docs.
 3. **Consistency** — no section contradicts another or the model (e.g. a
    superseded ADR still described as current).
 
-Fix every Critical/Major finding directly in the `Doc/arc42/` files, then
-write `Doc/arc42/review-report.md` summarizing the review: methodology,
-findings table (Critical/Major/Minor, same style as
-`playground/ButtonLedIndicator/model/reviewReport.md`), and a final
-verdict (`ACCEPTED` only once zero Critical/Major findings remain).
+Fix every Critical/Major finding directly in the
+`Project/Documentation/arc42/` files, then write
+`Project/Documentation/arc42/review-report.md` summarizing the review:
+methodology, findings table (Critical/Major/Minor), and a final verdict
+(`ACCEPTED` only once zero Critical/Major findings remain).

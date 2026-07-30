@@ -287,6 +287,26 @@ Normative rules from the SysML v2 specification governing syntax, semantics, and
 | **ARC-11** | [ARC42-SECTION] | [Risks and Technical Debts](../arc42/sections/risks-and-technical-debts.md) | Known technical risks and accumulated technical debt with impact and mitigation. |
 | **ARC-12** | [ARC42-SECTION] | [Glossary](../arc42/sections/glossary.md) | Domain-specific and technical terms ensuring shared vocabulary across all stakeholders. |
 
+### 1.4 Software Architecture Nodes (SWA — below SM-PRD-21)
+
+SYSMOD explicitly stops at the Product Architecture (SM-PRD-21): "the next
+level of detail... is part of specific engineering models... and is out of
+scope for the system model." The `swarch` bundle fills that gap. These
+artifacts are **not** SYSMOD products — they use a separate `SWA-NN`
+namespace, organised per SW-relevant arc42 artifact (not per SYSMOD
+product), and are modeled using the same SysML v2 elements already
+catalogued in §1.2 (no new language elements).
+
+| ID | Tag | Name | 1-Line Description |
+|----|-----|------|--------------------|
+| **SWA-01** | [SWARCH-PRODUCT] | [Software Architecture Constraints](../swarch/products/architecture-constraints.md) | Flash/RAM budget, execution-model, and timing constraints derived from the Product Architecture's hardware attributes. |
+| **SWA-02** | [SWARCH-PRODUCT] | [Software Solution Strategy](../swarch/products/solution-strategy.md) | Execution model, concurrency approach, and decomposition rationale for the firmware. |
+| **SWA-03** | [SWARCH-PRODUCT] | [Software Building Block View](../swarch/products/building-block-view.md) | Whitebox decomposition (Level 4+) of individual firmware `part def` components. |
+| **SWA-04** | [SWARCH-PRODUCT] | [Software Runtime View](../swarch/products/runtime-view.md) | Firmware execution mechanics: superloop iteration, interrupts, timer-driven scenarios. |
+| **SWA-05** | [SWARCH-PRODUCT] | [Software Deployment View](../swarch/products/deployment-view.md) | Flash/RAM budget validation and execution-context (task/interrupt) placement on the MCU. |
+| **SWA-06** | [SWARCH-PRODUCT] | [Software Cross-cutting Concepts](../swarch/products/cross-cutting-concepts.md) | Firmware-wide conventions: error handling, persistence, timing/debounce, state-binding naming. |
+| **SWA-07** | [SWARCH-PRODUCT] | [Software Architecture Decisions](../swarch/products/architecture-decisions.md) | ADRs for software-level choices, reusing the project's existing `ADR_Common::ArchDecisionMeta`. |
+
 ---
 
 ## Section 2 — Edge Type Definitions
@@ -341,6 +361,27 @@ All 24 SYSMOD products mapped to their primary SysML v2 elements and primary arc
 - SM-PRD-17 (System Architecture) and SM-PRD-19 (Physical Architecture) are abstract SYSMOD concepts; their SysML v2 representation is a package grouping their concrete specializations.
 - `SML-USG-Satisfy` is the mechanism linking requirements (SM-PRD-10) to architectural elements (SM-PRD-20, SM-PRD-21).
 
+### 3.1 Software Architecture Adjacency Table (SWA — below SM-PRD-21)
+
+Continues the pattern above for the 7 SWA artifacts. Not SYSMOD products —
+no `SM-PRD-*` row exists for these; they are listed separately to keep the
+24-row SYSMOD table above untouched.
+
+| Artifact ID | Artifact Name | Primary SysML v2 Elements | Primary arc42 Sections | Key Edge Types |
+|-----------|-------------|--------------------------|----------------------|----------------|
+| SWA-01 | Software Architecture Constraints | SML-USG-ReqUSG, SML-USG-AttrUSG | ARC-02 | implements, documents, depends_on |
+| SWA-02 | Software Solution Strategy | SML-DEF-Package, SML-DEF-MetaDef | ARC-04, ARC-09 | implements, documents, refines |
+| SWA-03 | Software Building Block View | SML-USG-PartUSG, SML-DEF-ActDef, SML-USG-StateUSG | ARC-05 (L4+) | implements, documents, refines |
+| SWA-04 | Software Runtime View | SML-DGM-SeqDiag, SML-USG-ActUSG | ARC-06 | implements, documents, refines |
+| SWA-05 | Software Deployment View | SML-USG-ReqUSG, SML-DEF-MetaDef | ARC-07 | implements, documents |
+| SWA-06 | Software Cross-cutting Concepts | SML-DEF-MetaDef, SML-DEF-Package | ARC-08 | implements, documents |
+| SWA-07 | Software Architecture Decisions | SML-DEF-MetaDef | ARC-09 | implements, documents |
+
+**Notes on SWA SysML v2 element selection:**
+- No new SysML v2 elements are introduced at the SWA level — every construct used is already catalogued in §1.2, applied one containment level deeper than SM-PRD-21.
+- SWA-07 reuses the project's existing `ADR_Common::ArchDecisionMeta` (a `SML-DEF-MetaDef` instance) — SWA does not define a separate metadata definition.
+- All SWA artifacts carry a `refines` or `depends_on` edge back to SM-PRD-21 (Product Architecture), since they all elaborate an already-modelled firmware `part def`.
+
 ---
 
 ## Section 4 — Dependency Graph
@@ -386,6 +427,15 @@ Level 6 — Architecture (SM-PRC-02 begins):
 Level 7 — Verification Setup:
   SM-PRD-24  Test Architecture         (needs: SM-PRD-16, SM-PRD-20, SM-PRD-21)
 
+Level 8 — Software Architecture (below SYSMOD scope; project convention, `swarch` bundle):
+  SWA-01  Software Architecture Constraints  (needs: SM-PRD-21, SM-PRD-07, SM-PRD-10)
+  SWA-02  Software Solution Strategy         (needs: SWA-01, SM-PRD-21, SM-PRD-23)
+    → SWA-03  Software Building Block View  (needs: SWA-02, SM-PRD-21, SM-PRD-23)
+      → SWA-04  Software Runtime View       (needs: SWA-03, SM-PRD-22)
+      → SWA-05  Software Deployment View    (needs: SWA-03, SWA-01, SWA-02)
+    → SWA-06  Software Cross-cutting Concepts (needs: SWA-03, SWA-01)
+    → SWA-07  Software Architecture Decisions (needs: SWA-02, SWA-01)
+
 Abstract (no process position — taxonomy roots only):
   SM-PRD-17  System Architecture       [abstract parent of all architecture kinds]
   SM-PRD-19  Physical Architecture     [abstract parent of Base, Logical, Product, Test Arch.]
@@ -419,6 +469,13 @@ Abstract (no process position — taxonomy roots only):
 | SM-PRD-22 | Scenarios | SM-PRD-14, SM-PRD-20, SM-PRD-21 | SM-MTH-20 |
 | SM-PRD-23 | System States | SM-PRD-12, SM-PRD-14 | SM-MTH-21 |
 | SM-PRD-24 | Test Architecture | SM-PRD-16, SM-PRD-20, SM-PRD-21 | SM-MTH-22 |
+| SWA-01 | Software Architecture Constraints | SM-PRD-21, SM-PRD-07, SM-PRD-10 | *(project convention, not SYSMOD)* |
+| SWA-02 | Software Solution Strategy | SWA-01, SM-PRD-21, SM-PRD-23 | *(project convention, not SYSMOD)* |
+| SWA-03 | Software Building Block View | SWA-02, SM-PRD-21, SM-PRD-23 | *(project convention, not SYSMOD)* |
+| SWA-04 | Software Runtime View | SWA-03, SM-PRD-22 | *(project convention, not SYSMOD)* |
+| SWA-05 | Software Deployment View | SWA-03, SWA-01, SWA-02 | *(project convention, not SYSMOD)* |
+| SWA-06 | Software Cross-cutting Concepts | SWA-03, SWA-01 | *(project convention, not SYSMOD)* |
+| SWA-07 | Software Architecture Decisions | SWA-02, SWA-01 | *(project convention, not SYSMOD)* |
 
 ---
 
@@ -435,6 +492,7 @@ Abstract (no process position — taxonomy roots only):
 | SysML v2 Usages | `SML-USG-<ShortName>` | `SML-USG-ReqUSG` = Requirement Usage |
 | SysML v2 Diagrams | `SML-DGM-<ShortName>` | `SML-DGM-ReqDiag` = Requirements Diagram |
 | arc42 Sections | `ARC-<NN>` (NN = 01–12) | `ARC-01` = Introduction and Goals |
+| Software Architecture Artifacts | `SWA-<NN>` (NN = 01–07) | `SWA-03` = Software Building Block View |
 
 **Short name registry for SML-DEF-\*:**
 
@@ -581,6 +639,14 @@ Complete traceability chain for all 24 products across SYSMOD → SysML v2 → a
       product/                        ← SM-PRD-21
       states/                         ← SM-PRD-23
       scenarios/                      ← SM-PRD-22
+      Software/                       ← SWA-01..07 (project convention, not SYSMOD; see §7.1 L5)
+        architecture_constraints/     ← SWA-01
+        solution_strategy/            ← SWA-02
+        building_block_view/          ← SWA-03
+        runtime_view/                 ← SWA-04
+        deployment_view/              ← SWA-05
+        cross_cutting_concepts/       ← SWA-06
+        architecture_decisions/       ← SWA-07
     <System>_Verification/            ← SM-PRD-16, SM-PRD-24
       test-architecture/              ← SM-PRD-24
       test-cases/                     ← SM-PRD-16 (also referenced above)
@@ -619,6 +685,7 @@ Complete traceability chain for all 24 products across SYSMOD → SysML v2 → a
 | `<System>_Architecture/product/` | SM-PRD-21 | ARC-05, ARC-07 | `package ProductArch` |
 | `<System>_Architecture/states/` | SM-PRD-23 | ARC-06, ARC-05 | `package SystemStates` |
 | `<System>_Architecture/scenarios/` | SM-PRD-22 | ARC-06 | `package Scenarios` |
+| `<System>_Architecture/software/` | none (SWA-01..07, project convention) | ARC-02, 04–09 | `package SoftwareArchitecture` (7 sub-packages, see `swarch` bundle) |
 | `<System>_Verification/test-architecture/` | SM-PRD-24 | ARC-05, ARC-07 | `package TestArchitecture` |
 
 ### 6.3 SysML v2 Package Import Strategy
@@ -690,7 +757,16 @@ package CoffeeMachine_LogicalArch {
 
 ## Section 7 — System Decomposition Strategy
 
-### 7.1 Four-Level Decomposition Table
+### 7.1 Five-Level Decomposition Table
+
+SYSMOD's own decomposition stops at L3 (Product Architecture — SM-PRD-21).
+L4 was originally a single-row stub covering "whatever detail lives inside
+a product part." That stub is now split into L4 (generic component detail,
+still inside SM-PRD-21) and **L5 (Software Architecture)** — a fully
+elaborated, project-specific continuation using the `swarch` bundle's
+SWA-01…07 artifacts. L5 is not a SYSMOD product; it exists because SYSMOD
+explicitly says finer engineering detail is "out of scope for the system
+model" and leaves the choice of continuation method to the project.
 
 | Level | Name | SYSMOD Products | SysML v2 Construct | arc42 Section | Description |
 |-------|------|-----------------|--------------------|--------------|-------------|
@@ -699,6 +775,19 @@ package CoffeeMachine_LogicalArch {
 | **L2** | Logical Architecture | SM-PRD-20 | `part def <LogicalComponent>`, `port def <Interface>`, `connection def`, `interface def`, `allocation def` | ARC-05 Level 2 | Technology-principle-level architecture; reusable across product families; connected via typed ports and interfaces. |
 | **L3** | Product Architecture | SM-PRD-21 | `part def <PhysicalComponent>` (concrete, non-abstract), `attribute def`, `attribute usage`, `part usage` | ARC-05 Level 3, ARC-07 | Concrete physical implementation; all parts are instantiable; lowest level in the system model. |
 | **L4** | Component Detail | (part of SM-PRD-21) | `part usage`, `attribute usage`, `perform action`, `exhibit state`, `satisfy requirement` | ARC-05 Level 3+ | Fine-grained internal specification of individual components; connects to engineering sub-models. |
+| **L5** | Software Architecture *(project convention — `swarch` bundle, not SYSMOD)* | none (elaborates SM-PRD-21) | see breakdown below | ARC-02, 04–09 | Firmware-internal software architecture for `part def`s hosted on `ControlMCU`: execution model, whitebox decomposition, runtime behavior, deployment budget, cross-cutting conventions, and ADRs. |
+
+**L5 breakdown (SWA-01…07 — see §1.4 and §3.1 for full detail):**
+
+| Sub-Level | SWA ID | Name | SysML v2 Construct | arc42 Section |
+|-----------|--------|------|--------------------|--------------|
+| L5.1 | SWA-01 | Software Architecture Constraints | `requirement usage`, `attribute usage` (flash/RAM budgets) | ARC-02 |
+| L5.2 | SWA-02 | Software Solution Strategy | `package`, `metadata def` (execution model rationale) | ARC-04, ARC-09 |
+| L5.3 | SWA-03 | Software Building Block View | nested `part usage`, `action def`, `exhibit state` | ARC-05 (Level 4+) |
+| L5.4 | SWA-04 | Software Runtime View | sequence diagrams (`SML-DGM-SeqDiag`), `action usage` | ARC-06 |
+| L5.5 | SWA-05 | Software Deployment View | `requirement usage` (budget verification), `metadata def` | ARC-07 |
+| L5.6 | SWA-06 | Software Cross-cutting Concepts | `metadata def`, `package` (conventions) | ARC-08 |
+| L5.7 | SWA-07 | Software Architecture Decisions | `metadata def` (reuses `ADR_Common::ArchDecisionMeta`) | ARC-09 |
 
 ### 7.2 Specialization and Subsetting Rules
 

@@ -3,21 +3,13 @@ package UseCaseActivities {
     private import ISQ::*;
     private import ScalarValues::Boolean;
 
-    /* The Use Case Activities specify the functional decomposition
-     * of the System Use Cases and, thus, the overall system in the
-     * problem space. They define the sequence of execution and
-     * object flow between the system functions.
-     *
-     * Domain types (item defs, enum defs, flow defs) are defined in
-     * DomainKnowledge (SM-PRD-15) and imported above.
-     */
+    /* Specifies the functional decomposition of System Use Cases (SM-PRD-14), defining action sequence and object flow between system functions. Domain types are imported from DomainKnowledge (SM-PRD-15). */
 
     // =========================================================================
     // Abstract action definitions (Black-box functional blocks)
     // =========================================================================
 
-    // Both local and remote commands routed via fork+merge (first-wins).
-    // No 'via' reference to internal architecture parts (architecture-independent).
+    // Local and remote commands race via fork+merge; whichever arrives first initiates movement. The 'source' attribute is preserved on the payload for downstream inspection (e.g. DetermineConfigurationMode).
     action def ReceiveControlRequest {
         out command : ControlCommand;
 
@@ -56,17 +48,22 @@ package UseCaseActivities {
 
         first start;
         decide;
-            if command.direction == MovementDirection::none then suppressMovement;
+            // 'both' is suppressed here too: a
+            // simultaneous UP+DOWN conflict must never reach the motor, whether
+            // it arrives as 'none' (already-arbitrated) or 'both' (raw conflict).
+            if command.direction == MovementDirection::none
+                or command.direction == MovementDirection::both then suppressMovement;
             else passThrough;
     }
 
+    // Config-mode activation (simultaneous UP+DOWN held >=5s) is gated to the local channel only (REQ-F-08); a remote-originated UP+DOWN never activates configuration mode.
     action def DetermineConfigurationMode {
         in command : ControlCommand;
         out configurationModeRequested : Boolean;
 
         first start;
         decide;
-        if command.direction == MovementDirection::both {
+        if command.direction == MovementDirection::both and command.source == ChannelSource::local {
             assign configurationModeRequested := true;
         } else {
             assign configurationModeRequested := false;
@@ -96,11 +93,14 @@ package UseCaseActivities {
 
         first start;
         decide;
-            if request.direction != MovementDirection::none then activateMotor;
+            // Defense-in-depth: even if 'both' ever
+            // reached this stage, it is excluded here too, never just 'none'.
+            if request.direction != MovementDirection::none
+                and request.direction != MovementDirection::both then activateMotor;
             else suppressMotor;
     }
 
-    // Fork+merge (first-wins): user stop-command or timeout, whichever fires first.
+    // Fork+merge: stops on whichever fires first — a stop command from either channel (equal priority) or the travel-time timeout.
     action def MonitorStopCondition {
         in request : MovementRequest;
         in attribute timeout subsets ISQ::duration;
@@ -126,7 +126,8 @@ package UseCaseActivities {
         first monitorTimeout then stopMerge;
     }
 
-    // Fork+merge (first-wins): user release or timeout — stops on either (UC_01c/d).
+    // Fork+merge: stops on whichever fires first -- release/stop command
+    // from EITHER channel (equal priority, UC_01c/d) or the safety timeout.
     action def MonitorUserInterruption {
         in request : MovementRequest;
         in attribute timeout subsets ISQ::duration;
@@ -175,8 +176,8 @@ package UseCaseActivities {
         then action loadProfile : LoadTimingProfile;
         then action receiveControlRequest : ReceiveControlRequest;
         then action determineMovementRequest : DetermineMovementRequest;
-        then action determineConfiguratedMode : DetermineConfigurationMode;
-        if determineConfiguratedMode.configurationModeRequested == true {
+        then action determineConfigurationMode : DetermineConfigurationMode;
+        if determineConfigurationMode.configurationModeRequested == true {
             // Drop this workflow.
         }
 
@@ -184,16 +185,9 @@ package UseCaseActivities {
         then action monitorStopCondition : MonitorStopCondition;
         then action stopShutterMovement : StopShutterMovement;
 
-        // loadProfile (system model review corrective pass, closes the
-        // LoadTimingProfile orphan finding): composed here so the
-        // profile-loading step's position in the overall sequence is
-        // explicit even at this abstract UCA layer, and so LoadTimingProfile
-        // is no longer an un-composed, package-level-only usage. Its output
-        // is not flowed into monitorStopCondition here -- see the timeout
-        // attribute doc above for why that reduction is deferred to FA's
-        // SuperviseMovementStop.
+        // loadProfile output is not flowed into monitorStopCondition here; that binding is deferred to FA's SuperviseMovementStop.
         flow from receiveControlRequest.command to determineMovementRequest.command;
-        flow from receiveControlRequest.command to determineConfiguratedMode.command;
+        flow from receiveControlRequest.command to determineConfigurationMode.command;
         flow from determineMovementRequest.request to startShutterMovement.request;
         flow from timeout to monitorStopCondition.timeout;
         flow from determineMovementRequest.request to monitorStopCondition.request;
@@ -249,9 +243,7 @@ package UseCaseActivities {
 
     action def HandleConflictingMovementCommands specializes ControlRollerShutter {
         doc
-        /* Realizes UC_01e: simultaneous UP+DOWN commands — motor remains
-         * de-energized in both directions; no shutter movement occurs.
-         */
+        /* Realizes UC_01e: simultaneous UP+DOWN commands — motor remains de-energized; no shutter movement occurs. */
         action redefines receiveControlRequest {
             out redefines command : ControlCommand {
                 attribute redefines direction = MovementDirection::none;
@@ -279,30 +271,47 @@ package UseCaseActivities {
     }
 
     action def AssembleWallswitch;
+    action def ReportInstallationFault {
+        doc
+        /* Terminal fault path: reached only after two
+         * failed install attempts. Realizes SystemStates::InstallationFaultReported. */
+    }
 
     action verifyWorking : VerifyWorking;
+    action retryConnectController : ConnectController;
+    action retryVerifyWorking : VerifyWorking;
+    action reportInstallationFault : ReportInstallationFault;
 
     action def InstallController {
-        first start;
-        loop {
-            then action turnOffPowerSupplyForShutters : TurnOffPowerSupplyForShutters;
-            then action disassembleWallswitch : DisassembleWallswitch;
-            then action connectController : ConnectController;
-            then verifyWorking;
-        } until verifyWorking.success == true;
+        doc
+        /* Bounded single-retry install sequence (the
+         * former unbounded 'loop until success' never reported a fault). One
+         * retry via retryConnectController/retryVerifyWorking; second failure
+         * reports the fault instead of looping. Matches SystemStates.sysml's
+         * InstallationVerified/InstallationFaultReported citations verbatim. */
 
-        then action assembleWallswitch : AssembleWallswitch;
+        action assembleWallswitch : AssembleWallswitch;
+
+        first start;
+        then action turnOffPowerSupplyForShutters : TurnOffPowerSupplyForShutters;
+        then action disassembleWallswitch : DisassembleWallswitch;
+        then action connectController : ConnectController;
+        then verifyWorking;
+        decide firstAttempt;
+            if verifyWorking.success == true then assembleWallswitch;
+            else retryConnectController;
+        then retryVerifyWorking;
+        decide secondAttempt;
+            if retryVerifyWorking.success == true then assembleWallswitch;
+            else reportInstallationFault;
     }
 
     // =========================================================================
     // Configuration
     // =========================================================================
-    action def MoveShutterToClosePosition;
     action def ActivateConfigurationMode {
         doc
-        /* To activate configuration mode, user need to press UP + DOWN
-         * simultanously for more than 5 seconds.
-         */
+        /* To activate configuration mode, user presses UP + DOWN simultaneously for more than 5 seconds. */
     }
 
     action def NotifyUserAboutActivationOfConfigurationMode;
@@ -310,10 +319,7 @@ package UseCaseActivities {
     action def CountActionTime {
         in shutterStateIn : ShutterState;
         out measuredTime : TravelTime;
-        // NOTE: Behavior underspecified here; refined in the Functional
-        // Architecture layer by CountActionTimeFE (SM-PRD-18), which clarifies
-        // that the ShutterState input is a stream of change events (moving=true
-        // → moving=false) from which the elapsed duration is computed.
+        // Behavior is refined in FunctionalArchitecture (SM-PRD-18) by CountActionTimeFE.
     }
 
     action def SaveCountedTime {
@@ -322,11 +328,7 @@ package UseCaseActivities {
 
     action def LoadTimingProfile {
         doc
-        /* Retrieves the stored timing profile (opening and closing travel times)
-         * from non-volatile memory for use by movement-supervision functions as
-         * the automatic-mode movement timeout (supports REQ-F-07,
-         * configurableTimingProfile).
-         */
+        /* Retrieves the stored timing profile (opening and closing travel times) from non-volatile memory for use as the automatic-mode timeout (REQ-F-07). */
         out timingProfile : TravelTime;
     }
 
@@ -335,41 +337,29 @@ package UseCaseActivities {
     action def CheckConfigurationModeState {
         out attribute alreadyActive : Boolean;
         doc
-        /* Checks whether configuration mode is already active before a new
-         * activation request is accepted, realizing UC_03's documented
-         * precondition ("configuration mode not already active").
-         */
+        /* Checks whether configuration mode is already active before a new activation request is accepted (UC_03 precondition). */
     }
     action def RejectConfigurationModeReentry {
         doc
-        /* Configuration mode is already active; the new activation request
-         * is rejected and the in-progress configuration session continues
-         * unaffected (REQ-F-08).
-         */
+        /* Configuration mode is already active; the new activation request is rejected and the in-progress session continues (REQ-F-08). */
     }
 
     action def CheckTravelTimeInRange {
         in measuredTime : TravelTime;
         out attribute inRange : Boolean;
         doc
-        /* Validates a just-measured travel time against REQ-F-07's hard boundary
-         * ('maxConfigurableTravelTime <= 120 [SI::s]').
-         */
+        /* Validates a just-measured travel time against REQ-F-07's maxConfigurableTravelTime limit (120 s). */
     }
 
     action def RejectOutOfRangeCalibration {
         doc
-        /* The just-measured travel time exceeded REQ-F-07's
-         * maxConfigurableTravelTime boundary (120 s) and is discarded, not
-         * persisted.
-         */
+        /* The just-measured travel time exceeded REQ-F-07's maxConfigurableTravelTime limit and is discarded. */
     }
 
-    // Both opening and closing travel times measured independently (REQ-F-07).
+    // Both opening and closing travel times are measured independently (REQ-F-07). The shutter must be fully closed before activation — a precondition for the installer/user, not an automated step.
     action def ConfigureController {
         action checkConfigurationModeState : CheckConfigurationModeState;
         action rejectConfigurationModeReentry : RejectConfigurationModeReentry;
-        action moveShutterToClosePosition : MoveShutterToClosePosition;
         action activateConfigurationMode : ActivateConfigurationMode;
         action notifyUserAboutActivationOfConfigurationMode
             : NotifyUserAboutActivationOfConfigurationMode;
@@ -382,20 +372,16 @@ package UseCaseActivities {
         action notifyUserAboutDeactivationOfConfigurationMode
             : NotifyUserAboutDeactivationOfConfigurationMode;
 
-        // Reentry guard (system model review corrective pass, closes the
-        // Major finding described above): configuration-mode activation is
-        // rejected, not silently re-entered/overlapped, if already active.
+        // Reentry guard: activation is rejected if configuration mode is already active.
         first start then checkConfigurationModeState;
         if checkConfigurationModeState.alreadyActive == true {
             action rejectConfigurationModeReentry;
         }
-        else moveShutterToClosePosition;
+        else activateConfigurationMode;
 
-        then activateConfigurationMode;
         then notifyUserAboutActivationOfConfigurationMode;
-        then action startCountingTime;
-        then action openRollerShutter;
-        then action stopCountingTime;
+        then runOpenMovement;
+        then countOpenTime;
         then checkOpenTimeInRange;
         if checkOpenTimeInRange.inRange == true then saveOpenTime;
         else rejectOutOfRangeCalibration;
@@ -408,83 +394,23 @@ package UseCaseActivities {
         flow from countOpenTime.measuredTime to saveOpenTime.timeToSave;
     }
 
-    // DiagnoseAndRepairController sub-steps (system model review corrective
-    // pass, closes Major finding M3): previously a fully empty stub, giving
-    // UC_04 a "hollow" end-to-end trace. Elaborated to the minimum level
-    // needed to realize REQ-Q-04 (diagnosability) and REQ-Q-05
-    // (fieldReplaceability); further elaboration remains a candidate for a
-    // dedicated UC_04 deep-dive pass.
-    action def DetectFault {
-        doc
-        /* Observes the controller's field diagnostic indication (REQ-Q-04)
-         * to classify the reported malfunction into one of the supported
-         * fault classes (no power, no response to any control input, or
-         * motor-drive fault) without specialized lab equipment.
-         */
-    }
-    action def IsolateFault {
-        doc
-        /* Isolates the classified fault to the controller unit using the
-         * existing installation wiring, without modifying that wiring
-         * (REQ-Q-05).
-         */
-    }
-    action def RepairOrReplaceUnit {
-        doc
-        /* Repairs or replaces the faulty controller on-site using the
-         * existing wiring (REQ-Q-05), restoring normal operation.
-         */
-    }
-
-    action def DiagnoseAndRepairController {
-        doc
-        /* Realizes UC_04_DiagnoseAndRepairController.
-         * Diagnose a failed or malfunctioning controller in the field and
-         * repair or replace it on-site without modifying existing wiring.
-         */
-
-        first start;
-        then action detectFault : DetectFault;
-        then action isolateFault : IsolateFault;
-        then action repairOrReplaceUnit : RepairOrReplaceUnit;
-    }
-
-    // DisposeController sub-steps (MAJ-2 fix, SMRR corrective pass): previously
-    // a fully empty stub (doc-only, zero sub-actions), leaving UC_05 as the
-    // one "Not Realized" requirement chain (REQ-E-01). Elaborated to the
-    // minimum, lightweight level needed to realize REQ-E-01
-    // (regulatedDisposal), mirroring DiagnoseAndRepairController's own
-    // three-step elaboration pattern immediately above. Kept simple per
-    // instruction -- no further sub-decomposition attempted.
+    // DisposeController sub-steps realizing REQ-E-01 (regulatedDisposal) for UC_05.
     action def CollectController {
         doc
-        /* DisposalFacility collects the decommissioned, retired controller
-         * unit from the end user/installer at end of life.
-         */
+        /* DisposalFacility collects the decommissioned controller unit from the end user/installer at end of life. */
     }
     action def DisassembleController {
         doc
-        /* DisposalFacility disassembles the collected unit for material
-         * separation, using the disassembly access already designed into
-         * EnclosureAndConnectors (no specialist equipment required, per
-         * REQ-E-01's "allow disassembly and material separation without
-         * specialist equipment" clause).
-         */
+        /* DisposalFacility disassembles the collected unit for material separation without specialist equipment (REQ-E-01). */
     }
     action def TransferToAuthorizedDisposal {
         doc
-        /* DisposalFacility transfers the separated materials to an
-         * authorized WEEE/RoHS-compliant recycling/disposal pathway,
-         * completing the regulated end-of-life chain.
-         */
+        /* DisposalFacility transfers separated materials to an authorized WEEE/RoHS-compliant recycling pathway (REQ-E-01). */
     }
 
     action def DisposeController {
         doc
-        /* Realizes UC_05_DisposeController.
-         * Collect, disassemble, and dispose of / recycle a retired controller
-         * in compliance with WEEE/RoHS regulation.
-         */
+        /* Realizes UC_05: collect, disassemble, and dispose of a retired controller in compliance with WEEE/RoHS regulation. */
 
         first start;
         then action collectController : CollectController;
@@ -492,14 +418,7 @@ package UseCaseActivities {
         then action transferToAuthorizedDisposal : TransferToAuthorizedDisposal;
     }
 
-    // Action usages (package-level instances for traceability).
-    // Note: 'satisfy' links from L0_Requirements to these elements belong in
-    // Traceability::Traceability, following the project convention.
-    //
-    // Primitive black-box action usages — these provide named feature endpoints
-    // for every action def that is referenced as a Derivation connection source
-    // in Traceability::Traceability. SysML v2 connection ends must reference
-    // features (usages), not classifier definitions (action def).
+    // Package-level action usages providing named feature endpoints for traceability connections in Traceability::Traceability.
     action receiveControlRequest : ReceiveControlRequest;
     action determineMovementRequest : DetermineMovementRequest;
     action startShutterMovement : StartShutterMovement;
@@ -515,7 +434,6 @@ package UseCaseActivities {
         : NotifyUserAboutDeactivationOfConfigurationMode;
     action countActionTime : CountActionTime;
     action saveCountedTime : SaveCountedTime;
-    action moveShutterToClosePosition : MoveShutterToClosePosition;
     action openShutterAutomatically : OpenShutterAutomatically;
     action closeShutterAutomatically : CloseShutterAutomatically;
     action openShutterManually : OpenShutterManually;
@@ -523,17 +441,10 @@ package UseCaseActivities {
     action handleConflictingMovementCommands : HandleConflictingMovementCommands;
     action installController : InstallController;
     action configureController : ConfigureController;
-    action diagnoseAndRepairController : DiagnoseAndRepairController;
     action disposeController : DisposeController;
-    action collectController : CollectController;
-    action disassembleController : DisassembleController;
-    action transferToAuthorizedDisposal : TransferToAuthorizedDisposal;
     action loadTimingProfile : LoadTimingProfile;
     action checkConfigurationModeState : CheckConfigurationModeState;
     action rejectConfigurationModeReentry : RejectConfigurationModeReentry;
-    action detectFault : DetectFault;
-    action isolateFault : IsolateFault;
-    action repairOrReplaceUnit : RepairOrReplaceUnit;
     action checkTravelTimeInRange : CheckTravelTimeInRange;
     action rejectOutOfRangeCalibration : RejectOutOfRangeCalibration;
 } // package UseCaseActivities

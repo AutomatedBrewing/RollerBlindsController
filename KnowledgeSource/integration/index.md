@@ -12,13 +12,14 @@ This bundle provides a unified, actionable knowledge base enabling engineers to 
 
 > *"I need to create artifact X — how do I define it (SYSMOD), model it (SysML v2), document it (arc42), and trace it?"*
 
-It is a companion to three existing OKF bundles:
+It is a companion to four existing OKF bundles:
 
 | Source Bundle | Location | Role |
 |--------------|----------|------|
 | SYSMOD | [`../sysmod/`](../sysmod/) | **WHAT** to model — methodology, products, processes, methods |
 | SysML v2 | [`../sysml2/`](../sysml2/) | **HOW** to model — language elements, syntax, diagrams |
 | arc42 | [`../arc42/`](../arc42/) | **PUBLICATION FORMAT** — target view specification for generated architecture documentation |
+| Software Architecture (`swarch`) | [`../swarch/`](../swarch/) | **WHAT/HOW below Product Architecture** — SYSMOD stops at Product Architecture (SM-PRD-21); `swarch` covers the software/firmware internals below it (execution model, whitebox decomposition, runtime scenarios, resource budget), organised per SW-relevant arc42 artifact instead of per SYSMOD product |
 
 > **arc42 role in an MBSE project:** arc42 is **not** a parallel hand-authored document. It is the **target publication format** generated from the SysML v2 model via `view def` + `render`. Each arc42 section defines *what* a stakeholder audience needs to see and *how* it is structured — the SysML v2 model is the single source of truth. The arc42 OKF is retained in the knowledge source because:
 > 1. It defines the `viewpoint def` contracts that `view def` elements must satisfy
@@ -42,22 +43,24 @@ It is a companion to three existing OKF bundles:
 
 ### arc42 Section → Model Source Mapping
 
-| arc42 Section | Model Source of Truth | SysML v2 Element |
-|--------------|----------------------|-----------------|
-| ARC-01 Introduction & Goals | Quality goals, stakeholder concerns | `requirement usage`, stakeholder `part def`, `viewpoint def` |
-| ARC-02 Architecture Constraints | Non-negotiable constraints | `constraint def` + `@ConstraintMeta` (SM-PRD-07) |
-| ARC-03 Context & Scope | System boundary and interfaces | `part def`, `port def`, `connection def` (SM-PRD-11) |
-| ARC-04 Solution Strategy | Architecture rationale | `doc` on architecture packages + `@ArchDecisionMeta` |
-| ARC-05 Building Block View | Part hierarchies per level | `part def` in SM-PRD-18/20/21 (L1/L2/L3) |
-| ARC-06 Runtime View | Behavior and scenarios | `action def`, sequence diagrams (SM-PRD-13/14/22) |
-| ARC-07 Deployment View | Physical deployment topology | `part def` + `allocation def` (SM-PRD-21/24) |
-| ARC-08 Cross-cutting Concepts | System-wide principles | `doc` on cross-cutting packages + `metadata def` annotations |
-| ARC-09 Architecture Decisions | Decision records | `package ADR_NNN { @ArchDecisionMeta { ... } }` |
-| ARC-10 Quality Requirements | Quality scenarios | Performance/safety `requirement usage` with `targetValue` |
-| ARC-11 Risks | Risk register | Risk `requirement usage` + `@RiskMeta` (SM-PRD-09) |
-| ARC-12 Glossary | Domain vocabulary | `item def` + `attribute def` with `doc` bodies (SM-PRD-15) |
+| arc42 Section | Model Source of Truth | SysML v2 Element | Software-Level Continuation (below SM-PRD-21) |
+|--------------|----------------------|-----------------|------------------------------------------------|
+| ARC-01 Introduction & Goals | Quality goals, stakeholder concerns | `requirement usage`, stakeholder `part def`, `viewpoint def` | — |
+| ARC-02 Architecture Constraints | Non-negotiable constraints | `constraint def` + `@ConstraintMeta` (SM-PRD-07) | [SWA-01 Software Architecture Constraints](../swarch/products/architecture-constraints.md) |
+| ARC-03 Context & Scope | System boundary and interfaces | `part def`, `port def`, `connection def` (SM-PRD-11) | — |
+| ARC-04 Solution Strategy | Architecture rationale | `doc` on architecture packages + `@ArchDecisionMeta` | [SWA-02 Software Solution Strategy](../swarch/products/solution-strategy.md) |
+| ARC-05 Building Block View | Part hierarchies per level | `part def` in SM-PRD-18/20/21 (L1/L2/L3) | [SWA-03 Software Building Block View](../swarch/products/building-block-view.md) (Level 4+) |
+| ARC-06 Runtime View | Behavior and scenarios | `action def`, sequence diagrams (SM-PRD-13/14/22) | [SWA-04 Software Runtime View](../swarch/products/runtime-view.md) |
+| ARC-07 Deployment View | Physical deployment topology | `part def` + `allocation def` (SM-PRD-21/24) | [SWA-05 Software Deployment View](../swarch/products/deployment-view.md) |
+| ARC-08 Cross-cutting Concepts | System-wide principles | `doc` on cross-cutting packages + `metadata def` annotations | [SWA-06 Software Cross-cutting Concepts](../swarch/products/cross-cutting-concepts.md) |
+| ARC-09 Architecture Decisions | Decision records | `package ADR_NNN { @ArchDecisionMeta { ... } }` | [SWA-07 Software Architecture Decisions](../swarch/products/architecture-decisions.md) |
+| ARC-10 Quality Requirements | Quality scenarios | Performance/safety `requirement usage` with `targetValue` | — |
+| ARC-11 Risks | Risk register | Risk `requirement usage` + `@RiskMeta` (SM-PRD-09) | — |
+| ARC-12 Glossary | Domain vocabulary | `item def` + `attribute def` with `doc` bodies (SM-PRD-15) | — |
 
 > **Implication for §5 procedures:** When a crossmapping procedure step says "populate ARC-XX", the actionable intent is: ensure the corresponding model element has a complete `doc` body and `@metadata` annotation. The arc42 section is the **rendered output** of those model elements — not a separately authored document. Until your SysML v2 toolchain supports arc42 rendering, the crossmapping §3 tables define what each rendered section must contain.
+>
+> **Below Product Architecture (SM-PRD-21):** SYSMOD explicitly stops at the Product Architecture — "the next level of detail... is out of scope for the system model" ([SYSMOD Product Architecture](../sysmod/products/product-architecture.md)). The **Software-Level Continuation** column above points to the [`swarch`](../swarch/index.md) bundle, which fills that gap using the same SysML v2 language, organised per SW-relevant arc42 artifact (SWA-01…07) instead of per SYSMOD product.
 
 ---
 
@@ -82,6 +85,17 @@ The single authoritative integration reference. Contains:
 - §3 arc42 Mapping (table with mandatory/optional per section)
 - §4 Traceability (incoming/outgoing link tables + mandatory rules)
 - §5 Modeling Procedure (step-by-step: Define → Model → Document → Link → Verify)
+
+### [Software Architecture Bundle](../swarch/index.md)
+
+Continues the same integration philosophy **below** SM-PRD-21 (Product
+Architecture), where SYSMOD itself has no further product/method pair.
+7 artifacts (SWA-01…07), organised per SW-relevant arc42 artifact instead of
+per SYSMOD product, each with a matching
+[`swarch/crossmapping/`](../swarch/crossmapping/index.md) file following the
+identical §1–§5 structure. See [okf-ontology.md §7](okf-ontology.md) for how
+this extends the L0–L4 decomposition table with an L5 "Software Architecture"
+row, itself broken down into SWA-01…07 sub-levels (L5.1–L5.7).
 
 ---
 
@@ -118,6 +132,24 @@ The single authoritative integration reference. Contains:
 
 ---
 
+## Software Architecture Quick Lookup Table (below SM-PRD-21)
+
+These artifacts are **not** SYSMOD products (no `SM-PRD-*` ID) — see
+[Section 7 of okf-ontology.md](okf-ontology.md) for their place in the
+decomposition strategy (L5).
+
+| SWA-ID | Artifact | SysML v2 Primary | arc42 Primary | Cross-Mapping |
+|--------|----------|-------------------|----------------|----------------|
+| SWA-01 | Software Architecture Constraints | `requirement`, `require constraint` | ARC-02 | [→](../swarch/crossmapping/architecture-constraints.md) |
+| SWA-02 | Software Solution Strategy | `doc`, `package ADR_NNN` | ARC-04, ARC-09 | [→](../swarch/crossmapping/solution-strategy.md) |
+| SWA-03 | Software Building Block View | nested `part def`, `action def`, `exhibit state` | ARC-05 (L4+) | [→](../swarch/crossmapping/building-block-view.md) |
+| SWA-04 | Software Runtime View | `part` lifelines, `perform action` | ARC-06 | [→](../swarch/crossmapping/runtime-view.md) |
+| SWA-05 | Software Deployment View | `requirement` (budget check), `metadata def` | ARC-07 | [→](../swarch/crossmapping/deployment-view.md) |
+| SWA-06 | Software Cross-cutting Concepts | `doc`, `metadata def` | ARC-08 | [→](../swarch/crossmapping/cross-cutting-concepts.md) |
+| SWA-07 | Software Architecture Decisions | `package ADR_NNN { @ArchDecisionMeta }` | ARC-09 | [→](../swarch/crossmapping/architecture-decisions.md) |
+
+---
+
 ## Source Bundle Entry Points
 
 Direct navigation to the indexed catalogues in each source bundle. Use these when an integration crossmapping refers you to a source bundle for full language or methodology details.
@@ -129,3 +161,6 @@ Direct navigation to the indexed catalogues in each source bundle. Use these whe
 | SYSMOD Products | [→](../sysmod/products/index.md) | All 24 SYSMOD product definitions |
 | SYSMOD Tools | [→](../sysmod/tools/index.md) | Workshop tools and modeling patterns (SAMS, FAS, Zigzag, Proxy Port, Variant Modeling, etc.) |
 | arc42 Sections | [→](../arc42/sections/index.md) | All 12 arc42 documentation sections |
+| Software Architecture Products | [→](../swarch/products/index.md) | All 7 SWA-* artifact definitions (below Product Architecture) |
+| Software Architecture Cross-Mapping | [→](../swarch/crossmapping/index.md) | All 7 SWA-* cross-mapping files |
+

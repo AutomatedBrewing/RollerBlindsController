@@ -1,46 +1,18 @@
 /* Product Architecture (SM-PRD-21) — Top-Level Composite.
- *
- * Technology-specific structural realization of
- * LogicalArchitecture::RollerShutterControllerLogicalComponents (SM-PRD-20),
- * per ADR_006_ProductRealizationStrategy and ADR_007_ProductCoupling.
- * Boundary ports mirror SystemContext::SystemContextDiagram::shutterController
- * and LogicalArchitecture::RollerShutterControllerLogicalComponents exactly
- * (Traceability Rule 3 / modeling procedure step 5), giving full
- * external-interface parity across all three layers.
- */
+ * Realizes LogicalArchitecture::RollerShutterControllerLogicalComponents (SM-PRD-20)
+ * per ADR_006_ProductRealizationStrategy and ADR_007_ProductCoupling. */
 package ProductArchitecture {
-    // Import only the abstract root, NOT the wildcard: SystemArchitecture_Taxonomy
-    // also declares a same-named abstract header 'ProductArchitecture' (see
-    // that file's own header comment), which collides with this enclosing
-    // package's own name if wildcard-imported, breaking name resolution
-    // throughout this file (same Syside reference-error fix already applied
-    // in BaseArchitecture.sysml, FunctionalArchitecture.sysml, and
-    // LogicalArchitecture.sysml for the identical reason).
-    //
-    // TRACEABILITY RULE 2 DEVIATION (mirrors LogicalArchitecture.sysml's own
-    // deviation, same tooling-driven reason): RollerShutterControllerProductComponents
-    // specializes the abstract root 'SystemArchitecture' directly rather than
-    // the same-named intermediate 'SystemArchitecture_Taxonomy::ProductArchitecture'
-    // header, to avoid reintroducing the self-name collision described above.
+    // Imports only the abstract root — SystemArchitecture_Taxonomy has no other public types.
     private import SystemArchitecture_Taxonomy::SystemArchitecture;
     private import ProductComponents::*;
     private import SystemContext::*;
 
     part def RollerShutterControllerProductComponents :> SystemArchitecture {
         doc
-        /* Top-level Product Architecture of the Window Roller Shutter
-         * Controller. Realizes LogicalArchitecture::
-         * RollerShutterControllerLogicalComponents with a single low-cost
-         * 8-bit MCU (ControlMCU) hosting eight firmware components, a
-         * shared dual-instantiated request-conditioning circuit
-         * (RequestInterfaceCircuit), a relay-based motor drive module, a
-         * passive piezo buzzer user feedback element (ADR-008), and a linear-regulator power supply
-         * (see LogicalToProductAllocation.sysml for the complete
-         * Logical-to-Product allocation and ProductComponents.sysml for
-         * every component's full responsibilities). Boundary ports mirror
-         * SystemContext::SystemContextDiagram::shutterController and
-         * LogicalArchitecture::RollerShutterControllerLogicalComponents
-         * exactly, giving full external-interface parity with both. */
+        /* Top-level Product Architecture of the Window Roller Shutter Controller.
+         * Realizes LogicalArchitecture::RollerShutterControllerLogicalComponents via a single
+         * 8-bit MCU (ControlMCU) hosting seven firmware modules, shared RequestInterfaceCircuits,
+         * a relay motor drive, an active piezo buzzer (ADR-008), and a linear-regulator power supply. */
 
         // ── System boundary ports (mirrors SystemContext / Logical Architecture) ──
         port localCtrl    : ~DryContactControlPort;
@@ -88,12 +60,6 @@ package ProductArchitecture {
         connect controlMCU.buzzerOut to userNotificationBuzzer.driveIn;
 
         // ── Power distribution ──────────────────────────────────────────────
-        // Confirms the "anticipated future ownership" note in
-        // LogicalArchitecture.sysml: the regulated logic rail powers every
-        // logic-level Product component. mainsPower is routed only to
-        // MotorDriveRelayModule (connection 4 above), which alone switches
-        // it onward via shutterDrive -- mirroring the Logical Architecture's
-        // own controlPower/mainsPower boundary-port note exactly.
         // 10. PowerSupplyModule → ControlMCU
         connect powerSupplyModule.logicRailOut to controlMCU.powerIn;
         // 11. PowerSupplyModule → RequestInterfaceCircuit (local)
@@ -105,34 +71,14 @@ package ProductArchitecture {
         // 14. PowerSupplyModule → MotorDriveRelayModule (coil-driver stage)
         connect powerSupplyModule.logicRailOut to motorDriveRelayModule.coilPowerIn;
 
-        // NOTE: EnclosureAndConnectors has no engineering signal port (purely
-        // mechanical/structural containment for every other component in
-        // this composite) -- mirrors how LogicalDiagnostics/
-        // LogicalUserNotification were introduced as plain structural
-        // members without requiring a Base Architecture precedent.
+        // EnclosureAndConnectors has no signal port — purely mechanical/structural containment.
 
-        // ── Cost aggregation (PA-5 fix, model_issues.md item 18) ────────────
-        // Manual sum of every Product component's unitCostPLN, mirroring the
-        // documented fallback in productArchitectureRepairPlan.md PA-5 (a
-        // literal, reviewed sum rather than a computed cross-part expression,
-        // for SysML v2 textual-notation safety -- this model's established
-        // preference given prior costly multi-round syntax-error recoveries
-        // from unvalidated expression patterns, see model_issues.md item 12
-        // errata / item 15). Reviewed and MUST be updated whenever any
-        // component's unitCostPLN changes:
-        //   localRequestInterface (RequestInterfaceCircuit)  1.5
-        //   remoteRequestInterface (RequestInterfaceCircuit) 1.5
-        //   controlMCU                                       2.0
-        //   motorDriveRelayModule                             3.5
-        //   userNotificationBuzzer                           0.5
-        //   powerSupplyModule                                1.5
-        //   enclosureAndConnectors                            4.0
-        //   ────────────────────────────────────────────────────
-        //   totalUnitCostPLN                                 14.5
-        // Cross-references L0_Constraints::Business::costEffective's
-        // 'manufacturingCost <= 50' bound (Traceability::Traceability
-        // already links costEffective to this composite; this attribute
-        // makes that existing link checkable rather than merely declared).
+        // ── Cost aggregation ─────────────────────────────────────────────────
+        // Literal sum of all component unitCostPLN; MUST be updated on any change.
+        // Satisfies L0_Constraints::Business::costEffective (manufacturingCost <= 50).
+        //   localRequestInterface 1.5 + remoteRequestInterface 1.5 + controlMCU 2.0
+        //   + motorDriveRelayModule 3.5 + userNotificationBuzzer 0.5
+        //   + powerSupplyModule 1.5 + enclosureAndConnectors 4.0 = 14.5
         attribute totalUnitCostPLN : Real = 14.5;
 
         assert constraint {

@@ -1,11 +1,12 @@
 # 6. Runtime View
 
-> Rendered from `model/Architecture/scenarios/Scenarios.sysml` (25 scenarios,
-> `SCEN_01`–`SCEN_25`). Each scenario traces to exactly one UseCaseActivities
-> path and names its Logical/Product participants (Traceability Rules,
-> `crossmapping/scenarios.md §4`). Selected below are the architecturally
-> most significant; the full 25-scenario catalogue is available in the
-> `.sysml` source.
+> Rendered from `Project/Model/Architecture/scenarios/Scenarios.sysml` (21
+> scenarios: `SCEN_01`–`SCEN_17`, `SCEN_21`–`SCEN_23`, `SCEN_25`; `SCEN_18`–
+> `20`/`24` are intentionally not assigned). Each scenario traces to exactly
+> one UseCaseActivities path and names its Logical/Product participants
+> (Traceability Rules, `crossmapping/scenarios.md §4`). Selected below are
+> the architecturally most significant; the full scenario catalogue is
+> available in the `.sysml` source.
 
 ## Scenario 1 — Automatic Open, Normal Path (`SCEN_01`)
 
@@ -35,35 +36,35 @@ mechanism given no position feedback (ADR-003).
 
 UCA path: `HandleConflictingMovementCommands` (UC_01e) —
 `receiveControlRequest`→`determineMovementRequest` (`suppressMovement`)→
-`startShutterMovement` (`suppressMotor`)→`stopShutterMovement`→
-`notifyUserAboutConflict`. Safety-relevant (REQ-S-01/REQ-S-02): motor never
-energizes in either direction; conflict indication raised via
-`LogicalControlUnit.conflictOut` → `LogicalUserNotification.conflictEventIn`
-(buzzer pattern, ADR-008).
+`startShutterMovement` (`suppressMotor`). Safety-relevant (REQ-S-01): motor
+never energizes in either direction. The conflict is silently suppressed —
+no buzzer fires (buzzer scope is config-mode activation/deactivation only,
+per REQ-F-08/ADR-008).
 
-## Scenario 4 — Local + Remote Simultaneous, First-Wins Arbitration (`SCEN_09`)
+## Scenario 4 — Local + Remote Simultaneous, Equal-Priority Stop Arbitration (`SCEN_09`)
 
-UCA path: `ReceiveControlRequest`'s fork/merge, **same-direction** case
-(distinguishes from `SCEN_07`'s opposite-direction conflict). Both channels
-assert UP within `CommandArbitrationSoftware.arbitrationWindowMs` (50 ms);
-exactly one `ControlCommand` is arbitrated through (whichever accept fires
-first); no conflict raised since both channels agree.
+UCA path: `MonitorStopCondition`/`MonitorUserInterruption`'s channel-agnostic
+fork/merge (REQ-F-06). Local UP starts automatic movement; while the
+movement is in progress, a remote DOWN is asserted. `listenForStopCommand`
+accepts the remote DOWN identically to a local stop — neither channel has
+priority over the other — and the shutter stops immediately at an
+intermediate position.
 
 ## Scenario 5 — Configure Controller, Timing Calibration (`SCEN_13`)
 
 UCA path: `ConfigureController` — installer holds simultaneous UP+DOWN
-beyond `calibrationHoldThresholdS` (3.0 s, discriminates from a transient
-UP+DOWN conflict per `AssessingSimultaneousHoldState`); shutter driven to a
+beyond `calibrationHoldThresholdS` (5.0 s, discriminates from a transient
+UP+DOWN conflict per `AssessingSimultaneousHold`); shutter driven to a
 reference position, full travel timed (`CountActionTimeFE`), result saved
 via `MemoryManagerSoftware` to internal EEPROM; user notified of activation
 and deactivation (REQ-F-08).
 
 ## Scenario 6 — Invalid Calibration Rejected (`SCEN_22`)
 
-UCA path: `ConfigureController`'s `openRangeGuard` decide node diverts an
+UCA path: `ConfigureController`'s `checkOpenTimeInRange` gate diverts an
 out-of-range measurement (>120 s, REQ-F-07 boundary) into
-`RejectOutOfRangeCalibration` instead of persisting it — closes MAJ-8 (SMRR
-corrective pass); mitigates RISK-T-05 (misconfiguration during install).
+`RejectOutOfRangeCalibration` instead of persisting it; mitigates RISK-T-05
+(misconfiguration during install).
 
 ## Scenario 7 — Mechanical Jam, Time-Based Stop Without Feedback (`SCEN_17`)
 
@@ -84,23 +85,14 @@ persisted `TravelTime`/`wiringMode` from EEPROM; the shutter's physical
 position is NOT recoverable (no position feedback) — an accepted,
 documented limitation.
 
-## Scenario 9 — Timing Profile Persistence Failure at First Power-On (`SCEN_24`)
+## Scenario 9 — Field Diagnosis
 
-UCA path: `LoadTimingProfile`, followed by the diagnostic fault-
-classification pattern reused from `SCEN_18`–`20`. `MemoryManagerSoftware`
-is the explicit architectural owner of a `TimingProfileReadFailure` event
-(CRIT-4 fix), routed via `SystemStates::crossLifecycleEventRelay`.
+**Note:** an earlier `DiagnosticsSoftware`/`LogicalDiagnostics` component and
+its `FaultClass`/`FaultIndicationPort` were removed from the model
+permanently (`PLAN.md`); no field-diagnosis scenario or UC exists in the
+current model. This section intentionally no longer describes one.
 
-## Scenario 10 — Field Diagnosis (`SCEN_18`/`SCEN_19`/`SCEN_20`)
-
-UCA path: `DiagnoseAndRepairController` (UC_04) — `DiagnosticsSoftware`
-classifies `FaultClass::noResponseToControlInput` vs.
-`motorDriveFault` using `commandStateIn`/`diagnosticStateIn` taps; result
-routed to `UserFeedbackSoftware` via `FaultIndicationPort` (distinct buzzer
-pattern). "No power" is deliberately excluded from `FaultClass` — it is
-passively observable as "buzzer entirely silent."
-
-## Scenario 11 — Boundary Condition, Low-Temperature Automatic Open (`SCEN_25`)
+## Scenario 10 — Boundary Condition, Low-Temperature Automatic Open (`SCEN_25`)
 
 Identical UCA path to `SCEN_01`, performed at the
 `L0_Constraints::Environmental::operatingConditions` minimum boundary (0 °C).
@@ -112,14 +104,50 @@ Several scenarios carry explicit `// GAP:` comments flagging unresolved
 model-level questions rather than silently inventing a resolution
 (`Scenarios.sysml` Traceability Rule 3):
 
-- `SCEN_05`: no explicit "latched-stopped-until-release" guard documented on
-  `MonitorUserInterruption`/`LogicalMovementSupervisor`.
-- `SCEN_07`: same-direction vs. opposite-direction fork/merge race not
-  explicitly distinguished at the UCA layer.
+- `SCEN_15`/`SCEN_16` (power-loss/recovery): no Logical or Product component
+  observes, logs, or reacts to a `controlPower` interruption; no position
+  persistence or recovery exists (ADR-002's explicit no-watchdog/no-failover
+  scope, compounded by the no-position-feedback design, ADR-003/RISK-T-01).
+- `SCEN_17` (mechanical jam): no fault classification, indication, or
+  recovery mechanism distinguishes a mid-travel jam from normal completion —
+  ADR-003's explicitly accepted residual risk (RISK-T-01).
 - `SCEN_21` (`DisposeController`): UC_05 remains an intentionally
   underspecified stub (single doc-only action).
 - `SCEN_23` (`LocalControl_WiringModeMismatch`): no UseCaseActivities action
-  models wiring-mode-mismatch detection specifically (SR-8, explicitly left
-  open — see [11-risks-and-technical-debts.md](11-risks-and-technical-debts.md)).
-- `SCEN_24`: `LoadTimingProfile`'s doc does not specify invalid/blank-read
-  behavior explicitly.
+  models wiring-mode-mismatch detection specifically; the closest anchor is
+  `handleConflictingMovementCommands` (see
+  [11-risks-and-technical-debts.md](11-risks-and-technical-debts.md)).
+
+## Software Runtime Scenarios (SWA-04)
+
+> Rendered from `Project/Model/Architecture/software/runtime_view/SWRuntimeScenarios.sysml`.
+> Elaborates selected scenarios above in firmware-execution terms — superloop
+> iteration order, ISR vs. dispatcher-context execution, and timer/GPIO-driven
+> state transitions — over the internal actions/states from
+> [05-building-block-view.md §5.4](05-building-block-view.md).
+
+### RSCEN_01 — Debounced Input to Arbitrated Command
+
+Elaborates `SCEN_01`'s early steps: a GPIO change-notification interrupt
+timestamps a raw UP transition (ISR context only); `confirmLocalUp`
+confirms it stable after `debounceConfirmMs` (30 ms); the dispatcher (not
+the ISR) is woken by the debounced event; `arbitrateChannels` finds no
+opposing edge within `arbitrationWindowMs` (100 ms) and passes it through
+unchanged.
+
+### RSCEN_02 — Simultaneous UP+DOWN, Conflict Detected and Suppressed
+
+Elaborates `SCEN_07` in firmware-execution terms (safety-relevant,
+REQ-S-01): local UP and remote DOWN interrupts each confirm independently;
+`arbitrateChannels` detects both confirmed edges within the arbitration
+window and forces `direction := none`; `translateCommand` suppresses
+movement; the exhibited lifecycle machine walks
+`Idle → AssessingSimultaneousHold → ConflictSuppressed → Idle`.
+
+### RSCEN_03 — Movement-Supervision Timer Tick, Automatic Timeout Stop
+
+Elaborates `SCEN_01`'s stop path: the single periodic timer ISR only
+increments a tick counter; once per superloop iteration the dispatcher
+invokes the do-action comparing elapsed ticks against the loaded `openTime`;
+on timeout, `StopRequest[reason==timeout]` fires and the lifecycle machine
+transitions `MovingAutomatic → Idle`, de-energizing the motor.

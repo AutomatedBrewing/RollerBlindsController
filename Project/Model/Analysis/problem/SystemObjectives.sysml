@@ -13,29 +13,11 @@ package SystemObjectives {
     }
 
     comment
-    /* PRIORITY TAXONOMY CROSS-MAP (closes Major finding M5, system model
-     * review corrective pass): this project intentionally uses three
-     * distinct priority vocabularies, one per artifact layer, each idiomatic
-     * to that layer's own metadata def (RequirementMeta.priority is the only
-     * one typed by an enum; SystemUseCases::UseCaseMeta.priority and
-     * SystemTestCases::TestCaseMeta.priority remain plain String per their
-     * own package's convention, and are NOT converted to this enum, to avoid
-     * a broad, high-risk mechanical retype of every existing Use Case/Test
-     * Case usage for a clarity-only fix). They are related by one consistent
-     * importance ordering, mapped here as descriptive guidance rather than a
-     * shared enumeration:
-     *
-     *   RequirementPriority   UseCaseMeta.priority   TestCaseMeta.priority   Meaning
-     *   --------------------  ---------------------  ----------------------  ------------------------------------------
-     *   mandatory             mandatory              critical                Must be realized/verified for baseline acceptance.
-     *   recommended           high                   high                    Strongly desired; may slip one release without blocking baseline.
-     *   optional              medium                 medium                 Nice-to-have; no acceptance impact if deferred.
-     *   (n/a)                 low                    low                     Exploratory/aspirational only (no requirement backs it).
-     *
-     * Use this table when reasoning about relative importance across
-     * Requirements / Use Cases / Test Cases. See also
-     * SystemUseCases::UseCaseMeta and SystemTestCases::TestCaseMeta, which
-     * each carry a one-line pointer back to this table.
+    /* Priority vocabularies differ per layer: RequirementMeta.priority
+     * (enum: mandatory/recommended/optional), UseCaseMeta.priority and
+     * TestCaseMeta.priority (String: mandatory/high/medium/low and
+     * critical/high/medium/low respectively) follow one consistent
+     * importance ordering across layers.
      */
 
     requirement def BusinessObjective {
@@ -69,10 +51,10 @@ package SystemObjectives {
         /* The controller is affordable for any end user. */
 
         @RequirementMeta {
-            source             = "ProblemStatement::NeedForConvenientShutterOperation";
+            source             = "ProblemStatement::needForConvenientShutterOperation";
             priority           = RequirementPriority::mandatory;
-            verificationMethod = "Market price analysis; validated against comparable products at system acceptance.";
-            rationale          = "Addresses the cost barrier identified in the ProblemStatement: high cost of automated shutter control limits adoption in residential environments. NOTE (system model review corrective pass): this objective intentionally terminates at L0_Constraints::Business::costEffective / ADR_001_CostConstraint and does NOT produce an L0_Requirements usage, Use Case, Activity, Function, or Test Case -- cost is a BOM-level design constraint verified by procurement/design review (see ADR-001), not a testable property of a finished unit. This single-layer realization path is an intentional, documented exception to the otherwise-uniform objective→requirement→...→test chain used by every other objective in this package.";
+            verificationMethod = "Market price analysis against comparable products at system acceptance.";
+            rationale          = "Addresses the cost barrier to adoption identified in the ProblemStatement; the specific target is a BOM-level design constraint, not a testable property of a finished unit.";
         }
     }
 
@@ -89,8 +71,8 @@ package SystemObjectives {
         @RequirementMeta {
             source             = "SystemIdea::systemIdea";
             priority           = RequirementPriority::mandatory;
-            verificationMethod = "Functional verification via the full-movement, manual-positioning, and stop test scenarios (Verification::Functional).";
-            rationale          = "Introduced to relieve 'easeOfUse' of functional-capability justification duties (closes Major finding M1, system model review corrective pass): full/manual movement and the ability to stop are core movement capabilities of the WRSC system idea, not usability/intuitiveness attributes. 'easeOfUse' now justifies only genuinely usability-related requirements (REQ-F-08 configurationMode, REQ-Q-01 easeOfInstallation).";
+            verificationMethod = "Functional verification via the full-movement, manual-positioning, and stop test cases (SystemTestCases::Functional).";
+            rationale          = "Core movement capabilities (open/close/stop/positioning) of the WRSC system idea, distinct from usability attributes covered by easeOfUse.";
         }
     }
 
@@ -105,7 +87,7 @@ package SystemObjectives {
             source             = "Stakeholders::User";
             priority           = RequirementPriority::mandatory;
             verificationMethod = "Usability review with representative end users; measurable criteria elaborated in quality requirements.";
-            rationale          = "Addresses ProblemStatement gap: the system must be more convenient than the existing manual operation it replaces. Scope narrowed (system model review corrective pass, closes Major finding M1): now justifies only usability/configuration-ergonomics requirements (REQ-F-08 configurationMode, REQ-Q-01 easeOfInstallation); core movement capabilities are justified by the new shutterMovementControl objective instead.";
+            rationale          = "The controller must be more convenient than the manual operation it replaces. Justifies usability/configuration-ergonomics requirements (REQ-F-08, REQ-Q-01); core movement capabilities are justified by shutterMovementControl instead.";
         }
     }
 
@@ -189,7 +171,7 @@ package SystemObjectives {
             source             = "SystemIdea::systemIdea";
             priority           = RequirementPriority::mandatory;
             verificationMethod = "Electrical safety test (touch-voltage and isolation measurement); functional safety scenario test for simultaneous UP+DOWN input.";
-            rationale          = "Independent safety objective distinct from reliability: covers galvanic isolation of mains-voltage switching circuitry (physical design property) and conflict-suppression behavior (UC_01e). Safety remains mandatory even if reliability targets are relaxed. Closes the safety-objective gap documented in model_issues.md.";
+            rationale          = "Independent of reliability: covers galvanic isolation of mains-voltage circuitry and conflict-suppression behavior (UC_01e). Remains mandatory even if reliability targets are relaxed.";
         }
     }
 } // package SystemObjectives

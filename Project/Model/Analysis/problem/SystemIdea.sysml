@@ -8,21 +8,12 @@ package SystemIdea {
      
     requirement systemIdea {
         doc
-        /* The Window Roller Shutter Controller (WRSC) is a compact control system
-         * that enables convenient opening and closing of window roller shutters
-         * in residential and building environments.
-         *
-         * The system provides both local control via wall switches and remote
-         * control via home automation systems.
-         *
-         * Its key differentiator is simplicity: the controller operates without
-         * position sensors and instead uses time-based movement control,
-         * making it cost-effective and easy to install.
-         *
-         * The system is designed to be configurable to different shutter types
-         * by adjusting movement timing parameters.
+        /* Compact controller for convenient local and remote control of
+         * window roller shutters. Uses time-based movement instead of
+         * position sensors for cost-effectiveness and easy installation,
+         * with movement timing configurable per shutter type.
          */
 
-        frame ProblemStatement::NeedForConvenientShutterOperation;
+        frame ProblemStatement::needForConvenientShutterOperation;
     }
 } // package SystemIdea

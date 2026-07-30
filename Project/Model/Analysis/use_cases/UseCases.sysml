@@ -2,13 +2,6 @@ package SystemUseCases {
     private import ScalarValues::*;
     private import BaseArchitecture::*;
     private import Stakeholders::*;
-    // Part C-3 fix (SMRR corrective pass): replaced the non-standard '::**'
-    // deep-import operator (tool-portability risk per finalReviewReport.md
-    // minor findings) with the standard '::*' wildcard import already used
-    // by every other import in this file/model. Only WallSwitch and
-    // HomeAutomationSystem (both direct, top-level members of SystemContext)
-    // are referenced below, so a non-recursive import is sufficient --
-    // confirmed safe, no nested-member reference is used from this package.
     private import SystemContext::*;
     private import L0_Requirements::*;
 
@@ -29,14 +22,7 @@ package SystemUseCases {
     }
 
     // =====================================================================
-    // UC-01: Control Roller Shutter
-    //
-    // Kept as a single generic use case per SYSMOD SM-PRD-12 (a coarse
-    // "table of contents of services"); the discrete trigger/result
-    // variants below specialize it (`specializes`), mirroring the same
-    // specialization already used one layer down in
-    // UseCaseActivities::ControlRollerShutter's OpenShutterAutomatically /
-    // CloseShutterAutomatically / OpenShutterManually / CloseShutterManually.
+    // UC-01: Control Roller Shutter — generic parent use case; specialized by UC-01a–01e.
     // =====================================================================
     use case def UC_01_ControlRollerShutter {
         subject controller : BaseArchitecture::ShutterController;
@@ -53,6 +39,7 @@ package SystemUseCases {
             require L0_Requirements::Functional::fullShutterMovement;
             require L0_Requirements::Functional::manualPositioning;
             require L0_Requirements::Functional::stopShutterMovement;
+            require L0_Requirements::Functional::pressDurationModeDiscrimination;
             require L0_Requirements::Interface::wallSwitchWiringCompatibility;
             require L0_Requirements::Interface::remoteControlWiringCompatibility;
         }
@@ -131,27 +118,12 @@ package SystemUseCases {
 
     use case def UC_01e_HandleConflictingMovementCommands specializes UC_01_ControlRollerShutter {
         doc
-        /* Abnormal-scenario extension of UC_01: if UP and DOWN are
-         * asserted simultaneously (e.g. wiring fault, stuck switch, or
-         * conflicting local/remote commands), the controller shall not
-         * energize the motor in either direction, avoiding a
-         * short-circuit-equivalent drive condition. This is the
-         * use-case-level behavioral counterpart to the electrical safety
-         * constraint in REQ-S-01; the galvanic-isolation/accessible-voltage
-         * aspect of REQ-S-01 remains a physical design property, not a
-         * behavior, and stays modeled purely as a constraint (see
-         * model_issues.md). The suppressed-movement state is additionally
-         * made user-observable via REQ-S-02 conflictIndication (system
-         * model review corrective pass, closes Major finding M2): a
-         * distinct user-facing indication now distinguishes this state from
-         * normal idle/at-rest behavior.
-         */
+        /* Abnormal extension of UC_01: if UP and DOWN are asserted simultaneously, the controller shall not energize the motor in either direction. */
 
         objective {
             doc
             /* Suppress motor activation when simultaneous UP+DOWN conflict is detected. */
             require L0_Requirements::Safety::safety;
-            require L0_Requirements::Safety::conflictIndication;
         }
 
         @UseCaseMeta {
@@ -201,16 +173,15 @@ package SystemUseCases {
 
         objective {
             doc
-            /* Configure controller movement timing parameters required for
-             * time-based operation, without disassembling the device. */
+            /* Configure controller movement timing parameters for time-based operation without disassembling the device; configuration mode activated by local UP+DOWN hold gesture (REQ-F-08). */
             require L0_Requirements::Functional::configurableTimingProfile;
             require L0_Requirements::Functional::configurationMode;
         }
 
         @UseCaseMeta {
-            trigger        = "Installer explicitly activates the configuration mode";
+            trigger        = "Installer explicitly activates the configuration mode via the local wall-switch simultaneous UP+DOWN hold gesture";
             result         = "Opening/closing travel times measured and saved; configuration mode exited";
-            preconditions  = "Controller installed and powered; configuration mode not already active";
+            preconditions  = "Controller installed and powered; shutter fully closed; configuration mode not already active";
             postconditions = "Timing profile saved; configuration mode deactivated; user notified of activation and deactivation";
             type           = "systemUseCase";
             priority       = "mandatory";
@@ -219,43 +190,10 @@ package SystemUseCases {
 
     use case configureController : UC_03_ConfigureController;
 
-    // =====================================================================
-    // UC-04: Diagnose and Repair Controller (maintenance, SM-PRD-08
-    // MaintenanceTechnician stakeholder)
-    // =====================================================================
-    use case def UC_04_DiagnoseAndRepairController {
-        subject controller : BaseArchitecture::ShutterController;
-        actor maintenanceTechnician : Stakeholders::MaintenanceTechnician;
-
-        objective {
-            doc
-            /* Diagnose a failed or malfunctioning controller in the field
-             * and repair or replace it on-site without modifying the
-             * existing installation wiring. */
-            require L0_Requirements::Quality::diagnosability;
-            require L0_Requirements::Quality::fieldReplaceability;
-            require L0_Requirements::Quality::reliability;
-        }
-
-        @UseCaseMeta {
-            trigger        = "Reported shutter malfunction (no movement, wrong direction, or intermittent operation)";
-            result         = "Fault diagnosed and controller repaired or replaced on-site using the existing wiring";
-            preconditions  = "Reported malfunction; access to the installed controller";
-            postconditions = "Controller diagnosed; faulty unit repaired or replaced; normal operation restored";
-            type           = "systemUseCase";
-            priority       = "medium";
-        }
-    }
-
-    use case diagnoseAndRepairController : UC_04_DiagnoseAndRepairController;
+    // Note: UC-04 is not assigned in this model; numbering continues at UC-05.
 
     // =====================================================================
     // UC-05: Dispose Controller (end-of-life, DisposalFacility stakeholder).
-    // REQ-E-01 (Environmental::regulatedDisposal) formally closes the
-    // WEEE/RoHS disposal requirement gap; the objective below requires it
-    // directly (stale "gap not yet closed" comment removed, system model
-    // review corrective pass -- the requirement has existed since the
-    // Requirements formal review, see model_issues.md item 12).
     // =====================================================================
     use case def UC_05_DisposeController {
         subject controller : BaseArchitecture::ShutterController;
@@ -263,9 +201,7 @@ package SystemUseCases {
 
         objective {
             doc
-            /* Collect, disassemble, and dispose of/recycle a retired
-             * controller in compliance with applicable electronic-waste
-             * and hazardous-substance regulation. */
+            /* Collect, disassemble, and dispose of/recycle a retired controller per applicable electronic-waste and hazardous-substance regulation. */
             require L0_Requirements::Environmental::regulatedDisposal;
         }
 
@@ -275,10 +211,6 @@ package SystemUseCases {
             preconditions  = "Controller decommissioned and removed from installation";
             postconditions = "Controller materials disposed of/recycled in compliance with regulation";
             type           = "systemUseCase";
-            // MAJ-1 fix (SMRR corrective pass): was "low", contradicting its
-            // backing requirement REQ-E-01 (RequirementPriority::mandatory).
-            // Aligned per the priority taxonomy cross-map in
-            // SystemObjectives.sysml (mandatory -> mandatory).
             priority       = "mandatory";
         }
     }

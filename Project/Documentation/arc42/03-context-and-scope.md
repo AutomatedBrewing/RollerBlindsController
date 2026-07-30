@@ -1,6 +1,6 @@
 # 3. Context and Scope
 
-> Rendered from `model/Analysis/context/Context.sysml` (package `SystemContext`).
+> Rendered from `Project/Model/Analysis/context/Context.sysml` (package `SystemContext`).
 
 ## 3.1 Business Context
 
@@ -15,7 +15,7 @@ External actors interacting with `BaseArchitecture::ShutterController`
 | `MainsPowerSupply` | Power provider | Supplies 230 VAC mains, switched onward to the motor |
 | `WindowRollerShutter` | Actuated device | Receives switched mains drive signals (ROLLER UP/DOWN) |
 | `User` | Stakeholder | Operates via `WallSwitch`/`HomeAutomationSystem` |
-| `Manufacturer`, `Installer`, `MaintenanceTechnician`, `DisposalFacility` | Stakeholders | Connected abstractly (no engineering signal) to `shutterController` for their respective lifecycle concerns |
+| `Manufacturer`, `Installer`, `DisposalFacility` | Stakeholders | Connected abstractly (no engineering signal) to `shutterController` for their respective lifecycle concerns |
 
 ## 3.2 Technical Context
 

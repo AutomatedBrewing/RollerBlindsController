@@ -1,30 +1,5 @@
 package LogicalArchitecture {
-    // Import only the abstract root, NOT the wildcard: SystemArchitecture_Taxonomy
-    // also declares a same-named abstract header 'LogicalArchitecture' (see
-    // that file's own header comment), which collides with this enclosing
-    // package's own name if wildcard-imported, breaking name resolution
-    // throughout this file (Syside reference-error fix: WallSwitchInterface,
-    // ControlCommandPort, String, etc. all failed to resolve because of this
-    // self-name collision).
-    //
-    // TRACEABILITY RULE 2 DEVIATION (reviewed and accepted, formal Logical
-    // Architecture review, this pass): logical-architecture.md §4 Traceability
-    // Rule 2 states every logical part def MUST specialize PhysicalArchitecture
-    // "directly or transitively via LogicalSystem" -- i.e., via the
-    // intermediate 'SystemArchitecture_Taxonomy::LogicalArchitecture' header
-    // declared in that file. RollerShutterControllerLogicalComponents instead
-    // specializes the abstract root 'SystemArchitecture' directly (see its
-    // ':> SystemArchitecture' declaration below), for the same tooling-driven
-    // reason as this import: wildcard- or qualified-importing the same-named
-    // intermediate header into this identically-named enclosing package would
-    // reintroduce the self-name collision described above. SM-PRD-17 taxonomy
-    // membership is still preserved -- 'SystemArchitecture' is the common
-    // ancestor of every concrete architecture layer -- just one level higher
-    // in the hierarchy than the Rule 2 wording anticipates. This deviation is
-    // intentional, cosmetic (does not affect allocation, traceability, or
-    // structural correctness), and applies identically to BaseArchitecture
-    // and FunctionalArchitecture's own top-level composites for the same
-    // reason.
+    // Imports only the abstract root — SystemArchitecture_Taxonomy has no other public types.
     private import SystemArchitecture_Taxonomy::SystemArchitecture;
     private import FunctionalArchitecture::*;
     private import BaseArchitecture::*;
@@ -32,129 +7,23 @@ package LogicalArchitecture {
     private import SystemContext::*;
     private import ScalarValues::String;
 
-    /* The Logical Architecture (SM-PRD-20) provides a technology-independent
-     * structural realization of the Functional Architecture (SM-PRD-18),
-     * identifying logical components, their responsibilities, interfaces, and
-     * interactions -- without committing to specific hardware, software,
-     * protocols, or vendors (SYSMOD Tool 4.18).
-     *
-     * COUPLING STRATEGY (SYSMOD Tool 11.7, see ADR_004_LogicalCoupling):
-     *   - Functional → Logical: LOOSE coupling via 'allocation def' (see
-     *     LogicalArchitecture::FunctionalAllocation.sysml). This is a fixed
-     *     SYSMOD rule, not a project choice -- no Logical part def specializes
-     *     a Functional Element part def.
-     *   - Logical → Base: STRONG coupling (':>') for the four Logical
-     *     components with an unambiguous 1:1 Base Architecture counterpart
-     *     (LogicalControlUnit, LogicalMotorDrive, LogicalLocalRequestInterface,
-     *     LogicalRemoteRequestInterface). BaseArchitecture::PowerModule has NO
-     *     Logical counterpart (no Functional Element performs power
-     *     conversion/distribution behavior -- see ADR_004). Two Logical
-     *     components (LogicalMovementSupervisor, LogicalUserNotification) and
-     *     one stub (LogicalDiagnostics) have no Base Architecture precedent and
-     *     are modeled as plain 'part def'.
-     *
-     * PORT-DEF REUSE DECISION: internal logical-to-logical interfaces reuse
-     * FunctionalArchitecture's port defs (ControlCommandPort,
-     * MovementRequestPort, StopRequestPort, ShutterStatePort, TravelTimePort,
-     * TravelTimePort, ConfigModeEventPort) directly, since these already
-     * wrap the technology-independent DomainKnowledge (SM-PRD-15) flow/item
-     * types and introducing a parallel, identically-shaped set of Logical-only
-     * port defs would violate DRY without adding information. New port defs
-     * are introduced in this file ONLY for the outermost system boundary,
-     * where the Logical Architecture performs the signal-abstraction step that
-     * FunctionalArchitecture.sysml explicitly deferred ("Physical signal
-     * mapping (dry-contact signals → ControlCommand) is deferred to Logical
-     * Architecture (SM-PRD-20) via port delegation/binding" -- see
-     * FunctionalArchitecture.sysml boundary port comment). Those boundary
-     * ports are typed by SystemContext's existing port defs
-     * (DryContactControlPort, ControlPowerPort, MainsPowerPort,
-     * ShutterDrivePort), giving the Logical composite full external-interface
-     * parity with SystemContext::SystemContextDiagram::shutterController
-     * (Traceability Rule 3 / modeling procedure step 5).
-     *
-     * requestAcquisitionFunctions ALLOCATION SPLIT: the single FA-level
-     * requestAcquisitionFunctions Functional Element is realized by TWO
-     * logical components (LogicalLocalRequestInterface,
-     * LogicalRemoteRequestInterface) for the physical-signal-to-ControlCommand
-     * TRANSLATION sub-behavior (one per physical channel, matching Base
-     * Architecture's existing WallSwitchInterface/RemoteInterface split), while
-     * the first-wins ARBITRATION/merge sub-behavior (the fork+merge nodes
-     * inside UseCaseActivities::ReceiveControlRequest) is allocated to
-     * LogicalControlUnit, since arbitration inherently requires simultaneous
-     * visibility of both channels and cannot be performed by either interface
-     * component in isolation. See FunctionalAllocation.sysml for the full
-     * rationale and the Function Allocation Matrix in the accompanying
-     * analysis report. NOTE: this 1-FE-to-3-component split is an explicit,
-     * documented EXCEPTION to the default one-FE-to-one-logical-component
-     * allocation cardinality (KnowledgeSource/integration/crossmapping/
-     * logical-architecture.md §4 Traceability Rule 1); it is not a modeling
-     * error, and no other Functional Element in this file deviates from the
-     * default 1:1 cardinality.
-     *
-     * BOUNDARY-PORT PARITY NOTE (FA↔LA asymmetry): FunctionalArchitecture's
-     * composite additionally exposes 'shutterOutput : ShutterStatePort' at its
-     * system boundary (closing FA finding F1). This is intentionally NOT
-     * re-exposed as a Logical Architecture boundary port: ShutterState has no
-     * corresponding external actor in SystemContext (System Context's
-     * shutterController never exposes shutter-position/movement state
-     * externally) and remains an internal-only signal, consumed here by
-     * logicalMovementSupervisor (see connection 9 below) and, for
-     * observability, by logicalDiagnostics. Likewise, shutterControlFunctions'
-     * FA-level 'MotorStatePort'/'MotorStateFlow' output has no direct Logical
-     * boundary counterpart: LogicalMotorDrive performs the MotorState →
-     * ShutterDrivePort abstraction internally (energizing/de-energizing the
-     * physical relay circuit), exposing only the resulting ShutterDrivePort at
-     * the Logical/System boundary, consistent with DomainKnowledge::
-     * MotorStateFlow's own doc anticipating this Logical-layer realization.
-     *
-     * LogicalControlUnit CONCENTRATION: LogicalControlUnit aggregates four of
-     * the nine Functional Elements (requestAcquisitionFunctions' arbitration
-     * sub-behavior, controlLogicFunctions, configurationControlFunctions,
-     * memoryFunctions) -- the highest allocation concentration of any Logical
-     * component in this file. Each grouping is individually justified in
-     * FunctionalAllocation.sysml as a cohesive control-plane responsibility,
-     * and it mirrors Base Architecture's own broad ControlUnit scope, so this
-     * is not treated as a defect here. It is flagged for explicit
-     * reconsideration during Product Architecture (SM-PRD-21) -- e.g. whether
-     * non-volatile persistence (memoryFunctions) should become a distinct
-     * product-level driver for improved testability/replaceability, even if
-     * it remains logically grouped in this component.
-     *
-     * FIRM PRODUCT-ARCHITECTURE FOLLOW-UP (formal Logical Architecture review,
-     * this pass -- upgrades the note above from an optional suggestion to a
-     * required re-check): this same concentration also makes
-     * LogicalControlUnit the de facto architectural bottleneck of the whole
-     * composite -- it is the only component connected to four of the other
-     * six Logical components (both request interfaces, the movement
-     * supervisor via the requestOut/commandRelayOut fan-outs, and the motor
-     * drive via requestOut), and it is the sole Logical-layer trace target
-     * for REQ-Q-02 (availability) and REQ-Q-03 (reliability) -- see
-     * Traceability::Traceability. Any future change to this component
-     * therefore has the widest blast radius in the architecture and directly
-     * affects the two mandatory quality requirements with the least
-     * structural redundancy behind them. Product Architecture (SM-PRD-21)
-     * MUST explicitly re-evaluate whether to split LogicalControlUnit's four
-     * FEs (at minimum, memoryFunctions and/or configurationControlFunctions)
-     * into separately replaceable product components before finalizing the
-     * product-level design -- this is no longer optional stretch-goal
-     * language, it is a required design-review checkpoint.
+    /* Logical Architecture (SM-PRD-20): technology-independent structural realization of
+     * FunctionalArchitecture (SM-PRD-18), per SYSMOD Tool 4.18.
+     * - Coupling: Functional→Logical loose (allocation def, ADR_004); Logical→Base strong (':>')
+     *   for the 4 components with a direct Base Architecture counterpart.
+     * - Port-def reuse: internal interfaces reuse FunctionalArchitecture's port defs; new port defs
+     *   only at the system boundary (SystemContext parity, Traceability Rule 3).
+     * - requestAcquisitionFunctions split: translation allocates to LogicalLocalRequestInterface /
+     *   LogicalRemoteRequestInterface; arbitration allocates to LogicalControlUnit.
+     * - ShutterStatePort is internal-only; MotorState is abstracted to ShutterDrivePort at the boundary.
+     * - LogicalControlUnit aggregates 4 FEs (highest concentration); Product Architecture MUST
+     *   re-evaluate splitting memoryFunctions/configurationControlFunctions.
      */
 
     // =========================================================================
-    // Logical-only port definitions
-    // Introduced ONLY for the outermost boundary (System Context parity).
-    // Internal logical-to-logical ports reuse FunctionalArchitecture's port
-    // defs directly (see header comment above).
+    // No new port defs: boundary reuses SystemContext port defs; internal
+    // interfaces reuse FunctionalArchitecture's port defs.
     // =========================================================================
-
-    doc
-    /* No additional port defs are declared in this package: the outer
-     * boundary reuses SystemContext::DryContactControlPort,
-     * SystemContext::ControlPowerPort, SystemContext::MainsPowerPort, and
-     * SystemContext::ShutterDrivePort; internal interfaces reuse
-     * FunctionalArchitecture's port defs. This avoids introducing any new
-     * technology-specific interface type at the Logical layer.
-     */
 
     // =========================================================================
     // Logical Components
@@ -162,21 +31,14 @@ package LogicalArchitecture {
 
     part def LogicalLocalRequestInterface :> WallSwitchInterface {
         doc
-        /* Translates the raw dry-contact signal state on the local wall-switch
-         * channel into a typed ControlCommand. Realizes the local-channel
-         * translation sub-behavior of requestAcquisitionFunctions. Strongly
-         * coupled to BaseArchitecture::WallSwitchInterface (1:1 Base
-         * counterpart, ADR-004).
-         */
+        /* Translates the local wall-switch dry-contact signal into a typed ControlCommand,
+         * stamping source == ChannelSource::local (REQ-F-08). Strongly coupled to
+         * BaseArchitecture::WallSwitchInterface (ADR-004). */
 
         attribute signalInterpretation : String {
             doc
-            /* Qualitative description of how the dry-contact voltage
-             * state is mapped to direction/mode (e.g., press-duration
-             * heuristics for automatic vs. manual mode); no concrete
-             * algorithm or timing value is committed here -- deferred to
-             * Product Architecture.
-             */
+            /* Qualitative mapping of local dry-contact voltage state to direction/mode; same method as
+             * the remote interface (REQ-I-01). */
         }
 
         port ctrlIn : ~DryContactControlPort;
@@ -185,20 +47,13 @@ package LogicalArchitecture {
 
     part def LogicalRemoteRequestInterface :> RemoteInterface {
         doc
-        /* Translates the raw dry-contact signal state on the remote
-         * (home-automation) channel into a typed ControlCommand. Realizes the
-         * remote-channel translation sub-behavior of
-         * requestAcquisitionFunctions. Strongly coupled to
-         * BaseArchitecture::RemoteInterface (1:1 Base counterpart, ADR-004).
-         */
+        /* Translates the remote home-automation dry-contact signal into a typed ControlCommand,
+         * stamping source == ChannelSource::remote (REQ-F-08). Strongly coupled to
+         * BaseArchitecture::RemoteInterface (ADR-004). */
 
         attribute signalInterpretation : String {
             doc
-            /* Qualitative description of how the remote dry-contact
-             * voltage state is mapped to direction/mode; electrically and
-             * behaviorally equivalent to LogicalLocalRequestInterface per
-             * REQ-I-02.
-             */
+            /* Qualitative mapping of remote dry-contact voltage state to direction/mode (equivalent to local per REQ-I-02). */
         }
 
         port ctrlIn : ~DryContactControlPort;
@@ -207,23 +62,15 @@ package LogicalArchitecture {
 
     part def LogicalControlUnit :> ControlUnit {
         doc
-        /* Arbitrates between simultaneous local/remote command channels
-         * (first-wins), validates the resulting ControlCommand and detects
-         * UP+DOWN conflicts, manages configuration-mode state transitions, and
-         * persists/retrieves the timing profile. Realizes
-         * controlLogicFunctions, configurationControlFunctions,
-         * memoryFunctions, and the arbitration sub-behavior of
-         * requestAcquisitionFunctions. Strongly coupled to
-         * BaseArchitecture::ControlUnit (1:1 Base counterpart, ADR-004).
-         */
+        /* Arbitrates local/remote commands, validates ControlCommands, manages configuration-mode
+         * state, and persists the timing profile. Realizes controlLogicFunctions,
+         * configurationControlFunctions, memoryFunctions, and the requestAcquisitionFunctions
+         * arbitration sub-behavior. Strongly coupled to BaseArchitecture::ControlUnit (ADR-004). */
 
         attribute commandArbitrationPolicy : String {
             doc
-            /* Qualitative description of the first-wins arbitration
-             * policy between local and remote channels; no concrete
-             * timing value is committed here -- deferred to Product
-             * Architecture.
-             */
+            /* First-accepted-wins arbitration between local and remote channels; equal-priority
+             * stop arbitration (REQ-F-06) is handled separately by LogicalMovementSupervisor. */
         }
 
         port localCommandIn : ~ControlCommandPort;
@@ -237,22 +84,14 @@ package LogicalArchitecture {
 
     part def LogicalMovementSupervisor {
         doc
-        /* Timer-based supervision of in-progress shutter movement (automatic
-         * timeout-driven end-of-travel and manual hold-to-run release/timeout,
-         * per ADR-003 -- no position feedback), and elapsed travel-time
-         * measurement during configuration-mode calibration. Realizes
-         * movementSupervisionFunctions and timeCountingFunctions. No Base
-         * Architecture counterpart exists (ADR-004); modeled as a plain
-         * logical component introduced by Functional Architecture analysis.
-         */
+        /* Timer-based supervision of in-progress shutter movement (ADR-003, no position feedback)
+         * and elapsed travel-time measurement during calibration. Realizes movementSupervisionFunctions
+         * and timeCountingFunctions; no Base Architecture counterpart (ADR-004). */
 
         attribute supervisionPrinciple : String {
             doc
-            /* Qualitative description of the timer-based
-             * (non-position-sensing) supervision principle mandated by
-             * ADR-003; no concrete timeout value is committed here --
-             * deferred to Product Architecture.
-             */
+            /* Time-based movement supervision using the configured travel time, with no physical
+             * position sensing (ADR-003). */
         }
 
         port commandIn : ~ControlCommandPort;
@@ -261,24 +100,20 @@ package LogicalArchitecture {
         port stopOut : StopRequestPort;
         port shutterStateIn : ~ShutterStatePort;
         port durationOut : TravelTimePort;
+        // ConfigModeEvent has a real port
+        // path down to Product/Software, not just implicit same-scope reasoning.
+        port modeEventIn : ~ConfigModeEventPort;
     }
 
     part def LogicalMotorDrive :> MotorDriver {
         doc
-        /* Energizes/de-energizes the shutter motor relay circuit in the
-         * commanded direction in response to validated movement and stop
-         * requests, and exposes the resulting drive state at the system
-         * boundary. Realizes shutterControlFunctions. Strongly coupled to
-         * BaseArchitecture::MotorDriver (1:1 Base counterpart, ADR-004).
-         */
+        /* Energizes/de-energizes the shutter motor relay in response to movement and stop requests,
+         * exposing the drive state at the system boundary. Realizes shutterControlFunctions;
+         * strongly coupled to BaseArchitecture::MotorDriver (ADR-004). */
 
         attribute driveSwitchingPrinciple : String {
             doc
-            /* Qualitative description of the motor-switching principle
-             * (e.g., relay-based, per ADR-001 cost constraint); no
-             * concrete component selection is committed here -- deferred
-             * to Product Architecture.
-             */
+            /* Relay-based motor energizing/de-energizing, one relay per direction (ADR-001). */
         }
 
         port requestIn : ~MovementRequestPort;
@@ -289,55 +124,17 @@ package LogicalArchitecture {
 
     part def LogicalUserNotification {
         doc
-        /* Delivers user-visible feedback for configuration-mode transitions
-         * (activation and deactivation), dispatched from the typed
-         * ConfigModeEvent received from LogicalControlUnit. Realizes
-         * userNotificationFunctions. No Base Architecture counterpart exists
-         * (ADR-004); FunctionalArchitecture.sysml explicitly calls this out as
-         * "decoupled from control logic to allow independent Logical
-         * Architecture realization (e.g., LED, buzzer, or display
-         * indicator)".
-         */
+        /* Delivers user-visible feedback for configuration-mode transitions (activation/deactivation)
+         * from the typed ConfigModeEvent (REQ-F-08). Realizes userNotificationFunctions;
+         * no Base Architecture counterpart (ADR-004). */
 
         attribute feedbackModality : String {
             doc
-            /* Qualitative description of the user-feedback channel
-             * (visual, audible, or combined); no concrete indicator
-             * technology is committed here -- deferred to Product
-             * Architecture.
-             */
+            /* Feedback channel is an audible buzzer only; the previously considered LED
+             * alternative was removed (ADR-008). */
         }
 
         port modeEventIn : ~ConfigModeEventPort;
-        port faultEventIn : ~FaultIndicationEventPort;
-    }
-
-    part def LogicalDiagnostics {
-        doc
-        /* Diagnoses and supports field repair of a failed or malfunctioning
-         * controller without modifying existing installation wiring. Realizes
-         * diagnosticsFunctions. No Base Architecture counterpart exists
-         * (ADR-004). Behavior is currently underspecified, mirroring the same
-         * underspecification already documented on
-         * FunctionalArchitecture::RollerShutterControllerFunctions::
-         * diagnosticsFunctions pending a dedicated UC_04 elaboration pass --
-         * introduced here to provide an allocation anchor for Product
-         * Architecture and to keep every FA action def covered by exactly one
-         * Logical component (Traceability Rule 1).
-         */
-
-        attribute diagnosticCoverage : String {
-            doc
-            /* Qualitative placeholder for the eventual diagnostic
-             * coverage (e.g., which fault classes are detectable); no
-             * concrete diagnostic procedure is committed here.
-             */
-        }
-
-        port diagnosticStateIn : ~ShutterStatePort;
-        port diagnosticRequestIn : ~DiagnosticRequestPort;
-        port diagnosticResultOut : DiagnosticResultPort;
-        port faultEventOut : FaultIndicationEventPort;
     }
 
     // =========================================================================
@@ -346,15 +143,9 @@ package LogicalArchitecture {
 
     part def RollerShutterControllerLogicalComponents :> SystemArchitecture {
         doc
-        /* Top-level Logical Architecture of the Window Roller Shutter
-         * Controller. Technology-independent structural realization of
-         * FunctionalArchitecture::RollerShutterControllerFunctions (see
-         * FunctionalAllocation.sysml for the complete Function-to-Component
-         * allocation). Boundary ports mirror
-         * SystemContext::SystemContextDiagram::shutterController exactly (Traceability
-         * Rule 3 / modeling procedure step 5), giving full external-interface
-         * parity with the System Context.
-         */
+        /* Top-level Logical Architecture composite: technology-independent structural realization of
+         * FunctionalArchitecture::RollerShutterControllerFunctions (see FunctionalAllocation.sysml).
+         * Boundary ports mirror SystemContext::shutterController (Traceability Rule 3). */
 
         // ── System boundary ports (mirrors SystemContext::shutterController) ──
         port localCtrl : ~DryContactControlPort;
@@ -370,7 +161,6 @@ package LogicalArchitecture {
         part logicalMovementSupervisor : LogicalMovementSupervisor;
         part logicalMotorDrive : LogicalMotorDrive;
         part logicalUserNotification : LogicalUserNotification;
-        part logicalDiagnostics : LogicalDiagnostics;
 
         // ── Boundary delegations ────────────────────────────────────────────
         // 1. System boundary → LogicalLocalRequestInterface  [port delegation]
@@ -392,17 +182,13 @@ package LogicalArchitecture {
             from logicalRemoteRequestInterface.commandOut to logicalControlUnit.remoteCommandIn;
 
         // 5b. LogicalControlUnit → LogicalMovementSupervisor  [ControlCommand relay]
-        // (Logical Architecture review CRITICAL-1 fix, see model_issues.md):
-        // relays the arbitrated ControlCommand so LogicalMovementSupervisor can
-        // realize the stop/release accept-action trigger source described on
-        // LogicalControlUnit.commandRelayOut and LogicalMovementSupervisor.commandIn.
+        // Relays the arbitrated ControlCommand so LogicalMovementSupervisor can realize
+        // stop/release trigger sources (UC_01c/d/e).
         flow : ControlCommandFlow
             from logicalControlUnit.commandRelayOut to logicalMovementSupervisor.commandIn;
 
         // 6. LogicalControlUnit → LogicalMovementSupervisor  [MovementRequest]
-        // Fan-out leg 1 of 2 (mirrors FA connections 3/4 -- one source port,
-        // two independent concurrent consumers; see FunctionalArchitecture.sysml
-        // F10 note).
+        // Fan-out leg 1 of 2 (mirrors FA connections 3/4; two independent concurrent consumers).
         flow : MovementRequestFlow
             from logicalControlUnit.requestOut to logicalMovementSupervisor.requestIn;
 
@@ -430,32 +216,10 @@ package LogicalArchitecture {
         flow : ConfigModeEventFlow
             from logicalControlUnit.modeEventOut to logicalUserNotification.modeEventIn;
 
-        // 13. LogicalMotorDrive → LogicalDiagnostics  [ShutterState, passive tap]
-        // (C3 fix: gives logicalDiagnostics its only interface -- a read-only
-        // observation of shutter movement state, fanning out from the same
-        // source as connection 9. See LogicalDiagnostics doc for scope.)
-        flow : ShutterStateFlow
-            from logicalMotorDrive.shutterStateOut to logicalDiagnostics.diagnosticStateIn;
-
-        // 14. LogicalDiagnostics → LogicalUserNotification  [FaultIndicationEvent]
-        // (CRIT-2 fix, SMRR corrective pass): restores the missing Logical-
-        // layer precursor of ProductComponents::DiagnosticsSoftware.faultOut →
-        // UserFeedbackSoftware.faultIndicationIn (ControlMCU connection 14),
-        // which previously had no counterpart at this layer. Mirrors
-        // connection 12b exactly -- typed port-to-port flow between two
-        // existing Logical components, no new component introduced. Note:
-        // diagnosticRequestIn/diagnosticResultOut (mirroring
-        // FunctionalArchitecture::diagnosticsFunctions' new boundary ports)
-        // are intentionally left unconnected at this layer, consistent with
-        // the existing controlPower/mainsPower "documented, intentional gap"
-        // pattern above (connection 2 NOTE) -- no System Context boundary
-        // port exists yet for technician-triggered field diagnosis, so the
-        // request/result interface remains a defined-but-unwired boundary
-        // stub pending a dedicated UC_04 elaboration pass, exactly like
-        // ControlMCU.progPort's documented "no internal connection" pattern
-        // one layer down.
-        flow : FaultIndicationEventFlow
-            from logicalDiagnostics.faultEventOut to logicalUserNotification.faultEventIn;
+        // 12b. LogicalControlUnit → LogicalMovementSupervisor  [ConfigModeEvent]
+        // Fan-out sibling of connection 12.
+        flow : ConfigModeEventFlow
+            from logicalControlUnit.modeEventOut to logicalMovementSupervisor.modeEventIn;
     }
 
     /* Package-level usage providing a named feature endpoint for traceability

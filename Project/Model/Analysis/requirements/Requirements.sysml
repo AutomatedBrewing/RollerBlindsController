@@ -7,12 +7,8 @@ package L0_Requirements {
     private import ProblemStatement::*;
     private import SystemObjectives::*;
 
-    /* Category templates (Layer 1): reusable `requirement def` types that bind the
-     * requirement subject to the system under design, per the two-layer
-     * definition/usage pattern (see KnowledgeSource/integration/crossmapping/requirements.md §2).
-     * Concrete requirements (Layer 2) are `requirement` usages typed by these
-     * templates, each carrying its own doc text, @RequirementMeta annotation,
-     * and a short-name Requirement ID for traceability/verification cross-reference.
+    /* Category templates (Layer 1): reusable `requirement def` types binding the subject to ShutterController.
+     * Concrete requirements (Layer 2) are `requirement` usages typed by these templates, each with doc, @RequirementMeta, and a traceability ID.
      */
     requirement def FunctionalReq {
         subject controller : BaseArchitecture::ShutterController;
@@ -43,7 +39,7 @@ package L0_Requirements {
             /* The controller shall control the movement of window roller shutters. */
 
             frame user.controllerNeed;
-            frame ProblemStatement::NeedForConvenientShutterOperation;
+            frame ProblemStatement::needForConvenientShutterOperation;
 
             @RequirementMeta {
                 source = "SystemIdea::systemIdea";
@@ -67,7 +63,7 @@ package L0_Requirements {
                 source = "SystemObjectives::localControl";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Functional verification via wall-switch test scenarios (Verification::Functional::VerifyLocalControl).";
+                    "Functional verification via wall-switch test scenarios (SystemTestCases::Functional::TC_F_002_LocalControl_MomentarySwitch / TC_F_003_LocalControl_LatchingSwitch).";
                 rationale =
                     "Refines REQ-F-01 to the local-control capability derived from the localControl system objective.";
             }
@@ -85,7 +81,7 @@ package L0_Requirements {
                 source = "SystemObjectives::remoteControl";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Integration test with a representative home automation system (Verification::Functional::VerifyRemoteControl).";
+                    "Integration test with a representative home automation system (SystemTestCases::Functional::TC_F_004_RemoteControl_UP / TC_F_005_RemoteControl_DOWN).";
                 rationale =
                     "Refines REQ-F-01 to the remote-control capability derived from the remoteControl system objective.";
             }
@@ -103,9 +99,9 @@ package L0_Requirements {
                 source = "SystemObjectives::shutterMovementControl";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Functional verification (Verification::Functional::VerifyAutomaticOpening / VerifyAutomaticClosing).";
+                    "Functional verification (SystemTestCases::Functional::TC_F_006_AutomaticFullOpen / TC_F_007_AutomaticFullClose).";
                 rationale =
-                    "Refines REQ-F-01; full-travel automatic movement is the primary convenience capability over manual operation. Source updated from 'easeOfUse' to 'shutterMovementControl' (system model review corrective pass, closes Major finding M1): this is a core movement capability, not a usability attribute.";
+                    "Refines REQ-F-01; full-travel automatic movement is the primary convenience capability over manual operation.";
             }
         }
 
@@ -121,9 +117,9 @@ package L0_Requirements {
                 source = "SystemObjectives::shutterMovementControl";
                 priority = RequirementPriority::recommended;
                 verificationMethod =
-                    "Functional verification (Verification::Functional::VerifyManualPositioning).";
+                    "Functional verification (SystemTestCases::Functional::TC_F_008_ManualPartialOpen / TC_F_009_ManualPartialClose).";
                 rationale =
-                    "Refines REQ-F-01; intermediate positioning improves usability beyond binary open/close. Source updated from 'easeOfUse' to 'shutterMovementControl' (system model review corrective pass, closes Major finding M1): this is a core movement capability, not a usability attribute.";
+                    "Refines REQ-F-01; intermediate positioning improves usability beyond binary open/close.";
             }
         }
 
@@ -131,7 +127,10 @@ package L0_Requirements {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The controller shall stop the shutter movement upon user or external system request. */
+            /* The controller shall stop the shutter movement upon user or external system request.
+             * During normal operation, local and remote channels have equal priority: any UP or DOWN
+             * assertion on either channel shall stop an in-progress movement.
+             */
 
             frame user.controllerNeed;
 
@@ -139,9 +138,9 @@ package L0_Requirements {
                 source = "SystemObjectives::shutterMovementControl";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Functional verification (Verification::Functional::VerifyMovementStop).";
+                    "Functional verification (SystemTestCases::Functional::TC_F_010_StopDuringOpening / TC_F_011_StopDuringClosing) and equal-priority arbitration test exercising local-start/remote-stop and vice versa (SystemTestCases::Safety::TC_S_005_EqualPriorityStopArbitration_LocalStartRemoteStop / TC_S_006_EqualPriorityStopArbitration_RemoteStartLocalStop).";
                 rationale =
-                    "Refines REQ-F-01; the ability to interrupt movement is a basic safety and usability expectation. Source updated from 'easeOfUse' to 'shutterMovementControl' (system model review corrective pass, closes Major finding M1): this is a core movement capability, not a usability attribute.";
+                    "Refines REQ-F-01; local and remote channels are treated symmetrically for stopping an in-progress movement.";
             }
         }
 
@@ -166,9 +165,9 @@ package L0_Requirements {
                 source = "Risks::TechnicalRisks::Risk_ShutterMotorTypeIncompatibility";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Compatibility test with a representative range of standard roller shutter motor types (Verification::Constraints::VerifyTimeBasedOperation).";
+                    "Compatibility test with a representative range of standard roller shutter motor types (SystemTestCases::Functional::TC_F_012_ConfigurableTimingProfile_Nominal).";
                 rationale =
-                    "Risk-driven requirement mitigating RISK-T-04 (shutter motor type incompatibility) and supporting the rollerShutterCompatibility system objective. Manufacturer stakeholder added (system model review corrective pass) alongside installer: the requirement's mandatory priority is justified primarily by RISK-T-04's major severity, not solely by the parent objective's 'recommended' priority -- rollerShutterCompatibility (recommended) reflects the manufacturer's overall market-reach ambition, while this requirement is independently mandated by the identified major technical risk. This priority relationship (recommended objective → mandatory requirement) is intentional and risk-justified, not an unexplained escalation.";
+                    "Mitigates RISK-T-04 (shutter motor type incompatibility); mandatory priority is justified by RISK-T-04's major severity, independent of the parent objective's 'recommended' priority.";
             }
         }
 
@@ -176,11 +175,10 @@ package L0_Requirements {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder installer : Stakeholders::Installer;
             doc
-            /* The controller shall provide a distinct configuration mode,
-             * activated and deactivated only through an explicit installer
-             * action and clearly signaled to the user, during which movement
-             * timing parameters can be calibrated without disassembling the
-             * device.
+            /* The controller shall provide a configuration mode, activated and deactivated only by a
+             * sustained simultaneous local-only UP+DOWN hold beyond a calibration threshold
+             * (defined in ProductComponents::ConfigurationManagerSoftware), during which timing
+             * parameters can be calibrated without disassembly.
              */
 
             frame installer.easeOfConfiguration;
@@ -189,9 +187,56 @@ package L0_Requirements {
                 source = "Risks::TechnicalRisks::Risk_MisconfigurationDuringInstall";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Guided procedure walkthrough with a first-time installer (Verification::Quality::VerifyEaseOfInstallation).";
+                    "Installer walkthrough (SystemTestCases::Quality::TC_Q_001_InstallationTime); remote UP+DOWN hold verified to NOT activate configuration mode (SystemTestCases::Safety::TC_S_004_LocalOnlyConfigGating_RemoteHoldRejected).";
                 rationale =
-                    "Risk-driven requirement mitigating RISK-T-05 (misconfiguration during install) and supporting the easeOfUse system objective.";
+                    "Mitigates RISK-T-05 (misconfiguration during install); local-only activation gating ensures a remote fault or erroneous signal cannot enter configuration mode.";
+            }
+        }
+
+        requirement <'REQ-F-09'> pressDurationModeDiscrimination : FunctionalReq {
+            subject controller : BaseArchitecture::ShutterController;
+            stakeholder user : Stakeholders::User;
+            doc
+            /* The controller shall discriminate automatic mode (REQ-F-04) from manual hold-to-run mode
+             * (REQ-F-05) by UP/DOWN assertion duration: below threshold is a short press (automatic);
+             * at/above threshold is a sustained hold (manual). Applies identically to local and remote
+             * channels; threshold defined in ProductComponents::CommandArbitrationSoftware.
+             */
+
+            frame user.controllerNeed;
+
+            @RequirementMeta {
+                source = "SystemObjectives::shutterMovementControl";
+                priority = RequirementPriority::mandatory;
+                verificationMethod =
+                    "Functional test asserting commands below and at/above the press-duration threshold, confirming automatic vs. manual mode selection (SystemTestCases::Functional::TC_F_014_PressDurationModeDiscrimination).";
+                rationale =
+                    "Makes explicit the short-press/long-press discrimination that REQ-F-04 and REQ-F-05 depend on but do not themselves specify.";
+            }
+        }
+
+        requirement <'REQ-F-10'> timingDriftMargin : FunctionalReq {
+            subject controller : BaseArchitecture::ShutterController;
+            stakeholder user : Stakeholders::User;
+            doc
+            /* The controller shall run each movement 5 seconds longer than its configured
+             * travel time, to compensate for cumulative positioning drift (RISK-T-01).
+             */
+
+            attribute timingMarginS subsets ISQ::duration;
+            require constraint {
+                timingMarginS >= 5 [SI::s]
+            }
+
+            frame user.controllerNeed;
+
+            @RequirementMeta {
+                source = "Risks::TechnicalRisks::Risk_PositioningDrift";
+                priority = RequirementPriority::mandatory;
+                verificationMethod =
+                    "Confirm configured travel time exceeds the last measured travel time by >= 5 s (SystemTestCases::Functional::TC_F_012_ConfigurableTimingProfile_Nominal).";
+                rationale =
+                    "Mitigates RISK-T-01 (positioning drift); makes the existing timing-margin mitigation a verifiable requirement instead of only a product attribute.";
             }
         }
     } // package Functional
@@ -213,7 +258,7 @@ package L0_Requirements {
                 source = "Risks::IntegrationRisks::Risk_WallSwitchWiringIncompatibility";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Functional verification via wall-switch test scenarios (Verification::Functional::VerifyLocalControl).";
+                    "Functional verification via wall-switch test scenarios (SystemTestCases::Functional::TC_F_002_LocalControl_MomentarySwitch / TC_F_003_LocalControl_LatchingSwitch).";
                 rationale =
                     "Risk-driven requirement mitigating RISK-I-01 (wall switch wiring incompatibility) and supporting the localControl system objective.";
             }
@@ -223,13 +268,9 @@ package L0_Requirements {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
             doc
-            /* The controller's remote interface shall provide UP and DOWN
-             * dry-contact style inputs that are electrically and behaviorally
-             * equivalent to the local wall switch interface (voltage present
-             * on an input asserts the corresponding movement direction). No
-             * home automation protocol (e.g., Zigbee, Z-Wave, MQTT) is
-             * implemented or required; any external system driving these
-             * inputs is treated as a simple dry-contact/relay source.
+            /* The controller's remote interface shall provide UP and DOWN dry-contact inputs
+             * electrically equivalent to the local wall switch (voltage present asserts the direction).
+             * No home automation protocol is implemented; any external system is treated as a dry-contact source.
              */
 
             frame user.controllerNeed;
@@ -238,9 +279,9 @@ package L0_Requirements {
                 source = "SystemObjectives::remoteControl";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Functional verification exercising the UP/DOWN remote inputs with a dry-contact/relay test fixture, confirming identical behaviour to the local interface (Verification::Functional::VerifyRemoteControl).";
+                    "Functional verification exercising the UP/DOWN remote inputs with a dry-contact/relay test fixture, confirming identical behaviour to the local interface (SystemTestCases::Functional::TC_F_004_RemoteControl_UP / TC_F_005_RemoteControl_DOWN).";
                 rationale =
-                    "Reflects the actual controller hardware interface (UP REMOTE / DOWN REMOTE dry-contact inputs, no protocol stack) and supersedes the previous protocol-integration framing, which did not match the implemented electrical interface.";
+                    "Reflects the actual hardware interface (UP REMOTE / DOWN REMOTE dry-contact inputs, no protocol stack).";
             }
         }
     } // package Interface
@@ -265,7 +306,7 @@ package L0_Requirements {
                 source = "SystemObjectives::easeOfUse";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Timed installation trial with a representative first-time installer (Verification::Quality::VerifyEaseOfInstallation).";
+                    "Timed installation trial with a representative first-time installer (SystemTestCases::Quality::TC_Q_001_InstallationTime).";
                 rationale =
                     "Quantifies the easeOfUse system objective for the installer stakeholder.";
             }
@@ -281,8 +322,6 @@ package L0_Requirements {
              * over a rolling 12-month operational period.
              */
 
-            // Part C-1 fix (SMRR corrective pass): explicit frame binding,
-            // closing the missing-frame minor finding for this requirement.
             frame user.availabilityConcern;
 
             attribute upTime : ScalarValues::Real;
@@ -294,7 +333,7 @@ package L0_Requirements {
                 source = "SystemObjectives::reliability";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Field/bench availability measurement over a rolling 12-month period (Verification::Quality::VerifyAvailability).";
+                    "Field/bench availability measurement over a rolling 12-month period (SystemTestCases::Quality::TC_Q_002_OperationalAvailability).";
                 rationale =
                     "Quantifies the reliability system objective in terms of operational uptime.";
             }
@@ -311,8 +350,6 @@ package L0_Requirements {
              * L0_Constraints::Electrical::switchingLoad.
              */
 
-            // Part C-1 fix (SMRR corrective pass): explicit frame binding,
-            // closing the missing-frame minor finding for this requirement.
             frame user.reliabilityConcern;
 
             attribute successfulOperations : ScalarValues::Natural;
@@ -324,56 +361,12 @@ package L0_Requirements {
                 source = "SystemObjectives::reliability";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Cycle endurance test at rated switching load and operating temperature extremes (Verification::Quality::VerifyReliability).";
+                    "Cycle endurance test at rated switching load and operating temperature extremes (SystemTestCases::Quality::TC_Q_003_ReliabilityEndurance).";
                 rationale =
                     "Quantifies the reliability system objective in terms of cycle-count durability; also mitigates RISK-T-03 (motor relay wear-out).";
             }
         }
 
-        requirement <'REQ-Q-04'> diagnosability : QualityReq {
-            subject controller : BaseArchitecture::ShutterController;
-            stakeholder maintenanceTechnician : Stakeholders::MaintenanceTechnician;
-            doc
-            /* A failed or malfunctioning controller shall be diagnosable in
-             * the field, without specialized lab equipment, sufficiently to
-             * distinguish at least the following fault classes: no power, no
-             * response to any control input, and motor-drive fault (no
-             * movement despite an accepted command).
-             */
-
-            frame maintenanceTechnician.diagnosability;
-
-            @RequirementMeta {
-                source = "Stakeholders::MaintenanceTechnician";
-                priority = RequirementPriority::recommended;
-                verificationMethod =
-                    "Guided field-diagnosis trial with a representative maintenance technician, injecting each fault class and confirming correct classification without lab equipment (Verification::Quality::VerifyDiagnosability).";
-                rationale =
-                    "Closes the requirement gap identified in the system model review (Major finding M3): Stakeholders::MaintenanceTechnician::Diagnosability previously had no L0_Requirements usage, and UC_04 traced only to reliability (REQ-Q-03), which does not itself address field diagnosability. Directly supports UC_04_DiagnoseAndRepairController and mitigates the field-triage aspect of RISK-T-01/RISK-T-03.";
-            }
-        }
-
-        requirement <'REQ-Q-05'> fieldReplaceability : QualityReq {
-            subject controller : BaseArchitecture::ShutterController;
-            stakeholder maintenanceTechnician : Stakeholders::MaintenanceTechnician;
-            doc
-            /* A failed controller shall be repairable or replaceable on-site
-             * using the existing installation wiring (12V DC, GND, UP/DOWN
-             * LOCAL, UP/DOWN REMOTE, 230V AC, ROLLER UP/DOWN), without
-             * modifying the existing installation.
-             */
-
-            frame maintenanceTechnician.fieldReplaceability;
-
-            @RequirementMeta {
-                source = "Stakeholders::MaintenanceTechnician";
-                priority = RequirementPriority::recommended;
-                verificationMethod =
-                    "Timed field-replacement trial confirming the replacement unit operates correctly using the unmodified existing wiring (Verification::Quality::VerifyFieldReplaceability).";
-                rationale =
-                    "Closes the requirement gap identified in the system model review (Major finding M3): Stakeholders::MaintenanceTechnician::FieldReplaceability previously had no L0_Requirements usage. Directly supports UC_04_DiagnoseAndRepairController's postcondition ('faulty unit repaired or replaced ... using the existing wiring').";
-            }
-        }
     } // package Quality
 
     package Safety {
@@ -388,8 +381,6 @@ package L0_Requirements {
              * isolation constraints in L0_Constraints::Electrical.
              */
 
-            // Part C-1 fix (SMRR corrective pass): explicit frame binding,
-            // closing the missing-frame minor finding for this requirement.
             frame user.safetyConcern;
 
             attribute maxAccessibleVoltage = 50 [SI::V];
@@ -401,9 +392,9 @@ package L0_Requirements {
                 source = "SystemObjectives::safety";
                 priority = RequirementPriority::mandatory;
                 verificationMethod =
-                    "Electrical safety test (touch-voltage and isolation measurement) per Verification::Constraints::VerifySupplyVoltageRange/VerifyMaximumSwitchingLoad.";
+                    "Electrical safety test (touch-voltage and isolation measurement) per SystemTestCases::Boundary::TC_B_001_SupplyVoltage_LowerBoundary/TC_B_002_SupplyVoltage_UpperBoundary/TC_B_006_SwitchingLoad_Maximum.";
                 rationale =
-                    "Derived from the safety system objective (added in this fix pass); covers galvanic isolation of mains-voltage switching circuitry (physical constraint) and conflict-suppression behavior (UC_01e). The previous proxy source (reliability) is retained as a secondary trace in Traceability.sysml. NOTE (system model review corrective pass): this requirement's electrical/SELV clause is intentionally atomic; the behavioral conflict-suppression counterpart previously only informally referenced here is now a separate, independently verifiable requirement, REQ-S-02 conflictIndication, addressing the user-feedback aspect of UC_01e.";
+                    "Derived from the safety system objective; covers galvanic isolation of mains-voltage switching circuitry. UP+DOWN conflict suppression (UC_01e) is a mandatory safety behavior verified as motor-drive suppression.";
             }
         }
     } // package Safety
@@ -421,8 +412,6 @@ package L0_Requirements {
              * equipment.
              */
 
-            // Part C-1 fix (SMRR corrective pass): explicit frame binding,
-            // closing the missing-frame minor finding for this requirement.
             frame disposalFacility.regulatedDisposability;
 
             @RequirementMeta {
@@ -431,7 +420,7 @@ package L0_Requirements {
                 verificationMethod =
                     "Material compliance declaration (RoHS) and recycling-pathway review per WEEE directive; confirmed during product design review.";
                 rationale =
-                    "Closes the disposal-requirement gap identified in the traceability review: DisposalFacility stakeholder concern RegulatedDisposability had no L0_Requirements usage and UC_05 had no require link. Mains-switching electronics are subject to WEEE/RoHS regulation; non-compliance risks import/sale prohibition in regulated markets.";
+                    "Mains-switching electronics are subject to WEEE/RoHS regulation; non-compliance risks import/sale prohibition in regulated markets.";
             }
         }
     } // package Environmental

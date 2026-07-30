@@ -4,20 +4,36 @@ package L0_Constraints {
     private import Stakeholders::*;
     private import BaseArchitecture::*;
     private import SystemObjectives::*;
-    private import DerivationConnections::*;
 
     comment
     /* Constraints limits the solution space. */
 
+    /* Category templates (Layer 1), same two-layer pattern as L0_Requirements. */
+    requirement def BusinessConstraint {
+        subject controller : BaseArchitecture::ShutterController;
+    }
+    requirement def PhysicalConstraint {
+        subject controller : BaseArchitecture::ShutterController;
+    }
+    requirement def EnvironmentalConstraint {
+        subject controller : BaseArchitecture::ShutterController;
+    }
+    requirement def ElectricalConstraint {
+        subject controller : BaseArchitecture::ShutterController;
+    }
+    requirement def ArchitecturalConstraint {
+        subject controller : BaseArchitecture::ShutterController;
+    }
+
     package Business {
-        requirement costEffective {
+        requirement <'CNST-B-01'> costEffective : BusinessConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
 
             doc
             /* The controller shall achieve manufacturing cost below 50 PLN per unit. */
 
-            attribute manufacturingCost;
+            attribute manufacturingCost; // unit: PLN (Polish Zloty); no SI currency unit exists
 
             require constraint {
                 manufacturingCost <= 50
@@ -30,7 +46,7 @@ package L0_Constraints {
     } // package Business
 
     package Physical {
-        requirement compactDimensions {
+        requirement <'CNST-P-01'> compactDimensions : PhysicalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder user : Stakeholders::User;
 
@@ -54,7 +70,7 @@ package L0_Constraints {
     } // package Physical
 
     package Environmental {
-        requirement operatingConditions {
+        requirement <'CNST-E-01'> operatingConditions : EnvironmentalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc
@@ -75,7 +91,7 @@ package L0_Constraints {
     } // package Environmental
 
     package Electrical {
-        requirement supplyVoltage {
+        requirement <'CNST-EL-01'> supplyVoltage : ElectricalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc
@@ -88,7 +104,7 @@ package L0_Constraints {
             }
         }
 
-        requirement switchingLoad {
+        requirement <'CNST-EL-02'> switchingLoad : ElectricalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc
@@ -102,14 +118,14 @@ package L0_Constraints {
             }
         }
 
-        requirement motorIsolation {
+        requirement <'CNST-EL-03'> motorIsolation : ElectricalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc
             /* The motor control circuitry shall be galvanically isolated from low-voltage control logic. */
         }
 
-        requirement inputIsolation {
+        requirement <'CNST-EL-04'> inputIsolation : ElectricalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc
@@ -118,14 +134,14 @@ package L0_Constraints {
     } // package Electrical
 
     package Architectural {
-        requirement noPositionFeedback {
+        requirement <'CNST-A-01'> noPositionFeedback : ArchitecturalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc
             /* The controller shall operate without position feedback from the shutter. */
         }
 
-        requirement timeBasedOperation {
+        requirement <'CNST-A-02'> timeBasedOperation : ArchitecturalConstraint {
             subject controller : BaseArchitecture::ShutterController;
             stakeholder manufacturer : Stakeholders::Manufacturer;
             doc

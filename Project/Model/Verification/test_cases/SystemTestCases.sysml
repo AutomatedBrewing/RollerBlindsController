@@ -5,6 +5,8 @@ package SystemTestCases {
     private import L0_Constraints::*;
     private import DomainKnowledge::*;
     private import ScalarValues::*;
+    private import LogicalArchitecture::*;
+    private import ProductComponents::*;
 
     /* Metadata annotation applied to every verification def in this package.
      * Captures test classification for use in requirement traceability matrices and
@@ -72,15 +74,9 @@ package SystemTestCases {
                 category           = "Functional";
             }
             action setup {
-                doc /* Configure controller for momentary wall-switch topology via installer
-                     * configuration procedure. Connect momentary push-buttons to local UP and
-                     * DOWN inputs. Remote inputs unasserted. Controller powered and idle.
-                     * Concretely (PA-2 fix, ProductComponents.sysml): the installer selection
-                     * sets ConfigurationManagerSoftware.wiringMode = WiringMode::momentary,
-                     * persisted by MemoryManagerSoftware.persistedWiringMode and interpreted by
-                     * CommandArbitrationSoftware.wiringMode when translating the raw dry-contact
-                     * signal into a ControlCommand -- exercised by
-                     * Verification::Product::VerifyWiringModeConfiguration. */
+                doc /* Configure controller for momentary wall-switch topology. Connect momentary
+                     * push-buttons to local UP and DOWN inputs. Remote inputs unasserted.
+                     * Controller powered and idle. */
             }
             action execute {
                 doc /* 1. Briefly press UP push-button (< 500 ms pulse) and release.
@@ -115,12 +111,7 @@ package SystemTestCases {
             action setup {
                 doc /* Configure controller for latching wall-switch topology. Connect latching
                      * toggle switches to local UP and DOWN inputs. Remote inputs unasserted.
-                     * Concretely (PA-2 fix, ProductComponents.sysml): the installer selection
-                     * sets ConfigurationManagerSoftware.wiringMode = WiringMode::latching,
-                     * persisted by MemoryManagerSoftware.persistedWiringMode and interpreted by
-                     * CommandArbitrationSoftware.wiringMode when translating the raw dry-contact
-                     * signal into a ControlCommand -- exercised by
-                     * Verification::Product::VerifyWiringModeConfiguration. */
+                     * Controller powered and idle. */
             }
             action execute {
                 doc /* 1. Toggle UP switch to ON (latched closed). Observe motor.
@@ -418,29 +409,17 @@ package SystemTestCases {
                      * 9. Run automatic full-close command. Measure T_close_act. */
             }
             action verifyOutcome {
-                doc /* PASS if: activation notification is exactly
-                     * ProductComponents::UserFeedbackSoftware.configModeActivationBeepCount == 1
-                     * pulse and deactivation notification is exactly
-                     * configModeDeactivationBeepCount == 2 pulses (MAJ-9 fix: measurable
-                     * pulse-count criterion, see TC_F_013 for full acoustic detail);
-                     * T_open_act is within T_open_ref ± 5%;
-                     * T_close_act is within T_close_ref ± 5%;
-                     * open and close times are independently configurable and retained. */
+                doc /* PASS if: activation produces configModeActivationBeepCount == 1 pulse;
+                     * deactivation produces configModeDeactivationBeepCount == 2 pulses;
+                     * T_open_act within T_open_ref ± 5%; T_close_act within T_close_ref ± 5%;
+                     * open and close times independently configurable and retained. */
             }
             return verdict : VerdictKind;
         }
 
         verification def TC_F_013_ConfigurationMode_Notification {
             doc /* Verify that distinct user-visible notifications are produced on both
-                 * configuration mode activation and deactivation (REQ-F-08, UC-03,
-                 * ACT-ActivateConfigurationMode, ACT-NotifyUserAboutActivationOfConfigurationMode,
-                 * ACT-ExitConfigurationMode, ACT-NotifyUserAboutDeactivationOfConfigurationMode).
-                 * MAJ-9 fix (SMRR corrective pass): pass criteria below now
-                 * cite ProductComponents::UserFeedbackSoftware's measurable
-                 * beep-pattern attributes (pulse count + duration) instead of
-                 * the previous qualitative "clearly distinguishable" wording;
-                 * same test intent (activation/deactivation/silent states
-                 * must remain audibly distinct), objective threshold. */
+                 * configuration mode activation and deactivation (REQ-F-08, UC-03). */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Functional::configurationMode;
@@ -477,6 +456,41 @@ package SystemTestCases {
             return verdict : VerdictKind;
         }
 
+        verification def TC_F_014_PressDurationModeDiscrimination {
+            doc /* Verify short-press/long-press discrimination at the 500 ms threshold (REQ-F-09):
+                 * press < 500 ms → automatic mode; press ≥ 500 ms → manual mode.
+                 * Applies identically on both local and remote channels. */
+            subject sut : BaseArchitecture::ShutterController;
+            objective {
+                verify L0_Requirements::Functional::pressDurationModeDiscrimination;
+                verify L0_Requirements::Functional::fullShutterMovement;
+                verify L0_Requirements::Functional::manualPositioning;
+            }
+            @TestCaseMeta {
+                testType           = "systemTestCase";
+                verificationMethod = "test";
+                priority           = "high";
+                category           = "Boundary";
+            }
+            action setup {
+                doc /* Controller powered and idle. Shutter at fully closed. Timing profile with
+                     * known T_open configured. Timer with ± 10 ms accuracy available. */
+            }
+            action execute {
+                doc /* 1. Assert local UP for 300 ms (< 500 ms threshold), then release.
+                     *    Observe whether the shutter continues moving autonomously.
+                     * 2. Assert local UP for 700 ms (>= 500 ms threshold), then release.
+                     *    Observe whether the shutter stops immediately on release.
+                     * 3. Repeat step 1 and step 2 on the remote channel. */
+            }
+            action verifyOutcome {
+                doc /* PASS if: 300 ms local assertion → motor continues autonomously after release;
+                     * 700 ms local assertion → motor stops immediately on release;
+                     * remote-channel repetitions produce identical discrimination. */
+            }
+            return verdict : VerdictKind;
+        }
+
     } // package Functional
 
     // =========================================================================
@@ -487,8 +501,7 @@ package SystemTestCases {
 
         verification def TC_S_001_ConflictSuppression_LocalUPDOWN {
             doc /* Verify that simultaneously asserting local UP and DOWN keeps the motor
-                 * de-energized in both directions (REQ-S-01, UC-01e,
-                 * ACT-HandleConflictingMovementCommands, ACT-DetermineMovementRequest). */
+                 * de-energized in both directions (REQ-S-01, UC-01e). */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Safety::safety;
@@ -519,8 +532,8 @@ package SystemTestCases {
         }
 
         verification def TC_S_002_ConflictSuppression_LocalRemoteCross {
-            doc /* Verify that a cross-source conflict (local UP + remote DOWN, or remote UP +
-                 * local DOWN) also keeps the motor de-energized (REQ-S-01, UC-01e). */
+            doc /* Verify that a cross-source conflict (local UP + remote DOWN, or vice versa)
+                 * also keeps the motor de-energized (REQ-S-01, UC-01e). */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Safety::safety;
@@ -549,11 +562,8 @@ package SystemTestCases {
         }
 
         verification def TC_S_003_AccessibleVoltage_SELV {
-            doc /* Verify that no user- or installer-accessible interface point exceeds the
-                 * 50 V AC SELV limit, and that galvanic isolation is intact between the
-                 * mains-switching motor circuit and the low-voltage control circuit
-                 * (REQ-S-01, L0_Constraints::Electrical::motorIsolation,
-                 *  L0_Constraints::Electrical::inputIsolation). */
+            doc /* Verify no accessible interface point exceeds 50 V AC SELV limit and galvanic
+                 * isolation is intact between motor and control circuits (REQ-S-01). */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Safety::safety;
@@ -588,21 +598,13 @@ package SystemTestCases {
             return verdict : VerdictKind;
         }
 
-        verification def TC_S_004_ConflictNotification_UserFeedback {
-            doc
-            /* Added to close Major finding M2 (system model review corrective
-             * pass): verifies REQ-S-02 (conflictIndication). Previously the
-             * suppressed-conflict state (TC_S_001/TC_S_002) had no
-             * corresponding user-feedback test -- a user could not
-             * distinguish a suppressed conflict from normal idle behavior.
-             * MAJ-9 fix (SMRR corrective pass): pass criterion below now
-             * cites ProductComponents::UserFeedbackSoftware's measurable
-             * conflictSuppressionBeepCount/Ms attributes instead of the
-             * previous qualitative "clearly distinguishable" wording; same
-             * test intent, objective threshold. */
+        verification def TC_S_004_LocalOnlyConfigGating_RemoteHoldRejected {
+            doc /* Verify REQ-F-08's local-only activation gate: a simultaneous UP+DOWN hold
+                 * on the remote channel never activates configuration mode regardless of duration;
+                 * only a both-local simultaneous hold (> 5.0 s) may do so. */
             subject sut : BaseArchitecture::ShutterController;
             objective {
-                verify L0_Requirements::Safety::conflictIndication;
+                verify L0_Requirements::Functional::configurationMode;
             }
             @TestCaseMeta {
                 testType           = "systemTestCase";
@@ -611,23 +613,89 @@ package SystemTestCases {
                 category           = "Safety";
             }
             action setup {
-                doc /* Controller powered and idle. Audible conflict-indication channel
-                     * (distinct buzzer beep pattern) audible to the tester, who is
-                     * equipped with a stopwatch to time/count buzzer pulses. */
+                doc /* Controller powered and idle. Local wall-switch inputs and remote
+                     * dry-contact fixture both accessible. Stopwatch available. No
+                     * movement in progress. */
             }
             action execute {
-                doc /* Simultaneously assert local UP + local DOWN (mirrors TC_S_001).
-                     * Observe the conflict-indication channel for 5 seconds; count
-                     * pulses and measure each pulse's duration. */
+                doc /* Scenario A: simultaneously assert remote UP + remote DOWN dry-contact.
+                     * Hold for 10 seconds (well beyond the 5.0 s calibration threshold). Release.
+                     * Scenario B: simultaneously assert local UP + remote DOWN.
+                     * Hold for 10 seconds. Release.
+                     * For comparison, then perform the positive case: simultaneously assert
+                     * local UP + local DOWN. Hold for 6 seconds (just beyond the 5.0 s threshold). */
             }
             action verifyOutcome {
-                doc /* PASS if: within the 5 s observation window the buzzer emits
-                     * exactly conflictSuppressionBeepCount == 3 pulses of
-                     * conflictSuppressionBeepMs == 100 ms each while the motor
-                     * remains de-energized (per TC_S_001); this 3-pulse pattern is
-                     * pulse-count-distinct from both configuration-mode patterns
-                     * (1 and 2 pulses, TC_F_013) and from the controller's normal
-                     * idle (0-pulse, silent) state. */
+                doc /* PASS if: Scenarios A and B never activate configuration mode (no beep,
+                     * motor de-energized regardless of hold duration); comparison local-only hold
+                     * DOES activate (configModeActivationBeepCount == 1) after 5.0 s, confirming
+                     * gate discriminates on source, not gesture or duration. */
+            }
+            return verdict : VerdictKind;
+        }
+
+        verification def TC_S_005_EqualPriorityStopArbitration_LocalStartRemoteStop {
+            doc /* Verify REQ-F-06 equal-priority stop: local-initiated movement is stopped by
+                 * a remote assertion. Symmetric case (remote-start/local-stop) covered by TC_S_006. */
+            subject sut : BaseArchitecture::ShutterController;
+            objective {
+                verify L0_Requirements::Functional::stopShutterMovement;
+            }
+            @TestCaseMeta {
+                testType           = "systemTestCase";
+                verificationMethod = "test";
+                priority           = "critical";
+                category           = "Safety";
+            }
+            action setup {
+                doc /* Controller powered and idle. Local switch inputs and remote
+                     * dry-contact fixture both accessible. Configured timing profile
+                     * with known open travel time T_open (e.g., 30 s). */
+            }
+            action execute {
+                doc /* 1. Briefly assert local UP (< 500 ms) and release. Confirm the
+                     *    shutter starts moving up automatically.
+                     * 2. While the shutter is still mid-travel, briefly assert remote
+                     *    DOWN and release. Start stopwatch at the remote DOWN assertion.
+                     * 3. Observe the motor. Stop stopwatch on de-energization. */
+            }
+            action verifyOutcome {
+                doc /* PASS if: shutter starts on local UP; remote DOWN stops motor within 200 ms
+                     * at an intermediate position (well before T_open timeout);
+                     * local channel has no priority over remote stop. */
+            }
+            return verdict : VerdictKind;
+        }
+
+        verification def TC_S_006_EqualPriorityStopArbitration_RemoteStartLocalStop {
+            doc /* Verify REQ-F-06 equal-priority stop (symmetric to TC_S_005): remote-initiated
+                 * movement is stopped by a local assertion with equal priority. */
+            subject sut : BaseArchitecture::ShutterController;
+            objective {
+                verify L0_Requirements::Functional::stopShutterMovement;
+            }
+            @TestCaseMeta {
+                testType           = "systemTestCase";
+                verificationMethod = "test";
+                priority           = "critical";
+                category           = "Safety";
+            }
+            action setup {
+                doc /* Controller powered and idle. Local switch inputs and remote
+                     * dry-contact fixture both accessible. Configured timing profile
+                     * with known close travel time T_close (e.g., 30 s). */
+            }
+            action execute {
+                doc /* 1. Briefly assert remote DOWN (< 500 ms) and release. Confirm the
+                     *    shutter starts moving down automatically.
+                     * 2. While the shutter is still mid-travel, briefly assert local UP
+                     *    and release. Start stopwatch at the local UP assertion.
+                     * 3. Observe the motor. Stop stopwatch on de-energization. */
+            }
+            action verifyOutcome {
+                doc /* PASS if: shutter starts on remote DOWN; local UP stops motor within 200 ms
+                     * at an intermediate position (well before T_close timeout);
+                     * remote channel has no priority over local stop. */
             }
             return verdict : VerdictKind;
         }
@@ -661,10 +729,9 @@ package SystemTestCases {
                      * picks up the controller. */
             }
             action execute {
-                doc /* Installer performs (unaided): mains isolation, wall-switch disassembly,
-                     * controller wiring and connection, supply restoration, open/close functional
-                     * verification, wall-switch reassembly. Stopwatch stops when installer
-                     * declares installation complete and functional. */
+                doc /* Installer performs unaided: mains isolation, disassembly, controller wiring,
+                     * supply restoration, open/close functional verification, reassembly.
+                     * Stopwatch stops when installer declares complete. */
             }
             action verifyOutcome {
                 doc /* PASS if: total elapsed time ≤ 30 minutes (1800 s);
@@ -675,37 +742,9 @@ package SystemTestCases {
         }
 
         verification def TC_Q_002_OperationalAvailability {
-            doc /* Verify ≥ 99.8% operational availability: the proportion of valid control
-                 * requests that the controller successfully executes (REQ-Q-02).
-                 *
-                 * MAJ-10 fix (SMRR corrective pass): this test case was self-declared
-                 * "partially covered" with no explicit statement of (a) what evidence
-                 * this test case *does* provide today and (b) what residual evidence
-                 * is still needed to fully close REQ-Q-02. Both are now stated
-                 * explicitly below, formalizing the residual gap rather than leaving
-                 * it as a bare, undocumented "partial" note (option b in the SMRR
-                 * closure instructions -- no fabricated field-data evidence is
-                 * invented; the accelerated proxy result stands as current coverage).
-                 *
-                 * CURRENT VERIFICATION COVERAGE (provided by this test case):
-                 * - 1 000-request accelerated bench proxy (≈ 30-day equivalent duty
-                 *   cycle at 30-min request intervals), executed under controlled/
-                 *   representative conditions with the harness described below.
-                 * - Demonstrates the ≥ 99.8% pass-rate threshold is met (or not) under
-                 *   that accelerated proxy -- i.e., functional-availability evidence
-                 *   at bench scale, aligned with ADR-002's passive-MTBF sourcing
-                 *   strategy (no active health-monitoring hardware added).
-                 *
-                 * REMAINING EVIDENCE NEEDED (residual gap, not yet closed):
-                 * - A full 12-month field-deployment measurement across a
-                 *   representative install-base sample, to confirm the bench proxy's
-                 *   accelerated duty cycle is representative of real seasonal/
-                 *   environmental usage patterns (temperature cycling, mains-supply
-                 *   variability) not exercised on the bench.
-                 * - Until that field campaign completes, REQ-Q-02 remains Partially
-                 *   Realized at the requirement-realization layer (see Traceability.sysml)
-                 *   -- this is a residual verification gap, not a defect, and is
-                 *   explicitly tracked rather than silently assumed closed. */
+            doc /* Verify ≥ 99.8% operational availability via 1 000-request accelerated bench
+                 * proxy (≈ 30-day duty cycle, REQ-Q-02). Bench coverage is partial; a full
+                 * 12-month field deployment remains the residual evidence to fully close REQ-Q-02. */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Quality::availability;
@@ -729,13 +768,9 @@ package SystemTestCases {
                      * Count total successful executions at end of run. */
             }
             action verifyOutcome {
-                doc /* PASS if: (successful_requests / 1000) × 100 ≥ 99.8%
-                     * (i.e., ≤ 2 failures in 1 000 requests) -- this closes the
-                     * bench-scale accelerated-proxy evidence described above.
-                     * NOTE (MAJ-10, residual gap formalized, not fabricated): a PASS
-                     * here provides accelerated-proxy coverage only; the full 12-month
-                     * field campaign remains the outstanding evidence required before
-                     * REQ-Q-02 can be marked Fully Realized (see doc header). */
+                doc /* PASS if: (successful_requests / 1000) × 100 ≥ 99.8% (≤ 2 failures).
+                     * NOTE: bench pass provides accelerated-proxy coverage only; 12-month field
+                     * campaign is the remaining evidence to mark REQ-Q-02 Fully Realized. */
             }
             return verdict : VerdictKind;
         }
@@ -771,115 +806,6 @@ package SystemTestCases {
                      * failure to de-energize on command);
                      * no physical degradation (burning odor, relay contact damage,
                      * connector failure) observed at inspection after completion. */
-            }
-            return verdict : VerdictKind;
-        }
-
-        verification def TC_Q_004_FieldDiagnosis {
-            doc
-            /* Added to close Major finding M3 (system model review corrective
-             * pass): verifies REQ-Q-04 (diagnosability), previously
-             * unrepresented anywhere in the Test Cases model -- UC_04 had no
-             * test-level realization at all.
-             * MAJ-9 fix (SMRR corrective pass): verifyOutcome below now cites
-             * ProductComponents::UserFeedbackSoftware's measurable
-             * faultNoResponseBeepCount/Ms and faultMotorDriveBeepCount/Ms
-             * attributes instead of the previous qualitative "distinct buzzer
-             * beep pattern" wording; same test intent, objective threshold. */
-            subject sut : BaseArchitecture::ShutterController;
-            objective {
-                verify L0_Requirements::Quality::diagnosability;
-            }
-            @TestCaseMeta {
-                testType           = "systemTestCase";
-                verificationMethod = "test";
-                priority           = "medium";
-                category           = "Quality";
-            }
-            action setup {
-                doc /* Install controller in representative environment. Recruit a
-                     * maintenance technician with no prior product-specific training
-                     * and no specialized lab equipment. */
-            }
-            action execute {
-                doc /* Inject each supported fault class in turn (no power, no response
-                     * to any control input, motor-drive fault). For each, ask the
-                     * technician to observe the controller's field diagnostic
-                     * indication and classify the fault.
-                     * Concretely (PA-1 fix, ProductComponents.sysml/ProductInterfaces.sysml):
-                     * "no power" requires no software involvement -- it is passively
-                     * observable as the buzzer emitting no startup confirmation beep
-                     * when control power is applied (see doc note on AudibleNotificationBuzzer, ADR-008). The other two fault classes are
-                     * distinguished by DiagnosticsSoftware using its commandStateIn
-                     * (CommandArbitrationSoftware.commandRelayOut tap) and diagnosticStateIn
-                     * (MotorDriveControlSoftware.shutterStateOut tap) inputs, classified per
-                     * ProductInterfaces::FaultClass, and reported on faultOut to
-                     * UserFeedbackSoftware, which renders a distinct buzzer beep pattern
-                     * (faultIndicationIn) -- exercised by
-                     * Verification::Product::VerifyDiagnosticFaultClassification. */
-            }
-            action verifyOutcome {
-                doc /* PASS if: the technician correctly classifies each injected fault
-                     * class using only the field diagnostic indication, without
-                     * specialized lab equipment;
-                     * "no power" is correctly read from the buzzer emitting no startup beep;
-                     * "no response to any control input" is correctly read from exactly
-                     * faultNoResponseBeepCount == 1 pulse of faultNoResponseBeepMs == 600 ms
-                     * (single LONG beep);
-                     * "motor-drive fault" is correctly read from exactly
-                     * faultMotorDriveBeepCount == 2 pulses of faultMotorDriveBeepMs == 600 ms
-                     * each (double LONG beep, pulse-count distinct from the single-pulse
-                     * no-response fault and from both configuration-mode/conflict patterns,
-                     * TC_F_013/TC_S_004), produced by
-                     * DiagnosticsSoftware.faultOut → UserFeedbackSoftware.faultIndicationIn. */
-            }
-            return verdict : VerdictKind;
-        }
-
-        verification def TC_Q_005_FieldReplacement {
-            doc
-            /* Added to close Major finding M3 (system model review corrective
-             * pass): verifies REQ-Q-05 (fieldReplaceability), previously
-             * unrepresented anywhere in the Test Cases model.
-             *
-             * Top-20 fix #15 (finalReviewReport.md corrective pass): this test
-             * case previously had no time-bound in verifyOutcome, inconsistent
-             * with TC_Q_001's explicit <=30 min (1800 s) pass criterion. The
-             * same <=30-minute bound is adopted here: field replacement swaps
-             * only the controller unit via the existing screw-terminal wiring
-             * (EnclosureAndConnectors, REQ-Q-05) with no wall-switch
-             * disassembly or rewiring step, so it is bounded by the same
-             * installer-facing budget REQ-Q-01/TC_Q_001 already establishes
-             * for a full first-time installation, not a separate target. */
-            subject sut : BaseArchitecture::ShutterController;
-            objective {
-                verify L0_Requirements::Quality::fieldReplaceability;
-            }
-            @TestCaseMeta {
-                testType           = "systemTestCase";
-                verificationMethod = "test";
-                priority           = "medium";
-                category           = "Quality";
-            }
-            action setup {
-                doc /* Controller installed and wired per standard installation.
-                     * Replacement controller unit available. Start stopwatch
-                     * the moment the technician begins removing the faulty
-                     * unit. */
-            }
-            action execute {
-                doc /* Technician removes the faulty controller and installs the
-                     * replacement unit using only the existing, unmodified wiring.
-                     * Time the replacement. Exercise local and remote control after
-                     * replacement. Stopwatch stops when the technician declares
-                     * the replacement complete and functional. */
-            }
-            action verifyOutcome {
-                doc /* PASS if: total elapsed time <= 30 minutes (1800 s), the
-                     * same bound as TC_Q_001's full-installation criterion;
-                     * the replacement unit is installed using only the
-                     * existing wiring (no rewiring); normal operation (local
-                     * and remote control) is confirmed after replacement. */
             }
             return verdict : VerdictKind;
         }
@@ -1320,12 +1246,8 @@ package SystemTestCases {
         }
 
         verification def TC_N_005_WiringModeMismatch_Detected {
-            doc /* Verify that a mismatch between the installer-selected wiringMode
-                 * (momentary/latching) and the physically wired wall-switch hardware
-                 * produces observably incorrect behavior that is detectable via
-                 * functional verification, and that reconfiguring wiringMode resolves it
-                 * (REQ-I-01, RISK-I-01, Scenarios::SCEN_23_LocalControl_WiringModeMismatch,
-                 * white-box hook: Verification::Product::VerifyWiringModeConfiguration). */
+            doc /* Verify that a wiringMode/hardware mismatch produces detectable incorrect behavior
+                 * and that reconfiguring wiringMode resolves it (REQ-I-01, RISK-I-01). */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Interface::wallSwitchWiringCompatibility;
@@ -1337,11 +1259,9 @@ package SystemTestCases {
                 category           = "Negative";
             }
             action setup {
-                doc /* Configure controller with ConfigurationManagerSoftware.wiringMode :=
-                     * WiringMode::momentary via installer configuration procedure, but wire a
-                     * latching (toggle) switch to the local UP/DOWN inputs (deliberate
-                     * mismatch, mirrors TC_N_003's deliberate-defect setup pattern). Remote
-                     * inputs unasserted. Controller powered and idle. */
+                doc /* Configure controller with wiringMode := WiringMode::momentary but wire a
+                     * latching (toggle) switch to local UP/DOWN inputs (deliberate mismatch).
+                     * Remote inputs unasserted. Controller powered and idle. */
             }
             action execute {
                 doc /* 1. Toggle the (physically latching) UP switch to ON and observe motor
@@ -1364,18 +1284,10 @@ package SystemTestCases {
         }
 
         verification def TC_N_006_InstallationFailureTerminalFault {
-            doc /* Verify the bounded-retry-exhausted installation failure path: when a
-                 * SECOND consecutive functional-verification attempt still fails (root
-                 * cause NOT resolvable by a wiring correction -- e.g. a genuinely faulty
-                 * external power supply or motor), the controller surfaces an explicit,
-                 * observable terminal fault report and does NOT attempt any further
-                 * automatic retry, requiring external intervention before installation can
-                 * proceed (REQ-Q-01, UC_02_InstallController's bounded-retry decision
-                 * graph, UseCaseActivities::reportInstallationFault,
-                 * Scenarios::SCEN_12_InstallController_RepeatedFault_TerminalReport,
-                 * SystemStates::InstallationFault -- the model's only non-disposal
-                 * TERMINAL failure state). Closes CRIT-6 (SMRR corrective pass): SCEN_12
-                 * previously had zero associated test case. */
+            doc /* Verify the bounded-retry installation failure path: when a second consecutive
+                 * functional-verification attempt fails (non-wiring root cause), the controller
+                 * surfaces a terminal fault report and makes no further retry (REQ-Q-01,
+                 * SystemStates::InstallationFault). */
             subject sut : BaseArchitecture::ShutterController;
             objective {
                 verify L0_Requirements::Quality::easeOfInstallation;
@@ -1387,10 +1299,9 @@ package SystemTestCases {
                 category           = "Negative";
             }
             action setup {
-                doc /* Prepare controller with a non-wiring, non-correctable defect on the
-                     * first attempt (e.g., a genuinely faulty external power supply or
-                     * motor) -- distinct from TC_N_003's correctable wiring-swap defect.
-                     * Installation instructions and retry guidance available. */
+                doc /* Prepare controller with a non-correctable defect (e.g., faulty power supply
+                     * or motor), distinct from TC_N_003's correctable wiring-swap.
+                     * Installation instructions available. */
             }
             action execute {
                 doc /* 1. Installer wiring attempt #1 (defect present). Perform functional
@@ -1407,16 +1318,10 @@ package SystemTestCases {
                      *    (UseCaseActivities::reportInstallationFault). */
             }
             action verifyOutcome {
-                doc /* PASS if: after the second consecutive functional-verification
-                     * failure, the controller surfaces an explicit, observable terminal
-                     * fault report (SystemStates::InstallationFault entry action
-                     * reportInstallationFault) rather than silently stopping or looping;
-                     * no third automatic retry attempt occurs (bounded-retry graph
-                     * terminates, per UC_02's afterRetryVerify decision);
-                     * the reported terminal state persists (InstallationFault has no
-                     * exit transition) until external intervention (e.g. repair/
-                     * replacement of the faulty power supply or motor) resolves the
-                     * root cause outside the controller's own scope. */
+                doc /* PASS if: second consecutive failure triggers explicit terminal fault report
+                     * (reportInstallationFault) with no further automatic retry;
+                     * InstallationFault state persists until external intervention resolves
+                     * the root cause. */
             }
             return verdict : VerdictKind;
         }
@@ -1441,15 +1346,16 @@ package SystemTestCases {
     verification tc_F_011_stopDuringClosing                 : Functional::TC_F_011_StopDuringClosing;
     verification tc_F_012_configurableTimingProfile_nominal : Functional::TC_F_012_ConfigurableTimingProfile_Nominal;
     verification tc_F_013_configurationMode_notification    : Functional::TC_F_013_ConfigurationMode_Notification;
+    verification tc_F_014_pressDurationModeDiscrimination   : Functional::TC_F_014_PressDurationModeDiscrimination;
     verification tc_S_001_conflictSuppression_localUPDOWN  : Safety::TC_S_001_ConflictSuppression_LocalUPDOWN;
     verification tc_S_002_conflictSuppression_localRemote  : Safety::TC_S_002_ConflictSuppression_LocalRemoteCross;
     verification tc_S_003_accessibleVoltage_SELV           : Safety::TC_S_003_AccessibleVoltage_SELV;
-    verification tc_S_004_conflictNotification_userFeedback : Safety::TC_S_004_ConflictNotification_UserFeedback;
+    verification tc_S_004_localOnlyConfigGating_remoteHoldRejected : Safety::TC_S_004_LocalOnlyConfigGating_RemoteHoldRejected;
+    verification tc_S_005_equalPriorityStop_localStartRemoteStop   : Safety::TC_S_005_EqualPriorityStopArbitration_LocalStartRemoteStop;
+    verification tc_S_006_equalPriorityStop_remoteStartLocalStop   : Safety::TC_S_006_EqualPriorityStopArbitration_RemoteStartLocalStop;
     verification tc_Q_001_installationTime                  : Quality::TC_Q_001_InstallationTime;
     verification tc_Q_002_operationalAvailability           : Quality::TC_Q_002_OperationalAvailability;
     verification tc_Q_003_reliabilityEndurance              : Quality::TC_Q_003_ReliabilityEndurance;
-    verification tc_Q_004_fieldDiagnosis                    : Quality::TC_Q_004_FieldDiagnosis;
-    verification tc_Q_005_fieldReplacement                  : Quality::TC_Q_005_FieldReplacement;
     verification tc_E_001_disposalCompliance                : Environmental::TC_E_001_DisposalCompliance;
     verification tc_B_001_supplyVoltage_lowerBoundary       : Boundary::TC_B_001_SupplyVoltage_LowerBoundary;
     verification tc_B_002_supplyVoltage_upperBoundary       : Boundary::TC_B_002_SupplyVoltage_UpperBoundary;
@@ -1464,5 +1370,123 @@ package SystemTestCases {
     verification tc_N_004_noPositionFeedback_timeBased      : Negative::TC_N_004_NoPosiitonFeedback_TimeBased;
     verification tc_N_005_wiringModeMismatch_detected       : Negative::TC_N_005_WiringModeMismatch_Detected;
     verification tc_N_006_installationFailureTerminalFault  : Negative::TC_N_006_InstallationFailureTerminalFault;
+
+    // =========================================================================
+    // Component-scoped (white-box) verification cases — Logical Architecture.
+    // Moved here from the former Verification.sysml (MR-011): SystemTestCases is
+    // now the single authoritative test/verification registry for the model.
+    // Subjects are typed by Logical component classifiers (private import
+    // LogicalArchitecture::* above), unlike the system-level (black-box) TC_*
+    // cases above whose subject is always BaseArchitecture::ShutterController.
+    // =========================================================================
+    package Logical {
+        verification def VerifyCommandArbitration {
+            doc
+            /* White-box confirmation of LogicalControlUnit command arbitration:
+             * race-first initiation, equal-priority stop from either channel (REQ-F-06),
+             * local-only configuration-mode activation gate (REQ-F-08), and
+             * UP+DOWN conflict detection (UC_01e). */
+            subject controlUnit : LogicalControlUnit;
+            objective {
+                verify L0_Requirements::Safety::safety;
+                verify L0_Requirements::Functional::controlRollerShutter;
+                verify L0_Requirements::Functional::stopShutterMovement;
+                verify L0_Requirements::Functional::configurationMode;
+            }
+        }
+        verification def VerifyConfigurationModeTransitions {
+            doc
+            /* White-box confirmation that LogicalControlUnit's configuration-
+             * mode state transitions correctly emit a typed ConfigModeEvent
+             * consumed by LogicalUserNotification (UC_03). */
+            subject controlUnit : LogicalControlUnit;
+            objective {
+                verify L0_Requirements::Functional::configurationMode;
+            }
+        }
+        verification def VerifyUserNotificationDispatch {
+            doc
+            /* White-box confirmation that LogicalUserNotification dispatches
+             * user-visible feedback for both configuration-mode transition
+             * kinds (activated / deactivated). */
+            subject notifier : LogicalUserNotification;
+            objective {
+                verify L0_Requirements::Functional::configurationMode;
+            }
+        }
+
+        verification def VerifyMotorDriveEndurance {
+            doc
+            /* White-box confirmation that LogicalMotorDrive correctly energizes/de-energizes
+             * the motor relay across repeated cycles; directly targets RISK-T-03 (relay wear-out). */
+            subject motorDrive : LogicalMotorDrive;
+            objective {
+                verify L0_Requirements::Quality::reliability;
+                verify L0_Requirements::Quality::availability;
+            }
+        }
+        verification def VerifyMovementSupervisionTiming {
+            doc
+            /* White-box confirmation that LogicalMovementSupervisor selects the correct
+             * direction-specific timeout (automatic mode) and reacts to the ControlCommand
+             * stream for stop detection (manual mode). */
+            subject supervisor : LogicalMovementSupervisor;
+            objective {
+                verify L0_Requirements::Functional::fullShutterMovement;
+                verify L0_Requirements::Functional::manualPositioning;
+                verify L0_Requirements::Functional::stopShutterMovement;
+                verify L0_Requirements::Functional::configurableTimingProfile;
+            }
+        }
+    } // package Logical
+
+    // =========================================================================
+    // Component-scoped (white-box) verification cases — Product Architecture.
+    // Subjects typed by Product component classifiers (private import
+    // ProductComponents::* above).
+    // =========================================================================
+    package Product {
+        verification def VerifyWiringModeConfiguration {
+            doc
+            /* White-box confirmation that CommandArbitrationSoftware correctly interprets
+             * the installer-selected wiringMode (momentary/latching) when translating raw
+             * dry-contact signals into ControlCommands (exercised by TC_F_002/TC_F_003). */
+            subject arbiter : CommandArbitrationSoftware;
+            objective {
+                verify L0_Requirements::Interface::wallSwitchWiringCompatibility;
+                verify L0_Requirements::Functional::controlRollerShutter;
+            }
+        }
+        verification def VerifyMotorRelayEnduranceRating {
+            doc
+            /* White-box confirmation that MotorDriveRelayModule's rated switching endurance
+             * (ratedCycleCount) and MTBF (mtbfHours) meet reliability/availability targets
+             * driven by RISK-T-03. */
+            subject relay : MotorDriveRelayModule;
+            objective {
+                verify L0_Requirements::Quality::reliability;
+                verify L0_Requirements::Quality::availability;
+            }
+        }
+        verification def VerifyRequestInterfaceIsolation {
+            doc
+            /* White-box confirmation that RequestInterfaceCircuit's opto-isolation
+             * satisfies both the safety requirement and the electrical isolation constraint. */
+            subject reqIf : RequestInterfaceCircuit;
+            objective {
+                verify L0_Requirements::Safety::safety;
+                verify L0_Constraints::Electrical::inputIsolation;
+            }
+        }
+    } // package Product
+
+    verification verifyCommandArbitration            : Logical::VerifyCommandArbitration;
+    verification verifyConfigurationModeTransitions   : Logical::VerifyConfigurationModeTransitions;
+    verification verifyUserNotificationDispatch       : Logical::VerifyUserNotificationDispatch;
+    verification verifyMotorDriveEndurance            : Logical::VerifyMotorDriveEndurance;
+    verification verifyMovementSupervisionTiming      : Logical::VerifyMovementSupervisionTiming;
+    verification verifyWiringModeConfiguration        : Product::VerifyWiringModeConfiguration;
+    verification verifyMotorRelayEnduranceRating      : Product::VerifyMotorRelayEnduranceRating;
+    verification verifyRequestInterfaceIsolation      : Product::VerifyRequestInterfaceIsolation;
 
 } // package SystemTestCases

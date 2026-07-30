@@ -1,21 +1,11 @@
 package BaseArchitecture {
     private import SystemIdea::*;
     private import SystemObjectives::*;
-    // Import only the abstract root, NOT the wildcard: SystemArchitecture_Taxonomy
-    // also declares a same-named abstract header 'BaseArchitecture' (see that
-    // file's own header comment), which collides with this enclosing package's
-    // own name if wildcard-imported, breaking name resolution throughout this
-    // file (Syside reference-error fix).
+    // Imports only the abstract root — SystemArchitecture_Taxonomy has no other public types.
     private import SystemArchitecture_Taxonomy::SystemArchitecture;
 
     comment
-    /* The Base Architecture is a description of the architectural and
-     * technical decisions that are preset at the project start.
-     * Port interface definitions (port defs) belong in the System Context
-     * package (SM-PRD-11) per SYSMOD cross-mapping §2. Internal part
-     * port typings and boundary port delegation are addressed in the
-     * Logical Architecture (SM-PRD-20).
-     */
+    /* Captures architectural decisions preset at project start (SM-PRD-07). Port defs belong in SystemContext (SM-PRD-11); port typings are addressed in LogicalArchitecture (SM-PRD-20). */
 
     part def ControlUnit {
         doc
@@ -63,7 +53,6 @@ package BaseArchitecture {
         satisfy SystemIdea::systemIdea;
     }
 
-    /* Package-level usage providing a named feature endpoint for traceability
-     * and satisfy links (SysML v2 requires a feature, not a classifier). */
+    /* Named feature endpoint required by SysML v2 for traceability and satisfy links. */
     part shutterController : ShutterController;
 } // package BaseArchitecture

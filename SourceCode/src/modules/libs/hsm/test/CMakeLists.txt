@@ -1,0 +1,5 @@
+add_unit_test(${FW_LIBRARY_TARGET} test_fsm_simple test_fsm_simple.c)
+add_unit_test(${FW_LIBRARY_TARGET} test_fsm_state_transition test_fsm_state_transition.c)
+add_unit_test(${FW_LIBRARY_TARGET} test_priority test_priority.c)
+add_unit_test(${FW_LIBRARY_TARGET} test_hierarchical test_hierarchical.c)
+add_unit_test(${FW_LIBRARY_TARGET} test_hierarchical_state_transition test_hierarchical_state_transition.c)

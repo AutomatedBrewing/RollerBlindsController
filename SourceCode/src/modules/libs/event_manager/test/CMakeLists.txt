@@ -1,0 +1,15 @@
+add_unit_test(${FW_LIBRARY_TARGET} test_executor test_executor.c)
+mock_function(test_executor osThreadNew)
+mock_function(test_executor osMessageQueueNew)
+mock_function(test_executor osMessageQueueGet)
+mock_function(test_executor osMessageQueuePut)
+
+
+add_unit_test(${FW_LIBRARY_TARGET} test_timer test_timer.c)
+mock_function(test_timer osMessageQueueNew)
+mock_function(test_timer osMessageQueueGet)
+mock_function(test_timer osMessageQueuePut)
+mock_function(test_timer osTimerNew)
+mock_function(test_timer osTimerStart)
+mock_function(test_timer osTimerStop)
+mock_function(test_timer osTimerIsRunning)

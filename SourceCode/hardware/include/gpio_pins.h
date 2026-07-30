@@ -1,0 +1,83 @@
+/*
+ * gpio_pins.h
+ *
+ *  Created on: 29 Sep 2022
+ *      Author: Kamil Lazowski
+ */
+
+#ifndef HARDWARE_NUCLEOF091_GPIO_PINS_H_
+#define HARDWARE_NUCLEOF091_GPIO_PINS_H_
+
+/* Private includes ----------------------------------------------------------*/
+#include <stdint.h>
+
+/* Public define -------------------------------------------------------------*/
+#define HIGH_TO_LOW_INTERRUPT (0x01UL)
+#define LOW_TO_HIGH_INTERRUPT (0x02UL)
+#define BOTH_EDGES_INTERRUPTS (HIGH_TO_LOW_INTERRUPT | LOW_TO_HIGH_INTERRUPT)
+
+enum board_input_pin_id {
+    LED_PIN_ID,
+    BUTTON_PIN_ID,
+    VALVE_1_PIN_ID,
+    VALVE_2_PIN_ID,
+    VALVE_3_PIN_ID,
+    VALVE_4_PIN_ID,
+    ENCODER_CHANNEL_A,
+    ENCODER_CHANNEL_B,
+    ENCODER_SWITCH,
+    DISPLAY_D7,
+    DISPLAY_D6,
+    DISPLAY_D5,
+    DISPLAY_D4,
+    DISPLAY_RS,
+    DISPLAY_RW,
+    DISPLAY_E,
+    INVALID_PIN_ID=0xFFFF,
+};
+
+enum board_input_polarity {
+    ACTIVE_LOW,
+    ACTIVE_HIGH
+};
+
+enum board_input_pin_pull {
+    PIN_PULLUP,
+    PIN_PULLDOWN,
+    PIN_NO_PULL
+};
+
+enum board_pin_mode {
+    PIN_MODE_INPUT,
+    PIN_MODE_OUTPUT_OPEN_DRAIN,
+    PIN_MODE_OUTPUT_PUSH_PULL,
+    PIN_MODE_ANALOG,
+    PIN_MODE_ALTERNATE, /* State specific to hardware. */
+};
+
+
+enum board_input_pin_speed {
+    PIN_SPEED_LOW,
+    PIN_SPEED_MEDIUM,
+    PIN_SPEED_HIGH
+};
+
+struct gpio_pin {
+    enum board_input_pin_id pin_id;
+    uint32_t pin;
+    uint32_t port;
+    enum board_input_polarity polarity;
+    enum board_input_pin_pull pull;
+    enum board_pin_mode mode;
+    enum board_input_pin_speed speed;
+    uint32_t alternate_function;
+    uint8_t interrupt_capacities;
+};
+/* Public typedef ------------------------------------------------------------*/
+/* Public macro --------------------------------------------------------------*/
+/* Public variables ----------------------------------------------------------*/
+/* Public function prototypes ------------------------------------------------*/
+extern const struct gpio_pin gpio_pins[];
+//struct gpio_pin* gpio_pin_find_pin(enum board_input_pin_id pin_id);
+
+#endif /* HARDWARE_NUCLEOF091_GPIO_PINS_H_ */

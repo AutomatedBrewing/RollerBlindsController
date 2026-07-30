@@ -1,0 +1,11 @@
+---
+Checks: >-
+  -*,
+  readability-*,
+  performance-*,
+  bugprone-*,
+  -readability-magic-numbers,
+  -bugprone-easily-swappable-parameters
+HeaderFilterRegex: 'src/.*'
+FormatStyle: file
+WarningsAsErrors: ''

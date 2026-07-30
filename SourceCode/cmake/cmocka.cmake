@@ -1,0 +1,35 @@
+include(${CMAKE_SCRIPTS_DIR}/sanitizers.cmake)
+include(${CMAKE_SCRIPTS_DIR}/code_coverage.cmake)
+
+if (NOT CMAKE_CROSSCOMPILING)
+    find_package(CMocka REQUIRED)
+
+    if (NOT CMOCKA_LIBRARY)
+        message(SEND_ERROR "CMocka was not found.")
+    else()
+        #set(CMOCKA_TARGET cmocka)
+        #add_library(${CMOCKA_TARGET} STATIC IMPORTED)
+        #set_target_properties(${CMOCKA_TARGET} PROPERTIES IMPORTED_LOCATION ${CMOCKA_LIBRARY} IMPORTED_INCLUDE_DIRECTORIES ${CMOCKA_INCLUDE_DIR})
+    endif()
+endif()
+
+function(add_unit_test TESTED_TARGET TEST_NAME SOURCE_FILES)
+    if (NOT CMAKE_CROSSCOMPILING)
+        add_executable(${TEST_NAME} ${SOURCE_FILES})
+        target_link_libraries(${TEST_NAME} PRIVATE ${TESTED_TARGET} cmocka)
+
+        SETUP_TARGET_FOR_COVERAGE(${TEST_NAME}_coverage ctest coverage)
+        enable_sanitizers(${TEST_NAME})
+        add_test(${TEST_NAME} ${TEST_NAME})
+    endif()
+endfunction()
+
+
+function(mock_function TARGET_NAME FUNCTION_NAME)
+    if (NOT CMAKE_CROSSCOMPILING)
+        set(WRAP_FLAG "-Wl,--wrap=${FUNCTION_NAME}")
+        get_property(FLAGS TARGET ${TARGET_NAME} PROPERTY LINK_FLAGS)
+        set(FLAGS "${FLAGS} ${WRAP_FLAG}")
+        set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS ${FLAGS})
+    endif()
+endfunction()

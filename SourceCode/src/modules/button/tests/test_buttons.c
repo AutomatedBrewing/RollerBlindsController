@@ -12,6 +12,7 @@
 #include <cmocka.h>
 
 #include "hsm_button.h"
+#include "hsm_button_internal.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -23,7 +24,9 @@
 
 static void test_init(void **state)
 {
-
+    const struct subscriber *test_subscriber = &button_subscriber;
+    struct hsm_button_context *context = &buttons[0];
+    test_subscriber->init(0);
 }
 
 int main(void)

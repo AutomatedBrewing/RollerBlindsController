@@ -13,6 +13,8 @@
 #include "hsm.h"
 
 /* Public define -------------------------------------------------------------*/
+#define NO_OF_SUPPORTED_BUTTONS (4)
+
 DECLARE_EVENT(TIMER_DEBOUNCE_EVENT)
 #define TIMER_DEBOUNCE_EVENT_EVENT_ID ID_OF(TIMER_DEBOUNCE_EVENT)
 

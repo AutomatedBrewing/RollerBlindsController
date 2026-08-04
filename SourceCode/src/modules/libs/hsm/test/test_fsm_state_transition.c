@@ -22,8 +22,9 @@
 static state_machine_result_t handler_1_exit(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
 
     /* Assign next state. */
     pmachine->Event = mock_type(void *);
@@ -34,8 +35,9 @@ static void expect_handler_1_exit(uint32_t expected_event, uint32_t next_event, 
                                   state_machine_result_t expected_result)
 {
     expect_function_call(handler_1_exit);
-    expect_value(handler_1_exit, pmachine->Event, expected_event);
-    expect_value(handler_1_exit, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(handler_1_exit, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state;
+    expect_uint_value(handler_1_exit, state_val, state_val);
     will_return(handler_1_exit, next_event);
     will_return(handler_1_exit, expected_result);
 }
@@ -43,8 +45,9 @@ static void expect_handler_1_exit(uint32_t expected_event, uint32_t next_event, 
 static state_machine_result_t handler_2_entry(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
 
     /* Assign next state. */
     pmachine->Event = mock_type(void *);
@@ -55,8 +58,9 @@ static void expect_handler_2_entry(uint32_t expected_event, uint32_t next_event,
                                    state_machine_result_t expected_result)
 {
     expect_function_call(handler_2_entry);
-    expect_value(handler_2_entry, pmachine->Event, expected_event);
-    expect_value(handler_2_entry, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(handler_2_entry, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state;
+    expect_uint_value(handler_2_entry, state_val, state_val);
     will_return(handler_2_entry, next_event);
     will_return(handler_2_entry, expected_result);
 }

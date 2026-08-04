@@ -21,8 +21,9 @@
 state_machine_result_t level1_child1_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -31,8 +32,8 @@ void expect_level1_child1_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level1_child1_entry_handler);
-    expect_value(level1_child1_entry_handler, pmachine->Event, expected_event);
-    expect_value(level1_child1_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level1_child1_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level1_child1_entry_handler, state_val, state_val);
     will_return(level1_child1_entry_handler, next_event);
     will_return(level1_child1_entry_handler, expected_result);
 }
@@ -40,8 +41,9 @@ void expect_level1_child1_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level1_child1_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -50,8 +52,8 @@ void expect_level1_child1_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level1_child1_exit_handler);
-    expect_value(level1_child1_exit_handler, pmachine->Event, expected_event);
-    expect_value(level1_child1_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level1_child1_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level1_child1_exit_handler, state_val, state_val);
     will_return(level1_child1_exit_handler, next_event);
     will_return(level1_child1_exit_handler, expected_result);
 }
@@ -59,8 +61,9 @@ void expect_level1_child1_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level1_child2_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -69,8 +72,8 @@ void expect_level1_child2_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level1_child2_entry_handler);
-    expect_value(level1_child2_entry_handler, pmachine->Event, expected_event);
-    expect_value(level1_child2_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level1_child2_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level1_child2_entry_handler, state_val, state_val);
     will_return(level1_child2_entry_handler, next_event);
     will_return(level1_child2_entry_handler, expected_result);
 }
@@ -78,8 +81,9 @@ void expect_level1_child2_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level1_child2_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -88,8 +92,8 @@ void expect_level1_child2_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level1_child2_exit_handler);
-    expect_value(level1_child2_exit_handler, pmachine->Event, expected_event);
-    expect_value(level1_child2_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level1_child2_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level1_child2_exit_handler, state_val, state_val);
     will_return(level1_child2_exit_handler, next_event);
     will_return(level1_child2_exit_handler, expected_result);
 }
@@ -97,8 +101,9 @@ void expect_level1_child2_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level1_child3_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -107,8 +112,8 @@ void expect_level1_child3_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level1_child3_entry_handler);
-    expect_value(level1_child3_entry_handler, pmachine->Event, expected_event);
-    expect_value(level1_child3_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level1_child3_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level1_child3_entry_handler, state_val, state_val);
     will_return(level1_child3_entry_handler, next_event);
     will_return(level1_child3_entry_handler, expected_result);
 }
@@ -116,8 +121,9 @@ void expect_level1_child3_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level1_child3_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -126,8 +132,8 @@ void expect_level1_child3_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level1_child3_exit_handler);
-    expect_value(level1_child3_exit_handler, pmachine->Event, expected_event);
-    expect_value(level1_child3_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level1_child3_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level1_child3_exit_handler, state_val, state_val);
     will_return(level1_child3_exit_handler, next_event);
     will_return(level1_child3_exit_handler, expected_result);
 }
@@ -137,8 +143,9 @@ void expect_level1_child3_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level2_child1_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -147,8 +154,8 @@ void expect_level2_child1_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level2_child1_entry_handler);
-    expect_value(level2_child1_entry_handler, pmachine->Event, expected_event);
-    expect_value(level2_child1_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child1_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child1_entry_handler, state_val, state_val);
     will_return(level2_child1_entry_handler, next_event);
     will_return(level2_child1_entry_handler, expected_result);
 }
@@ -156,8 +163,9 @@ void expect_level2_child1_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level2_child1_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -166,8 +174,8 @@ void expect_level2_child1_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level2_child1_exit_handler);
-    expect_value(level2_child1_exit_handler, pmachine->Event, expected_event);
-    expect_value(level2_child1_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child1_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child1_exit_handler, state_val, state_val);
     will_return(level2_child1_exit_handler, next_event);
     will_return(level2_child1_exit_handler, expected_result);
 }
@@ -175,8 +183,9 @@ void expect_level2_child1_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level2_child2_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -185,8 +194,8 @@ void expect_level2_child2_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level2_child2_entry_handler);
-    expect_value(level2_child2_entry_handler, pmachine->Event, expected_event);
-    expect_value(level2_child2_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child2_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child2_entry_handler, state_val, state_val);
     will_return(level2_child2_entry_handler, next_event);
     will_return(level2_child2_entry_handler, expected_result);
 }
@@ -194,8 +203,9 @@ void expect_level2_child2_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level2_child2_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -204,8 +214,8 @@ void expect_level2_child2_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level2_child2_exit_handler);
-    expect_value(level2_child2_exit_handler, pmachine->Event, expected_event);
-    expect_value(level2_child2_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child2_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child2_exit_handler, state_val, state_val);
     will_return(level2_child2_exit_handler, next_event);
     will_return(level2_child2_exit_handler, expected_result);
 }
@@ -213,8 +223,9 @@ void expect_level2_child2_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level2_child3_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -223,8 +234,8 @@ void expect_level2_child3_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level2_child3_entry_handler);
-    expect_value(level2_child3_entry_handler, pmachine->Event, expected_event);
-    expect_value(level2_child3_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child3_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child3_entry_handler, state_val, state_val);
     will_return(level2_child3_entry_handler, next_event);
     will_return(level2_child3_entry_handler, expected_result);
 }
@@ -232,8 +243,9 @@ void expect_level2_child3_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level2_child3_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -242,8 +254,8 @@ void expect_level2_child3_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level2_child3_exit_handler);
-    expect_value(level2_child3_exit_handler, pmachine->Event, expected_event);
-    expect_value(level2_child3_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child3_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child3_exit_handler, state_val, state_val);
     will_return(level2_child3_exit_handler, next_event);
     will_return(level2_child3_exit_handler, expected_result);
 }
@@ -251,8 +263,9 @@ void expect_level2_child3_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level2_child4_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -261,8 +274,8 @@ void expect_level2_child4_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level2_child4_entry_handler);
-    expect_value(level2_child4_entry_handler, pmachine->Event, expected_event);
-    expect_value(level2_child4_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child4_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child4_entry_handler, state_val, state_val);
     will_return(level2_child4_entry_handler, next_event);
     will_return(level2_child4_entry_handler, expected_result);
 }
@@ -270,8 +283,9 @@ void expect_level2_child4_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level2_child4_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -280,8 +294,8 @@ void expect_level2_child4_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level2_child4_exit_handler);
-    expect_value(level2_child4_exit_handler, pmachine->Event, expected_event);
-    expect_value(level2_child4_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level2_child4_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level2_child4_exit_handler, state_val, state_val);
     will_return(level2_child4_exit_handler, next_event);
     will_return(level2_child4_exit_handler, expected_result);
 }
@@ -290,8 +304,9 @@ void expect_level2_child4_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level3_child1_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -300,8 +315,8 @@ void expect_level3_child1_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level3_child1_entry_handler);
-    expect_value(level3_child1_entry_handler, pmachine->Event, expected_event);
-    expect_value(level3_child1_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child1_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child1_entry_handler, state_val, state_val);
     will_return(level3_child1_entry_handler, next_event);
     will_return(level3_child1_entry_handler, expected_result);
 }
@@ -309,8 +324,9 @@ void expect_level3_child1_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level3_child1_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -319,8 +335,8 @@ void expect_level3_child1_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level3_child1_exit_handler);
-    expect_value(level3_child1_exit_handler, pmachine->Event, expected_event);
-    expect_value(level3_child1_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child1_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child1_exit_handler, state_val, state_val);
     will_return(level3_child1_exit_handler, next_event);
     will_return(level3_child1_exit_handler, expected_result);
 }
@@ -328,8 +344,9 @@ void expect_level3_child1_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level3_child2_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -338,8 +355,8 @@ void expect_level3_child2_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level3_child2_entry_handler);
-    expect_value(level3_child2_entry_handler, pmachine->Event, expected_event);
-    expect_value(level3_child2_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child2_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child2_entry_handler, state_val, state_val);
     will_return(level3_child2_entry_handler, next_event);
     will_return(level3_child2_entry_handler, expected_result);
 }
@@ -347,8 +364,9 @@ void expect_level3_child2_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level3_child2_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -357,8 +375,8 @@ void expect_level3_child2_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level3_child2_exit_handler);
-    expect_value(level3_child2_exit_handler, pmachine->Event, expected_event);
-    expect_value(level3_child2_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child2_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child2_exit_handler, state_val, state_val);
     will_return(level3_child2_exit_handler, next_event);
     will_return(level3_child2_exit_handler, expected_result);
 }
@@ -366,8 +384,9 @@ void expect_level3_child2_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level3_child3_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -376,8 +395,8 @@ void expect_level3_child3_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level3_child3_entry_handler);
-    expect_value(level3_child3_entry_handler, pmachine->Event, expected_event);
-    expect_value(level3_child3_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child3_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child3_entry_handler, state_val, state_val);
     will_return(level3_child3_entry_handler, next_event);
     will_return(level3_child3_entry_handler, expected_result);
 }
@@ -385,8 +404,9 @@ void expect_level3_child3_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level3_child3_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -395,8 +415,8 @@ void expect_level3_child3_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level3_child3_exit_handler);
-    expect_value(level3_child3_exit_handler, pmachine->Event, expected_event);
-    expect_value(level3_child3_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child3_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child3_exit_handler, state_val, state_val);
     will_return(level3_child3_exit_handler, next_event);
     will_return(level3_child3_exit_handler, expected_result);
 }
@@ -404,8 +424,9 @@ void expect_level3_child3_exit_handler(uint32_t expected_event, uint32_t next_ev
 state_machine_result_t level3_child4_entry_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -414,8 +435,8 @@ void expect_level3_child4_entry_handler(uint32_t expected_event, uint32_t next_e
                                         state_machine_result_t expected_result)
 {
     expect_function_call(level3_child4_entry_handler);
-    expect_value(level3_child4_entry_handler, pmachine->Event, expected_event);
-    expect_value(level3_child4_entry_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child4_entry_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child4_entry_handler, state_val, state_val);
     will_return(level3_child4_entry_handler, next_event);
     will_return(level3_child4_entry_handler, expected_result);
 }
@@ -423,8 +444,9 @@ void expect_level3_child4_entry_handler(uint32_t expected_event, uint32_t next_e
 state_machine_result_t level3_child4_exit_handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected_any(pmachine->Event);
-    check_expected_any(pmachine->State);
+    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t state_val = (uintmax_t)pmachine->State;
+    check_expected_uint(state_val);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -433,8 +455,8 @@ void expect_level3_child4_exit_handler(uint32_t expected_event, uint32_t next_ev
                                        state_machine_result_t expected_result)
 {
     expect_function_call(level3_child4_exit_handler);
-    expect_value(level3_child4_exit_handler, pmachine->Event, expected_event);
-    expect_value(level3_child4_exit_handler, pmachine->State, expected_state);
+    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(level3_child4_exit_handler, event_val, event_val);
+    uintmax_t state_val = (uintmax_t)expected_state; expect_uint_value(level3_child4_exit_handler, state_val, state_val);
     will_return(level3_child4_exit_handler, next_event);
     will_return(level3_child4_exit_handler, expected_result);
 }

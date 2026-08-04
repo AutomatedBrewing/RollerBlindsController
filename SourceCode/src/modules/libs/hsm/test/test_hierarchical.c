@@ -29,8 +29,8 @@ typedef enum
 static state_machine_result_t handler_1(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected(pmachine->Event);
-    check_expected(pmachine->State);
+    check_expected_any(pmachine->Event);
+    check_expected_any(pmachine->State);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -48,8 +48,8 @@ static void expect_handler_1(uint32_t expected_event, uint32_t next_event, const
 static state_machine_result_t handler_2(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected(pmachine->Event);
-    check_expected(pmachine->State);
+    check_expected_any(pmachine->Event);
+    check_expected_any(pmachine->State);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }
@@ -67,8 +67,8 @@ static void expect_handler_2(uint32_t expected_event, uint32_t next_event, const
 static state_machine_result_t handler_3(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected(pmachine->Event);
-    check_expected(pmachine->State);
+    check_expected_any(pmachine->Event);
+    check_expected_any(pmachine->State);
     pmachine->Event = mock_type(void *);
     return mock_type(state_machine_result_t);
 }

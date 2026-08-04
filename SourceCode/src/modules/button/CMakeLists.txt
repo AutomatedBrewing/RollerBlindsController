@@ -6,3 +6,4 @@ target_sources(${FW_LIBRARY_TARGET} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/hsm_button_released.c
     ${CMAKE_CURRENT_LIST_DIR}/hsm_button_pressed.c)
 
+add_subdirectory(tests)

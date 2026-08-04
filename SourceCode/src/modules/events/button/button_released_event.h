@@ -9,10 +9,12 @@
 #define SRC_MODULES_EVENTS_BUTTON_BUTTON_RELEASED_EVENT_H_
 
 #include "em_event.h"
+#include "gpio_pins.h"
 
 struct button_released_event
 {
     struct event super;
+    enum board_input_pin_id button;
 };
 
 MESSAGE_TYPE(button_released_event, button_released_message)

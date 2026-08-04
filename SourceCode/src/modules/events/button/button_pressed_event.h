@@ -9,10 +9,20 @@
 #define SRC_MODULES_EVENTS_BUTTON_BUTTON_PRESSED_EVENT_H_
 
 #include "em_event.h"
+#include "gpio_pins.h"
+
+enum button_press_duration
+{
+    SHORT_PRESS,
+    LONG_PRESS,
+    VERY_LONG_PRESS,
+};
 
 struct button_pressed_event
 {
     struct event super;
+    enum board_input_pin_id button;
+    enum button_press_duration duration;
 };
 
 MESSAGE_TYPE(button_pressed_event, button_pressed_message)

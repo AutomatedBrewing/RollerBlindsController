@@ -34,12 +34,13 @@ static void send_button_released_message(struct hsm_button_context *button)
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_button_context *button = CONTAINER_OF(pmachine, struct hsm_button_context, machine);
+    button->state = BUTTON_RELEASED;
     button_input_wait_for_event(button, true);
     send_button_released_message(button);
     return EVENT_HANDLED;
 }
 
-static bool handle_debounce_timeout(union timer_message *message)
+static bool isButtonActive(union timer_message *message)
 {
     struct hsm_button_context *button = message->event.context;
     if (!gpio_input_is_active(button->button_handle))
@@ -55,7 +56,7 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     struct event *event_id = pmachine->Event;
     if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID)
     {
-        if (handle_debounce_timeout((union timer_message *)event_id))
+        if (isButtonActive((union timer_message *)event_id))
         {
             traverse_state(pmachine, hsm_button_pressed);
         }

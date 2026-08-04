@@ -1,9 +1,11 @@
-#add_subdirectory(blink)
+
 add_subdirectory(button)
-add_subdirectory(display)
+#add_subdirectory(controller)
+#add_subdirectory(motor)
+#add_subdirectory(UI)
+
 add_subdirectory(events)
 add_subdirectory(executors)
-add_subdirectory(scheduler)
 add_subdirectory(libs)
 
 

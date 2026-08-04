@@ -10,11 +10,8 @@
 
 #include "executors.h"
 #include "hsm_button.h"
-#include "hsm_display.h"
-#include "hsm_scheduler.h"
 
-CREATE_EXECUTOR_WITH_SUPPORTED_SUBSCRIBERS(main_executor, ADD_SUBSCRIBER(&button_subscriber, &scheduler_subscriber,
-                                                                         &display_subscriber))
+CREATE_EXECUTOR_WITH_SUPPORTED_SUBSCRIBERS(main_executor, ADD_SUBSCRIBER(&button_subscriber))
 
 void create_executors(void)
 {

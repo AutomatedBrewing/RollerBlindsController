@@ -1,21 +1,13 @@
 /*
- * brewapp_init.c
+ * gpio_pins.c
  *
- *  Created on: 11 Sep 2022
- *      Author: Kamil Lazowski
+ *  Created on: 23 Aug 2023
+ *      Author: dev
  */
 
 /* Private includes ----------------------------------------------------------*/
-#include "app.h"
-#include "cmsis_os.h"
-#include <stdio.h>
-
-#include "clock.h"
-#include "em_executor.h"
-#include "gpio.h"
-#include "interrupt.h"
-
-#include "executors.h"
+#include "gpio_pins.h"
+#include <stddef.h>
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -23,18 +15,15 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
-void app_init()
+static const uint8_t gpio_pins_size = sizeof(gpio_pins) / sizeof(gpio_pins[0]);
+const struct gpio_pin *find_gpio_pin_context(enum board_input_pin_id pin_id)
 {
-    clock_initialize();
-    interrupt_initialize();
-    clock_configure();
-
-    osKernelInitialize();
-
-    create_executors();
-}
-
-void app_start()
-{
-    osKernelStart();
+    for (uint8_t id = 0; id < gpio_pins_size; id++)
+    {
+        if (gpio_pins[id].pin_id == pin_id)
+        {
+            return &gpio_pins[id];
+        }
+    }
+    return NULL;
 }

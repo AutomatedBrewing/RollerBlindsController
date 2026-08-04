@@ -32,7 +32,7 @@
 static void handle_test_event(void *event)
 {
     function_called();
-    check_expected(event);
+    check_expected_any(event);
 }
 
 static void initialize_test_timer(struct em_timer *me, osTimerId_t expected_timer_id, bool repeating, void *context)

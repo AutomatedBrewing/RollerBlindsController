@@ -17,12 +17,12 @@
 
 #include "button_pressed_event.h"
 #include "button_released_event.h"
-#include "encoder_switch_pressed_event.h"
+
 #include "hsm_button.h"
 #include "hsm_button_states.h"
 
 /* Private define ------------------------------------------------------------*/
-#define NO_OF_SUPPORTED_BUTTONS (2)
+#define NO_OF_SUPPORTED_BUTTONS (4)
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -53,14 +53,16 @@ static struct hsm_button_context *get_free_entry(void)
     return NULL;
 }
 
-static void add_button_to_buttons_list(const struct gpio_pin *button_info, uint32_t debounce_time, void *event_pressed,
+static void add_button_to_buttons_list(const struct gpio_pin *button_info, const struct button_timings * timings, void *event_pressed,
                                        void *event_released)
 {
     struct hsm_button_context *entry = get_free_entry();
     if (entry != NULL)
     {
         entry->button_info = button_info;
-        entry->debounce_time = debounce_time;
+        entry->timings.debounce_time = timings->debounce_time;
+        entry->timings.long_press_time = timings->long_press_time;
+        entry->timings.very_long_press_time = timings->very_long_press_time;
         entry->event_pressed = event_pressed;
         entry->event_released = event_released;
     }
@@ -77,17 +79,17 @@ static void configure_button_exti(struct hsm_button_context *button)
 }
 
 static void fill_input_pin_config(struct hsm_button_context *button_entry, struct input_pin_config *cfg,
-                                  bool wait_active)
+                                  bool wait_for_activity)
 {
     cfg->callback = button_activity_handler;
     cfg->callback_data = (void *)button_entry;
-    cfg->activity = wait_active ? INTERRUPT_PIN_ACTIVITY_INACTIVE_TO_ACTIVE : INTERRUPT_PIN_ACTIVITY_ACTIVE_TO_INACTIVE;
+    cfg->activity = wait_for_activity ? INTERRUPT_PIN_ACTIVITY_INACTIVE_TO_ACTIVE : INTERRUPT_PIN_ACTIVITY_ACTIVE_TO_INACTIVE;
 }
 
-void button_input_wait_for_event(struct hsm_button_context *button_entry, bool wait_active)
+void button_input_wait_for_event(struct hsm_button_context *button_entry, bool wait_for_activity)
 {
     struct input_pin_config cfg;
-    fill_input_pin_config(button_entry, &cfg, wait_active);
+    fill_input_pin_config(button_entry, &cfg, wait_for_activity);
     gpio_input_configure(button_entry->button_handle, &cfg, true);
 }
 
@@ -107,6 +109,7 @@ static const state_t *button_state_to_hsm_initial_state(struct hsm_button_contex
 static void init_buttons_hsm(struct hsm_button_context *button)
 {
     const state_t *initial_state;
+    button->state = BUTTON_RELEASED;
     initial_state = button_state_to_hsm_initial_state(button);
     button->machine.State = initial_state;
     traverse_state(&button->machine, initial_state);
@@ -116,7 +119,7 @@ static void create_timer_for_button(struct hsm_button_context *button)
 {
     em_timer_create(&button->timer, false, button);
     em_timer_set_event_id(&button->timer, TIMER_DEBOUNCE_EVENT_EVENT_ID);
-    em_timer_set_period(&button->timer, button->debounce_time);
+    em_timer_set_period(&button->timer, button->timings.debounce_time);
 }
 
 static void initialize_buttons_from_list(void)
@@ -133,12 +136,14 @@ static void initialize_buttons_from_list(void)
 static void handle_init_event(uint32_t flags)
 {
     (void)(flags);
-    add_button_to_buttons_list(&gpio_pins[BUTTON_PIN_ID], 20, BUTTON_PRESSED_EVENT_ID, BUTTON_RELEASED_EVENT_ID);
-    add_button_to_buttons_list(&gpio_pins[ENCODER_SWITCH], 20, ENCODER_SWITCH_PRESSED_EVENT_ID, NULL);
+    const struct button_timings timings = {.debounce_time = 20, .long_press_time = 200, .very_long_press_time = 4500};
+
+    add_button_to_buttons_list(find_gpio_pin_context(BUTTON_LOCAL_UP_PIN_ID), &timings, BUTTON_PRESSED_EVENT_ID, BUTTON_RELEASED_EVENT_ID);
+
     initialize_buttons_from_list();
 }
 
-static void handle_test_event(void *event)
+static void handle_incoming_event(void *event)
 {
     struct event *event_id = event;
     if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID)
@@ -151,7 +156,7 @@ static void handle_test_event(void *event)
     }
 }
 
-const struct subscriber button_subscriber = {.init = handle_init_event, .handle_event = handle_test_event};
+const struct subscriber button_subscriber = {.init = handle_init_event, .handle_event = handle_incoming_event};
 CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(main_executor_subscribers, main_executor, ADD_SUBSCRIBER(&button_subscriber))
 CREATE_EVENT(TIMER_DEBOUNCE_EVENT, ADD_SUBSCRIBER(&main_executor_subscribers))
 

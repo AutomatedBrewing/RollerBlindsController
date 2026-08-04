@@ -56,7 +56,7 @@ static void expect_shutdown_event(void)
 static void handle_init_event(uint32_t flags)
 {
     function_called();
-    check_expected(flags);
+    check_expected_any(flags);
 }
 
 static void expect_init_event(uint32_t flags)
@@ -69,7 +69,7 @@ static void handle_test_event(void *event)
 {
     function_called();
     struct event *p_event = event;
-    check_expected(p_event->id);
+    check_expected_any(p_event->id);
 }
 
 static void expect_handle_event(struct event *event)

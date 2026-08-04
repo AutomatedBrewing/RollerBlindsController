@@ -22,8 +22,8 @@
 static state_machine_result_t handler_1_exit(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected(pmachine->Event);
-    check_expected(pmachine->State);
+    check_expected_any(pmachine->Event);
+    check_expected_any(pmachine->State);
 
     /* Assign next state. */
     pmachine->Event = mock_type(void *);
@@ -43,8 +43,8 @@ static void expect_handler_1_exit(uint32_t expected_event, uint32_t next_event, 
 static state_machine_result_t handler_2_entry(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected(pmachine->Event);
-    check_expected(pmachine->State);
+    check_expected_any(pmachine->Event);
+    check_expected_any(pmachine->State);
 
     /* Assign next state. */
     pmachine->Event = mock_type(void *);

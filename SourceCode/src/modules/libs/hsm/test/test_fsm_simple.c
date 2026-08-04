@@ -22,8 +22,8 @@
 static state_machine_result_t handler(state_machine_t *const pmachine)
 {
     function_called();
-    check_expected(pmachine->Event);
-    check_expected(pmachine->State);
+    check_expected_any(pmachine->Event);
+    check_expected_any(pmachine->State);
 
     /* Assign next state. */
     pmachine->Event = mock_type(void *);

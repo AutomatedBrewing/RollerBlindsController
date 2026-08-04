@@ -17,22 +17,13 @@
 #define BOTH_EDGES_INTERRUPTS (HIGH_TO_LOW_INTERRUPT | LOW_TO_HIGH_INTERRUPT)
 
 enum board_input_pin_id {
-    LED_PIN_ID,
-    BUTTON_PIN_ID,
-    VALVE_1_PIN_ID,
-    VALVE_2_PIN_ID,
-    VALVE_3_PIN_ID,
-    VALVE_4_PIN_ID,
-    ENCODER_CHANNEL_A,
-    ENCODER_CHANNEL_B,
-    ENCODER_SWITCH,
-    DISPLAY_D7,
-    DISPLAY_D6,
-    DISPLAY_D5,
-    DISPLAY_D4,
-    DISPLAY_RS,
-    DISPLAY_RW,
-    DISPLAY_E,
+    BUTTON_LOCAL_UP_PIN_ID,
+    BUTTON_LOCAL_DOWN_PIN_ID,
+    BUTTON_REMOTE_UP_PIN_ID,
+    BUTTON_REMOTE_DOWN_PIN_ID,
+    MOTOR_UP_PIN_ID,
+    MOTOR_DOWN_PIN_ID,
+    BUZZER_PIN_ID,
     INVALID_PIN_ID=0xFFFF,
 };
 
@@ -78,6 +69,6 @@ struct gpio_pin {
 /* Public variables ----------------------------------------------------------*/
 /* Public function prototypes ------------------------------------------------*/
 extern const struct gpio_pin gpio_pins[];
-//struct gpio_pin* gpio_pin_find_pin(enum board_input_pin_id pin_id);
+const struct gpio_pin * find_gpio_pin_context(enum board_input_pin_id pin_id);
 
 #endif /* HARDWARE_NUCLEOF091_GPIO_PINS_H_ */

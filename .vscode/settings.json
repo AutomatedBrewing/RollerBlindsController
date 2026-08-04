@@ -2,4 +2,5 @@
     "cmake.buildDirectory": "${workspaceFolder}/SourceCode/build/test",
     "cmake.sourceDirectory": "${workspaceFolder}/SourceCode",
     "cmake.configureArgs": ["-DCONFIG=test"],
+    "cmake.ctest.debugLaunchTarget": "(ctest) Debug test",
 }

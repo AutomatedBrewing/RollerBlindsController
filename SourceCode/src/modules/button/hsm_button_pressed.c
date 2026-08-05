@@ -36,30 +36,30 @@ static void send_event(void * event,
 static void handle_previously_released(struct hsm_button_context *button)
 {
     button->state = BUTTON_SHORT_PRESSED;
-    send_event(button->event_pressed, button->button_info->pin_id, SHORT_PRESS);
+    send_event(button->configuration->events.event_pressed, button->button_info->pin_id, SHORT_PRESS);
     
     /* Restart the timer. Possibly button if pressed longer. */
-    em_timer_set_period(&button->timer, button->timings.long_press_time);
+    em_timer_set_period(&button->timer, button->configuration->timings.long_press_time);
     em_timer_start(&button->timer);
 }
 
 static void handle_previously_short_pressed(struct hsm_button_context *button)
 {
     button->state = BUTTON_LONG_PRESSED;
-    send_event(button->event_pressed, button->button_info->pin_id, LONG_PRESS);
+    send_event(button->configuration->events.event_pressed, button->button_info->pin_id, LONG_PRESS);
     
     /* Restart the timer. Possibly button if pressed longer. */
-    em_timer_set_period(&button->timer, button->timings.very_long_press_time);
+    em_timer_set_period(&button->timer, button->configuration->timings.very_long_press_time);
     em_timer_start(&button->timer);
 }
 
 static void handle_previously_long_pressed(struct hsm_button_context *button)
 {
     button->state = BUTTON_VERY_LONG_PRESSED;
-    send_event(button->event_pressed, button->button_info->pin_id, VERY_LONG_PRESS);
+    send_event(button->configuration->events.event_pressed, button->button_info->pin_id, VERY_LONG_PRESS);
     
     /* Reset the timer period. */
-    em_timer_set_period(&button->timer, button->timings.debounce_time);
+    em_timer_set_period(&button->timer, button->configuration->timings.debounce_time);
 }
 
 static void send_button_pressed_message(struct hsm_button_context *button)

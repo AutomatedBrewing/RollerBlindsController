@@ -14,6 +14,9 @@
 #include "hsm_button.h"
 #include "hsm_button_internal.h"
 
+#include "cmsis_mock.h"
+#include "gpio_mock.h"
+
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/

@@ -7,3 +7,4 @@ target_sources(${FW_LIBRARY_TARGET} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/em_system_events.c)
 
 add_subdirectory(test)
+add_subdirectory(mocks)

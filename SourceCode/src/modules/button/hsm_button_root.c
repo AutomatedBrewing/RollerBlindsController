@@ -21,6 +21,7 @@
 #include "hsm_button.h"
 #include "hsm_button_states.h"
 
+#include "configuration.h"
 /* Private define ------------------------------------------------------------*/
 
 
@@ -53,18 +54,13 @@ static struct hsm_button_context *get_free_entry(void)
     return NULL;
 }
 
-static void add_button_to_buttons_list(const struct gpio_pin *button_info, const struct button_timings * timings, void *event_pressed,
-                                       void *event_released)
+static void add_button_to_buttons_list(struct button_configuration const * configuration)
 {
     struct hsm_button_context *entry = get_free_entry();
     if (entry != NULL)
     {
-        entry->button_info = button_info;
-        entry->timings.debounce_time = timings->debounce_time;
-        entry->timings.long_press_time = timings->long_press_time;
-        entry->timings.very_long_press_time = timings->very_long_press_time;
-        entry->event_pressed = event_pressed;
-        entry->event_released = event_released;
+        entry->button_info = find_gpio_pin_context(configuration->pin_id);
+        entry->configuration = configuration;
     }
 }
 
@@ -117,9 +113,9 @@ static void init_buttons_hsm(struct hsm_button_context *button)
 
 static void create_timer_for_button(struct hsm_button_context *button)
 {
-    em_timer_create(&button->timer, false, button);
+    em_timer_create(&button->timer, NULL, false, button);
     em_timer_set_event_id(&button->timer, TIMER_DEBOUNCE_EVENT_EVENT_ID);
-    em_timer_set_period(&button->timer, button->timings.debounce_time);
+    em_timer_set_period(&button->timer, button->configuration->timings.debounce_time);
 }
 
 static void initialize_buttons_from_list(void)
@@ -136,9 +132,17 @@ static void initialize_buttons_from_list(void)
 static void handle_init_event(uint32_t flags)
 {
     (void)(flags);
-    const struct button_timings timings = {.debounce_time = 20, .long_press_time = 200, .very_long_press_time = 4500};
+    uint8_t devices_count = 0;
+    const struct device_configuration * list = get_list_of_devices_by_type(DEVICE_TYPE_BUTTON, &devices_count);
 
-    add_button_to_buttons_list(find_gpio_pin_context(BUTTON_LOCAL_UP_PIN_ID), &timings, BUTTON_PRESSED_EVENT_ID, BUTTON_RELEASED_EVENT_ID);
+    if((list != NULL) && (devices_count > 0))
+    {
+        for(uint8_t device = 0; device < devices_count; device++)
+        {
+            const struct device_configuration * current_device = (const struct device_configuration * ) &list[device];
+            add_button_to_buttons_list((const struct button_configuration *)current_device->config);
+        }
+    }
 
     initialize_buttons_from_list();
 }

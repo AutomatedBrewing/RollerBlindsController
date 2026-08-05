@@ -15,8 +15,10 @@
 #include "em_subscriber.h"
 
 /* Public define -------------------------------------------------------------*/
-/* Size of an event. It directly influences the executors queue size. */
-#define EVENT_SIZE (32)
+/* Size of an event. It directly influences the executors queue size.
+ * For unit tests this variable has to be greater than on embedded platform.
+ * It is due to alignment problem.*/
+#define EVENT_SIZE (128)
 
 /* Public typedef ------------------------------------------------------------*/
 typedef void *event_id_t;
@@ -51,7 +53,8 @@ struct event_subscribers
  *
  * Example:
  * uint32_t system_executor;
- * CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(shutdown_request_subscriber_list, system_executor, ADD_SUBSCRIBER(NULL))
+ * CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(shutdown_request_subscriber_list,
+ * system_executor, ADD_SUBSCRIBER(NULL))
  *
  */
 #define CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(list_name, executor_name, subscribers_list)                             \
@@ -66,8 +69,9 @@ struct event_subscribers
  *
  * Example:
  * uint32_t system_executor;
- * CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(shutdown_request_subscriber_list, system_executor, ADD_SUBSCRIBER(NULL))
- * CREATE_EVENT(SHUTDOWN_EVENT, ADD_SUBSCRIBER(&shutdown_request_subscriber_list))
+ * CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(shutdown_request_subscriber_list,
+ * system_executor, ADD_SUBSCRIBER(NULL)) CREATE_EVENT(SHUTDOWN_EVENT,
+ * ADD_SUBSCRIBER(&shutdown_request_subscriber_list))
  */
 #define CREATE_EVENT(event_name, subscribers_list)                                                                     \
     const struct event_subscribers_in_executor *event_name##_executors_list[] = {subscribers_list, NULL};

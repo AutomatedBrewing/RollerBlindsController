@@ -1,1 +1,13 @@
 add_unit_test(${FW_LIBRARY_TARGET} test_buttons test_buttons.c)
+
+mock_function(test_buttons em_timer_create)
+mock_function(test_buttons em_timer_set_period)
+mock_function(test_buttons em_timer_set_event_id)
+mock_function(test_buttons em_timer_start)
+
+mock_function(test_buttons gpio_pin_init)
+mock_function(test_buttons gpio_input_configure)
+mock_function(test_buttons gpio_input_is_active)
+mock_function(test_buttons gpio_input_interrupt_enable)
+mock_function(test_buttons gpio_input_interrupt_disable)
+

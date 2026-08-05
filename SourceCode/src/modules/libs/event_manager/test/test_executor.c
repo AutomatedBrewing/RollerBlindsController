@@ -56,26 +56,26 @@ static void expect_shutdown_event(void)
 static void handle_init_event(uint32_t flags)
 {
     function_called();
-    check_expected_uint(flags);
+    check_expected(flags);
 }
 
 static void expect_init_event(uint32_t flags)
 {
     expect_function_call(handle_init_event);
-    expect_uint_value(handle_init_event, flags, flags);
+    expect_value(handle_init_event, flags, flags);
 }
 
 static void handle_test_event(void *event)
 {
     function_called();
     struct event *p_event = event;
-    check_expected_any(p_event->id);
+    check_expected(p_event->id);
 }
 
 static void expect_handle_event(struct event *event)
 {
     expect_function_call(handle_test_event);
-    expect_any(handle_test_event, p_event->id);
+    expect_value(handle_test_event, p_event->id, event);
 }
 
 static void test_create_executor(void **state)
@@ -201,8 +201,8 @@ static void test_publish_message(void **state)
     union test_message msg;
     fill_test_message(&msg, (struct event *)test_event_executors_list);
 
-    expect_osMessageQueuePut(test_executor_1.queue, &msg, sizeof(union test_message), 0, osOK);
-    expect_osMessageQueuePut(test_executor_1.queue, &msg, sizeof(union test_message), 0, osOK);
+    expect_osMessageQueuePut(test_executor_1.queue, &msg, sizeof(msg), 0, osOK);
+    expect_osMessageQueuePut(test_executor_1.queue, &msg, sizeof(msg), 0, osOK);
     em_publish_message(&msg);
 }
 

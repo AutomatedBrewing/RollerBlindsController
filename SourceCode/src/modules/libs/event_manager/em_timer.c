@@ -22,13 +22,14 @@ static osTimerType_t get_timer_type(bool repeating)
     return repeating ? osTimerPeriodic : osTimerOnce;
 }
 
-bool em_timer_create(struct em_timer *timer, bool repeating, void *context)
+bool em_timer_create(struct em_timer *timer, timer_callback_t callback, bool repeating, void *context)
 {
     osTimerType_t timer_type = get_timer_type(repeating);
     timer->context = context;
     timer->repeating = repeating;
     timer->period = 0;
-    timer->os_timer_id = osTimerNew(timer_expired_callback, timer_type, timer, NULL);
+    timer->os_timer_id = osTimerNew(callback == NULL ? timer_expired_callback : callback, timer_type,
+                                    callback == NULL ? timer : timer->context, NULL);
     if (timer->os_timer_id != NULL)
     {
         return true;
@@ -63,4 +64,10 @@ void em_timer_stop(struct em_timer *me)
 bool em_timer_is_running(struct em_timer *me)
 {
     return (bool)osTimerIsRunning(me->os_timer_id);
+}
+
+uint32_t em_timer_get_expiry_time(struct em_timer *me)
+{
+    (void)(me);
+    return 0;
 }

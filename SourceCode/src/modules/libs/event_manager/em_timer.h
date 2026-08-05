@@ -16,6 +16,9 @@
 
 /* Public define -------------------------------------------------------------*/
 /* Public typedef ------------------------------------------------------------*/
+/*@brief Typedef of notification callback. */
+typedef void (*timer_callback_t)(void *context);
+
 struct em_timer
 {
     osTimerId_t os_timer_id;
@@ -40,12 +43,16 @@ MESSAGE_TYPE(timer_event, timer_message)
 /**
  * Creates timer.
  * @param timer Pointer to the timer structure.
+ * @param callback Optional parameter. When timeout occurs, timer can communicate it to the user in two ways:
+ *        1. By sending the event.
+ *        2. By calling the callback function.
+ *        When callback parameter is set to NULL, timer will send the message. Otherwise it will call the callback.
  * @param repeating true if repeating timer, false otherwise.
  * @param context Context passed on timer callback.
  *
  * @retval true in case of success, 0 otherwise.
  */
-bool em_timer_create(struct em_timer *timer, bool repeating, void *context);
+bool em_timer_create(struct em_timer *timer, timer_callback_t callback, bool repeating, void *context);
 
 /**
  * Sets event id of the timer.
@@ -88,5 +95,13 @@ void em_timer_stop(struct em_timer *me);
  * @retval True Timer is running. False Otherwise.
  */
 bool em_timer_is_running(struct em_timer *me);
+
+/**
+ * Return information when timer will expire.
+ * @param me Pointer to the timer structure.
+ *
+ * @retval How many ms is needed to expire the timer.
+ */
+uint32_t em_timer_get_expiry_time(struct em_timer *me);
 
 #endif /* SRC_MODULES_EVENT_MANAGER_EM_TIMER_H_ */

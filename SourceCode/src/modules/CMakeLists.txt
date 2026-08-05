@@ -1,4 +1,5 @@
 
+add_subdirectory(config)
 add_subdirectory(button)
 #add_subdirectory(controller)
 #add_subdirectory(motor)

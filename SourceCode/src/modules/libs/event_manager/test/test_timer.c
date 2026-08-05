@@ -38,7 +38,7 @@ static void handle_test_event(void *event)
 static void initialize_test_timer(struct em_timer *me, osTimerId_t expected_timer_id, bool repeating, void *context)
 {
     expect_osTimerNew(repeating ? osTimerPeriodic : osTimerOnce, me, expected_timer_id);
-    em_timer_create(me, repeating, context);
+    em_timer_create(me, NULL, repeating, context);
     assert_int_equal(me->period, 0);
 }
 
@@ -59,19 +59,19 @@ static void test_create_timer(void **state)
 
     /* Create with success. */
     expect_osTimerNew(osTimerPeriodic, &test_timer, expected_timer_id);
-    result = em_timer_create(&test_timer, true, &dummy_context);
+    result = em_timer_create(&test_timer, NULL, true, &dummy_context);
     validate_timer_structure(&test_timer, &dummy_context, true);
     assert_true(result);
 
     /* Create not repeating timer. */
     expect_osTimerNew(osTimerOnce, &test_timer, expected_timer_id);
-    result = em_timer_create(&test_timer, false, &dummy_context);
+    result = em_timer_create(&test_timer, NULL, false, &dummy_context);
     validate_timer_structure(&test_timer, &dummy_context, false);
     assert_true(result);
 
     /* Create with failure. */
     expect_osTimerNew(osTimerPeriodic, &test_timer, NULL);
-    result = em_timer_create(&test_timer, true, &dummy_context);
+    result = em_timer_create(&test_timer, NULL, true, &dummy_context);
     validate_timer_structure(&test_timer, &dummy_context, true);
     assert_false(result);
 }

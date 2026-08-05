@@ -24,9 +24,9 @@
 static void send_button_released_message(struct hsm_button_context *button)
 {
     union button_released_message message = {0};
-    if (button->event_released)
+    if (button->configuration->events.event_released)
     {
-        em_set_message_event(&message.event.super, button->event_released);
+        em_set_message_event(&message.event.super, button->configuration->events.event_released);
         em_publish_message(&message);
     }
 }

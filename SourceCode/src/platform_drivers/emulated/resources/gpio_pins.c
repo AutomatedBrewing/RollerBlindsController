@@ -14,7 +14,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
-/* Private function bodies ---------------------------------------------------
+/* Private function bodies ---------------------------------------------------*/
 static const uint8_t gpio_pins_size = sizeof(gpio_pins) / sizeof(gpio_pins[0]);
 const struct gpio_pin *find_gpio_pin_context(enum board_input_pin_id pin_id)
 {
@@ -27,4 +27,3 @@ const struct gpio_pin *find_gpio_pin_context(enum board_input_pin_id pin_id)
     }
     return NULL;
 }
-*/

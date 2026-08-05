@@ -31,7 +31,7 @@ if(LOGS_ENABLED)
 endif()
 
 
-target_link_libraries(${FW_LIBRARY_TARGET} PRIVATE ${LINKED_LIBS} m)
+target_link_libraries(${FW_LIBRARY_TARGET} PUBLIC ${LINKED_LIBS} m)
 
 include(${WARNINGS_FLAGS_FILE})
 target_compile_options(${FW_LIBRARY_TARGET} PRIVATE ${WARNINGS})

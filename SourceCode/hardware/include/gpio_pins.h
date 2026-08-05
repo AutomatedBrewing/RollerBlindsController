@@ -5,8 +5,8 @@
  *      Author: Kamil Lazowski
  */
 
-#ifndef HARDWARE_NUCLEOF091_GPIO_PINS_H_
-#define HARDWARE_NUCLEOF091_GPIO_PINS_H_
+#ifndef HARDWARE_GPIO_PINS_H_
+#define HARDWARE_GPIO_PINS_H_
 
 /* Private includes ----------------------------------------------------------*/
 #include <stdint.h>
@@ -71,4 +71,4 @@ struct gpio_pin {
 extern const struct gpio_pin gpio_pins[];
 const struct gpio_pin * find_gpio_pin_context(enum board_input_pin_id pin_id);
 
-#endif /* HARDWARE_NUCLEOF091_GPIO_PINS_H_ */
+#endif /* HARDWARE_GPIO_PINS_H_ */

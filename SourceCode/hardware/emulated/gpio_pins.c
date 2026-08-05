@@ -37,18 +37,5 @@ const struct gpio_pin gpio_pins[] = {
     { MOTOR_DOWN_PIN_ID, MOTOR_DOWN_PIN_PIN, MOTOR_DOWN_PIN_PORT, ACTIVE_LOW, PIN_NO_PULL, PIN_MODE_OUTPUT_PUSH_PULL, PIN_SPEED_LOW, BOTH_EDGES_INTERRUPTS },
     { BUZZER_PIN_ID, BUZZER_PIN_PIN, BUZZER_PIN_PORT, ACTIVE_LOW, PIN_NO_PULL, PIN_MODE_OUTPUT_PUSH_PULL, PIN_SPEED_LOW, BOTH_EDGES_INTERRUPTS },
 };
-/*
-static const uint8_t gpio_pins_size = sizeof(gpio_pins) / sizeof(gpio_pins[0]);
 
-const struct gpio_pin * find_gpio_pin_context(enum board_input_pin_id pin_id)
-{
-    for (uint8_t id = 0; id < gpio_pins_size; id++)
-    {
-        if (gpio_pins[id].pin_id == pin_id)
-        {
-            return &gpio_pins[id];
-        }
-    }
-    return NULL;
-}
-*/
+const uint8_t gpio_pins_size = sizeof(gpio_pins) / sizeof(gpio_pins[0]);

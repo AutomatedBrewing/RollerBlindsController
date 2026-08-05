@@ -25,7 +25,7 @@
 enum gpio_pin_status __wrap_gpio_pin_init(const void *pin_info, void **pin_handle)
 {
     function_called();
-    check_expected_any(pin_info);
+    check_expected(pin_info);
     *pin_handle = mock_type(void *);
     return mock_type(enum gpio_pin_status);
 }
@@ -41,8 +41,8 @@ void expect_gpio_pin_init(void *expected_pin_info, void *expected_pin_handle, en
 void __wrap_gpio_configure_pullup_down(void *pin_handle, enum gpio_pin_pull pull)
 {
     function_called();
-    check_expected_any(pin_handle);
-    check_expected_any(pull);
+    check_expected(pin_handle);
+    check_expected(pull);
 }
 
 void expect_gpio_configure_pullup_down(void *expected_pin_handle, enum gpio_pin_pull expected_pull)
@@ -55,8 +55,8 @@ void expect_gpio_configure_pullup_down(void *expected_pin_handle, enum gpio_pin_
 void __wrap_gpio_output_configure(void *pin_handle, enum board_pin_mode mode)
 {
     function_called();
-    check_expected_any(pin_handle);
-    check_expected_any(mode);
+    check_expected(pin_handle);
+    check_expected(mode);
 }
 
 void expect_gpio_output_configure(void *expected_pin_handle, enum board_pin_mode expected_mode)
@@ -69,7 +69,7 @@ void expect_gpio_output_configure(void *expected_pin_handle, enum board_pin_mode
 void __wrap_gpio_output_toggle(void *pin_handle)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
 }
 
 void expect_gpio_output_toggle(void *expected_pin_handle)
@@ -81,7 +81,7 @@ void expect_gpio_output_toggle(void *expected_pin_handle)
 void __wrap_gpio_output_set(void *pin_handle)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
 }
 
 void expect_gpio_output_set(void *expected_pin_handle)
@@ -93,7 +93,7 @@ void expect_gpio_output_set(void *expected_pin_handle)
 void __wrap_gpio_output_clear(void *pin_handle)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
 }
 
 void expect_gpio_output_clear(void *expected_pin_handle)
@@ -105,10 +105,10 @@ void expect_gpio_output_clear(void *expected_pin_handle)
 void __wrap_gpio_input_configure(void *pin_handle, struct input_pin_config *input_config, bool int_enabled)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
     (void)(input_config);
-    //    check_expected_any(input_config);
-    check_expected_any(int_enabled);
+    //    check_expected(input_config);
+    check_expected(int_enabled);
 }
 
 void expect_gpio_input_configure(void *expected_pin_handle, bool expected_int_enabled)
@@ -122,7 +122,7 @@ void expect_gpio_input_configure(void *expected_pin_handle, bool expected_int_en
 void __wrap_gpio_input_interrupt_enable(void *pin_handle)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
 }
 
 void expect_gpio_input_interrupt_enable(void *expected_pin_handle)
@@ -134,7 +134,7 @@ void expect_gpio_input_interrupt_enable(void *expected_pin_handle)
 void __wrap_gpio_input_interrupt_disable(void *pin_handle)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
 }
 
 void expect_gpio_input_interrupt_disable(void *expected_pin_handle)
@@ -146,7 +146,7 @@ void expect_gpio_input_interrupt_disable(void *expected_pin_handle)
 bool __wrap_gpio_input_is_active(void *pin_handle)
 {
     function_called();
-    check_expected_any(pin_handle);
+    check_expected(pin_handle);
     return mock_type(bool);
 }
 

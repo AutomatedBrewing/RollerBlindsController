@@ -69,6 +69,7 @@ struct gpio_pin {
 /* Public variables ----------------------------------------------------------*/
 /* Public function prototypes ------------------------------------------------*/
 extern const struct gpio_pin gpio_pins[];
+extern const uint8_t gpio_pins_size;
 const struct gpio_pin * find_gpio_pin_context(enum board_input_pin_id pin_id);
 
 #endif /* HARDWARE_GPIO_PINS_H_ */

@@ -122,10 +122,13 @@ static void initialize_buttons_from_list(void)
 {
     for (uint32_t button = 0; button < NO_OF_SUPPORTED_BUTTONS; button++)
     {
-        gpio_pin_init(buttons[button].button_info, &buttons[button].button_handle);
-        configure_button_exti(&buttons[button]);
-        init_buttons_hsm(&buttons[button]);
-        create_timer_for_button(&buttons[button]);
+        if(buttons[button].is_used)
+        {
+            gpio_pin_init(buttons[button].button_info, &buttons[button].button_handle);
+            configure_button_exti(&buttons[button]);
+            init_buttons_hsm(&buttons[button]);
+            create_timer_for_button(&buttons[button]);
+        }
     }
 }
 

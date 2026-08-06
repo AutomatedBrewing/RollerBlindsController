@@ -1,5 +1,9 @@
 add_unit_test(${FW_LIBRARY_TARGET} test_buttons test_buttons.c)
 
+
+
+mock_function(test_buttons em_publish_message)
+
 # em_timer.h
 mock_function(test_buttons em_timer_create)
 mock_function(test_buttons em_timer_set_period)

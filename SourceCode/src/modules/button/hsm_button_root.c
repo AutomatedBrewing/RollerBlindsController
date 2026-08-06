@@ -38,6 +38,7 @@ void button_activity_handler(void *data)
 {
     struct hsm_button_context *context = data;
     gpio_input_interrupt_disable(context->button_handle);
+    em_timer_set_period(&context->timer, context->configuration->timings.debounce_time);
     em_timer_start(&context->timer);
 }
 

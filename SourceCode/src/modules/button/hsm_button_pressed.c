@@ -36,7 +36,7 @@ static void send_event(void * event,
 static void handle_previously_released(struct hsm_button_context *button)
 {
     button->state = BUTTON_SHORT_PRESSED;
-    send_event(button->configuration->events.event_pressed, button->button_info->pin_id, SHORT_PRESS);
+    send_event(button->configuration->events.event_pressed, button->configuration->pin_id, SHORT_PRESS);
     
     /* Restart the timer. Possibly button if pressed longer. */
     em_timer_set_period(&button->timer, button->configuration->timings.long_press_time);

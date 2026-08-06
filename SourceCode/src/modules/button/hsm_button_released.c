@@ -27,6 +27,7 @@ static void send_button_released_message(struct hsm_button_context *button)
     if (button->configuration->events.event_released)
     {
         em_set_message_event(&message.event.super, button->configuration->events.event_released);
+        message.event.button = button->configuration->pin_id;
         em_publish_message(&message);
     }
 }

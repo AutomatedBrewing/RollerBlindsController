@@ -1,6 +1,11 @@
 {
     "cmake.buildDirectory": "${workspaceFolder}/SourceCode/build/test",
     "cmake.sourceDirectory": "${workspaceFolder}/SourceCode",
-    "cmake.configureArgs": ["-DCONFIG=test"],
+    "cmake.configureArgs": ["-DCONFIG=test", "-DCMAKE_BUILD_TYPE=Debug"],
     "cmake.ctest.debugLaunchTarget": "(ctest) Debug test",
+    "cmake.ctest.enabled": true,
+    "cmake.ctestArgs": [
+        "--output-on-failure"
+    ],
+    "cmake.buildBeforeRun": true
 }

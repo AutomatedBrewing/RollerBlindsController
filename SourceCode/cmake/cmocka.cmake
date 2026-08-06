@@ -13,14 +13,15 @@ if (NOT CMAKE_CROSSCOMPILING)
     endif()
 endif()
 
-function(add_unit_test TESTED_TARGET TEST_NAME SOURCE_FILES)
-    if (NOT CMAKE_CROSSCOMPILING)
-        add_executable(${TEST_NAME} ${SOURCE_FILES})
+
+function(add_unit_test TESTED_TARGET TEST_NAME)
+    if(NOT CMAKE_CROSSCOMPILING)
+        add_executable(${TEST_NAME} ${ARGN})
         target_link_libraries(${TEST_NAME} PRIVATE ${TESTED_TARGET} ${CMOCKA_LIBRARY})
 
         SETUP_TARGET_FOR_COVERAGE(${TEST_NAME}_coverage ctest coverage)
         enable_sanitizers(${TEST_NAME})
-        add_test(${TEST_NAME} ${TEST_NAME})
+        add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     endif()
 endfunction()
 

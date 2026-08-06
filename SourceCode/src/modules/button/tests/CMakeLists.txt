@@ -1,5 +1,6 @@
-add_unit_test(${FW_LIBRARY_TARGET} test_buttons test_buttons.c)
-
+add_unit_test(${FW_LIBRARY_TARGET} test_buttons 
+    test_buttons.c
+    button_test_vectors.c)
 
 
 mock_function(test_buttons em_publish_message)

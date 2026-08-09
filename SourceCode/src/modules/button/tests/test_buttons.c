@@ -103,6 +103,17 @@ void expect_em_timer_start(void)
     expect_function_call(__wrap_em_timer_start);
 }
 
+void __wrap_em_timer_stop(struct em_timer *me)
+{
+    function_called();
+}
+
+void expect_em_timer_stop(void)
+{
+    expect_function_call(__wrap_em_timer_stop);
+}
+
+
 /*----------------------------------GPIO MOCKS TO BE EXPORTED -----------------*/
 enum gpio_pin_status __wrap_gpio_pin_init(const void *pin_info, void **pin_handle)
 {
@@ -189,20 +200,28 @@ static void send_timer_debounce_event(void * context)
     em_publish_message(&message);
 }
 
-void validate_button_released_event(union button_released_message *message)
+static void send_timer_duration_event(void * context)
+{
+    union timer_message message = {0};
+    em_set_message_event(&message.event.super, TIMER_DURATION_EVENT_EVENT_ID);
+    message.event.context = context;
+    em_publish_message(&message);
+}
+
+static void validate_button_released_event(union button_released_message *message)
 {
     function_called();
     enum board_input_pin_id expected_button = mock_type(enum board_input_pin_id);
     assert_true(expected_button == message->event.button);
 }
 
-void expect_button_released_event(enum board_input_pin_id expected_button)
+static void expect_button_released_event(enum board_input_pin_id expected_button)
 {
     expect_function_call(validate_button_released_event);
     will_return(validate_button_released_event, expected_button);
 }
 
-void validate_button_pressed_event(union button_pressed_message *message)
+static void validate_button_pressed_event(union button_pressed_message *message)
 {
     function_called();
     enum board_input_pin_id expected_button = mock_type(enum board_input_pin_id );
@@ -211,7 +230,7 @@ void validate_button_pressed_event(union button_pressed_message *message)
     assert_true(message->event.duration == expected_duration);
 }
 
-void expect_button_pressed_event(enum board_input_pin_id expected_button, enum button_press_duration expected_duration)
+static void expect_button_pressed_event(enum board_input_pin_id expected_button, enum button_press_duration expected_duration)
 {
     expect_function_call(validate_button_pressed_event);
     will_return(validate_button_pressed_event, expected_button);
@@ -235,31 +254,68 @@ void __wrap_em_publish_message(void *message)
     button_subscriber.handle_event(message);
 }
 
-void expect_button_state_change(void * expected_pin_handle, uint32_t debounce_time)
+static void expect_button_state_change(void * expected_pin_handle, uint32_t debounce_time)
 {
     expect_gpio_input_interrupt_disable(expected_pin_handle);
+    expect_em_timer_stop();
     expect_em_timer_set_period(debounce_time);
     expect_em_timer_start();
 }
 
 
-void expect_enter_released_state(const enum board_input_pin_id pin_id, void * expected_pin_handle, struct gpio_isr *gpio)
+
+
+static void expect_enter_released_state(const enum board_input_pin_id pin_id, void * expected_pin_handle, struct gpio_isr *gpio)
 {
-    expect_gpio_input_is_active(expected_pin_handle, false);
+
     expect_gpio_input_configure(expected_pin_handle, true, gpio);
     expect_button_released_event(pin_id);
 }
 
-void expect_enter_pressed_state(const enum board_input_pin_id pin_id, void * expected_pin_handle, uint32_t long_press_time, struct gpio_isr *gpio )
+static void expect_exit_released_state(void * expected_pin_handle)
 {
     expect_gpio_input_is_active(expected_pin_handle, true);
+}
+
+
+static void expect_enter_pressed_state(const enum board_input_pin_id pin_id, void * expected_pin_handle, uint32_t press_time, struct gpio_isr *gpio )
+{
+    
     expect_gpio_input_configure(expected_pin_handle, true, gpio);
     expect_button_pressed_event(pin_id, SHORT_PRESS);
-    expect_em_timer_set_period(long_press_time);
+    expect_em_timer_set_period(press_time);
     expect_em_timer_start();
 }
 
 
+static void expect_exit_short_pressed_state(void * expected_pin_handle)
+{
+    expect_gpio_input_is_active(expected_pin_handle, false);
+    expect_em_timer_stop();
+}
+
+static void expect_exit_long_pressed_state(void * expected_pin_handle)
+{
+    expect_gpio_input_is_active(expected_pin_handle, false);
+    expect_em_timer_stop();
+}
+
+static void expect_exit_very_long_pressed_state(void * expected_pin_handle)
+{
+    expect_gpio_input_is_active(expected_pin_handle, false);
+}
+
+static void expect_enter_long_pressed_state(const enum board_input_pin_id pin_id, uint32_t press_time)
+{
+    expect_button_pressed_event(pin_id, LONG_PRESS);
+    expect_em_timer_set_period(press_time);
+    expect_em_timer_start();
+}
+
+static void expect_enter_very_long_pressed_state(const enum board_input_pin_id pin_id)
+{
+    expect_button_pressed_event(pin_id, VERY_LONG_PRESS);
+}
 
 static void setup_test_harness(struct test_harness * harness, const struct device_configuration * buttons_list, uint8_t list_size)
 {
@@ -292,12 +348,17 @@ static void expect_init_all_buttons(struct test_harness *test)
         expect_gpio_input_configure(&test->gpios[button].pin_handle, false, &test->gpios[button].isr);
 
         /* Assumption: pin inactive -> traversing to Released state. */
+        expect_gpio_input_is_active(&test->gpios[button].pin_handle, false);
         expect_enter_released_state(test->gpios[button].config->pin_id, &test->gpios[button].pin_handle, &test->gpios[button].isr);
 
-        /* timer */
+        /* Expect Debounce timer init */
         expect_em_timer_create(true);
         expect_em_timer_set_event_id();
         expect_em_timer_set_period(test->gpios[button].config->timings.debounce_time);  
+
+        /* Expect Duration timer init */
+        expect_em_timer_create(true);
+        expect_em_timer_set_event_id();
     }
 
 }
@@ -375,6 +436,7 @@ static void when_button_pressed_shortly_then_send_short_press_event(void **state
     button->isr.callback(button->isr.context);
 
     /* Debounce timer expired. */
+    expect_exit_released_state(&button->pin_handle);
     expect_enter_pressed_state(button->config->pin_id, &button->pin_handle, button->config->timings.long_press_time, &button->isr);
     send_timer_debounce_event(button->isr.context);
 
@@ -383,6 +445,7 @@ static void when_button_pressed_shortly_then_send_short_press_event(void **state
     button->isr.callback(button->isr.context);
 
     /* Debounce timer expired. */
+    expect_exit_short_pressed_state(&button->pin_handle);
     expect_enter_released_state(button->config->pin_id, &button->pin_handle, &button->isr);
     send_timer_debounce_event(button->isr.context);
 
@@ -390,6 +453,89 @@ static void when_button_pressed_shortly_then_send_short_press_event(void **state
     /* Nothing should happen. */
 }
 
+static void when_button_pressed_longly_then_send_long_press_event(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &button_subscriber;
+    struct test_harness test = {0};
+
+    setup_test_harness(&test, one_button_list, ARRAY_SIZE(one_button_list));
+
+    expect_init_all_buttons(&test);
+    struct button_entry * button = &test.gpios[0];
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* Simulate change of gpio state.*/
+    expect_button_state_change(&button->pin_handle, button->config->timings.debounce_time);
+    button->isr.callback(button->isr.context);
+
+    /* Debounce timer expired. */
+    expect_exit_released_state(&button->pin_handle);
+    expect_enter_pressed_state(button->config->pin_id, &button->pin_handle, button->config->timings.long_press_time, &button->isr);
+    send_timer_debounce_event(button->isr.context);
+
+    /* Duration timer expired. Expect enter long presses state*/
+    expect_enter_long_pressed_state(button->config->pin_id, button->config->timings.very_long_press_time);
+    send_timer_duration_event(button->isr.context);
+
+    /* User releases button. -> traversing to released state. */
+    expect_button_state_change(&button->pin_handle, button->config->timings.debounce_time);
+    button->isr.callback(button->isr.context);
+
+    /* Debounce timer expired. */
+    expect_exit_long_pressed_state(&button->pin_handle);
+    expect_enter_released_state(button->config->pin_id, &button->pin_handle, &button->isr);
+    send_timer_debounce_event(button->isr.context);
+
+    /* ASSERT */
+    /* Nothing should happen. */
+}
+
+static void when_button_pressed_very_longly_then_send_very_long_press_event(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &button_subscriber;
+    struct test_harness test = {0};
+
+    setup_test_harness(&test, one_button_list, ARRAY_SIZE(one_button_list));
+
+    expect_init_all_buttons(&test);
+    struct button_entry * button = &test.gpios[0];
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* Simulate change of gpio state.*/
+    expect_button_state_change(&button->pin_handle, button->config->timings.debounce_time);
+    button->isr.callback(button->isr.context);
+
+    /* Debounce timer expired. */
+    expect_exit_released_state(&button->pin_handle);
+    expect_enter_pressed_state(button->config->pin_id, &button->pin_handle, button->config->timings.long_press_time, &button->isr);
+    send_timer_debounce_event(button->isr.context);
+
+    /* Duration timer expired. Expect enter long presses state*/
+    expect_enter_long_pressed_state(button->config->pin_id, button->config->timings.very_long_press_time);
+    send_timer_duration_event(button->isr.context);
+
+    /* Duration timer expired. Expect enter very long press state.*/
+    expect_enter_very_long_pressed_state(button->config->pin_id);
+    send_timer_duration_event(button->isr.context);
+
+    /* User releases button. -> traversing to released state. */
+    expect_button_state_change(&button->pin_handle, button->config->timings.debounce_time);
+    button->isr.callback(button->isr.context);
+
+    /* Debounce timer expired. */
+    expect_exit_very_long_pressed_state(&button->pin_handle);
+    expect_enter_released_state(button->config->pin_id, &button->pin_handle, &button->isr);
+    send_timer_debounce_event(button->isr.context);
+
+    /* ASSERT */
+    /* Nothing should happen. */
+}
 
 
 int main(void)
@@ -399,8 +545,8 @@ int main(void)
         cmocka_unit_test_setup(given_one_button_in_device_list_when_initializing_then_init_it, test_setup),
         cmocka_unit_test_setup(given_four_buttons_in_device_list_when_initializing_then_init_it, test_setup),
         cmocka_unit_test_setup(when_button_pressed_shortly_then_send_short_press_event, test_setup),
-        
-        
+        cmocka_unit_test_setup(when_button_pressed_longly_then_send_long_press_event, test_setup),
+        cmocka_unit_test_setup(when_button_pressed_very_longly_then_send_very_long_press_event, test_setup),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

@@ -19,6 +19,9 @@
 DECLARE_EVENT(TIMER_DEBOUNCE_EVENT)
 #define TIMER_DEBOUNCE_EVENT_EVENT_ID ID_OF(TIMER_DEBOUNCE_EVENT)
 
+DECLARE_EVENT(TIMER_DURATION_EVENT)
+#define TIMER_DURATION_EVENT_EVENT_ID ID_OF(TIMER_DURATION_EVENT)
+
 /* Public typedef ------------------------------------------------------------*/
 enum button_press_state
 {
@@ -31,7 +34,8 @@ enum button_press_state
 
 struct hsm_button_context
 {
-    struct em_timer timer;
+    struct em_timer debounce_timer;
+    struct em_timer duration_timer;
     state_machine_t machine;
 
     struct button_configuration const * configuration;

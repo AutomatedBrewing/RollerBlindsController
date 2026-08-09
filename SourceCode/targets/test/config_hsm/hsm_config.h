@@ -12,6 +12,6 @@
 #define HIERARCHICAL_STATES             ( 1 )
 #define STATE_MACHINE_LOGGER            ( 0 )        //!< Disable the logging of state machine
 #define HSM_USE_VARIABLE_LENGTH_ARRAY   ( 0 )
-#define MAX_HIERARCHICAL_LEVEL          ( 4 )
+#define MAX_HIERARCHICAL_LEVEL          ( 5 )
 
 #endif /* TARGETS_TEST_CONFIG_HSM_CONFIG_HSM_H_ */

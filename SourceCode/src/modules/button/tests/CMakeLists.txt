@@ -10,6 +10,7 @@ mock_function(test_buttons em_timer_create)
 mock_function(test_buttons em_timer_set_period)
 mock_function(test_buttons em_timer_set_event_id)
 mock_function(test_buttons em_timer_start)
+mock_function(test_buttons em_timer_stop)
 
 # gpio.h
 mock_function(test_buttons gpio_pin_init)

@@ -38,8 +38,9 @@ void button_activity_handler(void *data)
 {
     struct hsm_button_context *context = data;
     gpio_input_interrupt_disable(context->button_handle);
-    em_timer_set_period(&context->timer, context->configuration->timings.debounce_time);
-    em_timer_start(&context->timer);
+    em_timer_stop(&context->debounce_timer);
+    em_timer_set_period(&context->debounce_timer, context->configuration->timings.debounce_time);
+    em_timer_start(&context->debounce_timer);
 }
 
 static struct hsm_button_context *get_free_entry(void)
@@ -114,9 +115,14 @@ static void init_buttons_hsm(struct hsm_button_context *button)
 
 static void create_timer_for_button(struct hsm_button_context *button)
 {
-    em_timer_create(&button->timer, NULL, false, button);
-    em_timer_set_event_id(&button->timer, TIMER_DEBOUNCE_EVENT_EVENT_ID);
-    em_timer_set_period(&button->timer, button->configuration->timings.debounce_time);
+    /* Debounce timer. */
+    em_timer_create(&button->debounce_timer, NULL, false, button);
+    em_timer_set_event_id(&button->debounce_timer, TIMER_DEBOUNCE_EVENT_EVENT_ID);
+    em_timer_set_period(&button->debounce_timer, button->configuration->timings.debounce_time);
+
+    /* Duration timer. */
+    em_timer_create(&button->duration_timer, NULL, false, button);
+    em_timer_set_event_id(&button->duration_timer, TIMER_DURATION_EVENT_EVENT_ID);
 }
 
 static void initialize_buttons_from_list(void)
@@ -154,7 +160,8 @@ static void handle_init_event(uint32_t flags)
 static void handle_incoming_event(void *event)
 {
     struct event *event_id = event;
-    if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID)
+    if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID ||
+        event_id->id == TIMER_DURATION_EVENT_EVENT_ID )
     {
         struct timer_event *timer_event = event;
         struct hsm_button_context *button_context = timer_event->context;
@@ -167,6 +174,7 @@ static void handle_incoming_event(void *event)
 const struct subscriber button_subscriber = {.init = handle_init_event, .handle_event = handle_incoming_event};
 CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(main_executor_subscribers, main_executor, ADD_SUBSCRIBER(&button_subscriber))
 CREATE_EVENT(TIMER_DEBOUNCE_EVENT, ADD_SUBSCRIBER(&main_executor_subscribers))
+CREATE_EVENT(TIMER_DURATION_EVENT, ADD_SUBSCRIBER(&main_executor_subscribers))
 
 const state_t hsm_button_root[] = {
     {NULL, NULL, NULL, NULL, NULL, 0},

@@ -5,9 +5,7 @@ echo ""
 
 # Directories to analyze
 DIRECTORIES=(
-    "src/apps"
-    "src/common"
-    "src/modules"
+    "src/modules/button"
 )
 
 # CMake build directory

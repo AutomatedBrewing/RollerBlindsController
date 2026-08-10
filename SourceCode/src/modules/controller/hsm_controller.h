@@ -1,21 +1,29 @@
 /*
- * app.h
+ * hsm_blink.h
  *
- *  Created on: 11 Sep 2022
- *      Author: Kamil Lazowski
+ *  Created on: 11 Mar 2023
+ *      Author: dev
  */
 
-#ifndef APPS_APP_H_
-#define APPS_APP_H_
+#ifndef SRC_MODULES_CONTROLLER_HSM_CONTROLLER_H_
+#define SRC_MODULES_CONTROLLER_HSM_CONTROLLER_H_
 
 /* Private includes ----------------------------------------------------------*/
+#include "hsm.h"
+
 /* Public define -------------------------------------------------------------*/
 /* Public typedef ------------------------------------------------------------*/
+
+struct hsm_controller_context
+{
+    state_machine_t machine;
+};
+
 /* Public macro --------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
+extern const struct subscriber controller_subscriber;
+
 /* Public function prototypes ------------------------------------------------*/
 
-void app_init(void);
-void app_start(void);
 
-#endif /* APPS_APP_H_ */
+#endif /* SRC_MODULES_CONTROLLER_HSM_CONTROLLER_H_ */

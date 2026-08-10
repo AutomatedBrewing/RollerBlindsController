@@ -9,9 +9,11 @@
 #include "em_executor.h"
 
 #include "executors.h"
-#include "hsm_button.h"
 
-CREATE_EXECUTOR_WITH_SUPPORTED_SUBSCRIBERS(main_executor, ADD_SUBSCRIBER(&button_subscriber))
+#include "hsm_button.h"
+#include "hsm_controller.h"
+
+CREATE_EXECUTOR_WITH_SUPPORTED_SUBSCRIBERS(main_executor, ADD_SUBSCRIBER(&button_subscriber, &controller_subscriber))
 
 void create_executors(void)
 {

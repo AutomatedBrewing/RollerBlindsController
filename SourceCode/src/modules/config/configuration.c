@@ -32,23 +32,23 @@ static const struct button_configuration button_local_up = {
     .events = BUTTON_EVENTS_DEFAULT,
 };
 
-static const struct button_configuration button_local_down = {
-    .pin_id = BUTTON_LOCAL_DOWN_PIN_ID,
-    .timings = BUTTON_TIMINGS_DEFAULT,
-    .events = BUTTON_EVENTS_DEFAULT,
-};
+// static const struct button_configuration button_local_down = {
+//     .pin_id = BUTTON_LOCAL_DOWN_PIN_ID,
+//     .timings = BUTTON_TIMINGS_DEFAULT,
+//     .events = BUTTON_EVENTS_DEFAULT,
+// };
 
-static const struct button_configuration button_remote_up = {
-    .pin_id = BUTTON_REMOTE_UP_PIN_ID,
-    .timings = BUTTON_TIMINGS_DEFAULT,
-    .events = BUTTON_EVENTS_DEFAULT,
-};
+// static const struct button_configuration button_remote_up = {
+//     .pin_id = BUTTON_REMOTE_UP_PIN_ID,
+//     .timings = BUTTON_TIMINGS_DEFAULT,
+//     .events = BUTTON_EVENTS_DEFAULT,
+// };
 
-static const struct button_configuration button_remote_down = {
-    .pin_id = BUTTON_REMOTE_DOWN_PIN_ID,
-    .timings = BUTTON_TIMINGS_DEFAULT,
-    .events = BUTTON_EVENTS_DEFAULT,
-};
+// static const struct button_configuration button_remote_down = {
+//     .pin_id = BUTTON_REMOTE_DOWN_PIN_ID,
+//     .timings = BUTTON_TIMINGS_DEFAULT,
+//     .events = BUTTON_EVENTS_DEFAULT,
+// };
 
 static const struct device_configuration button_devices_list[] = {
     {
@@ -56,21 +56,21 @@ static const struct device_configuration button_devices_list[] = {
         .type = DEVICE_TYPE_BUTTON,
         .config = &button_local_up,
     },
-    {
-        .id = DEVICE_BUTTON_LOCAL_DOWN,
-        .type = DEVICE_TYPE_BUTTON,
-        .config = &button_local_down,
-    },
-    {
-        .id = DEVICE_BUTTON_REMOTE_UP,
-        .type = DEVICE_TYPE_BUTTON,
-        .config = &button_remote_up,
-    },
-    {
-        .id = DEVICE_BUTTON_REMOTE_DOWN,
-        .type = DEVICE_TYPE_BUTTON,
-        .config = &button_remote_down,
-    },
+    // {
+    //     .id = DEVICE_BUTTON_LOCAL_DOWN,
+    //     .type = DEVICE_TYPE_BUTTON,
+    //     .config = &button_local_down,
+    // },
+    // {
+    //     .id = DEVICE_BUTTON_REMOTE_UP,
+    //     .type = DEVICE_TYPE_BUTTON,
+    //     .config = &button_remote_up,
+    // },
+    // {
+    //     .id = DEVICE_BUTTON_REMOTE_DOWN,
+    //     .type = DEVICE_TYPE_BUTTON,
+    //     .config = &button_remote_down,
+    // },
 };
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/

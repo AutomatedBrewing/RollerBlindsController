@@ -1,4 +1,4 @@
-config=blink_F091
+config=rbc_F091
 target=STM32F091RC
 
 cd build/$config

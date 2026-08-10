@@ -1,11 +1,28 @@
 {
-    "name": "(ctest) Debug test",
-    "type": "cppdbg",
-    "request": "launch",
-    "program": "${cmake.testProgram}",
-    "args": [],
-    "cwd": "${cmake.testWorkingDirectory}",
-    "environment": "${cmake.testEnvironment}",
-    "MIMode": "gdb",
-    "miDebuggerPath": "/usr/bin/gdb"
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(ctest) Debug test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${cmake.testProgram}",
+            "args": [],
+            "cwd": "${cmake.testWorkingDirectory}",
+            "environment": "${cmake.testEnvironment}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug NUCLEO-F091RC",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "jlink",
+            "device": "STM32F091RC",
+            "interface": "swd",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/SourceCode/build/rbc_F091/rbc_F091.elf",
+            "gdbPath": "/usr/bin/gdb-multiarch",
+            "runToEntryPoint": "main"
+        }
+    ]
 }

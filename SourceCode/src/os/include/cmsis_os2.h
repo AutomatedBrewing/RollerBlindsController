@@ -500,6 +500,11 @@ uint32_t osTimerIsRunning (osTimerId_t timer_id);
 /// \return status code that indicates the execution status of the function.
 osStatus_t osTimerDelete (osTimerId_t timer_id);
 
+/// Returns the time in ms at which the timer will expire.
+/// \param[in]     timer_id      timer ID obtained by \ref osTimerNew.
+/// \return 0 not running, 1 running.
+uint32_t osTimerGetExpiryTime (osTimerId_t timer_id);
+
 
 //  ==== Event Flags Management Functions ====
 
@@ -726,6 +731,9 @@ osStatus_t osMessageQueueReset (osMessageQueueId_t mq_id);
 /// \return status code that indicates the execution status of the function.
 osStatus_t osMessageQueueDelete (osMessageQueueId_t mq_id);
 
+void * osMalloc(size_t size);
+
+void osFree(void * pbuffer);
 
 #ifdef  __cplusplus
 }

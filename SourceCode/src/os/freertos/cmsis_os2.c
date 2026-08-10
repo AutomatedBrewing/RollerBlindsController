@@ -1022,6 +1022,17 @@ osStatus_t osTimerDelete (osTimerId_t timer_id) {
   return (stat);
 }
 
+uint32_t osTimerGetExpiryTime (osTimerId_t timer_id)
+{
+	TimerHandle_t hTimer = (TimerHandle_t)timer_id;
+	TickType_t timeLeft;
+	  if (IS_IRQ() || (hTimer == NULL)) {
+		timeLeft = 0U;
+	  } else {
+		timeLeft = xTimerGetExpiryTime(hTimer) - xTaskGetTickCount();
+	  }
+	return timeLeft;
+}
 /*---------------------------------------------------------------------------*/
 
 osEventFlagsId_t osEventFlagsNew (const osEventFlagsAttr_t *attr) {
@@ -1815,6 +1826,16 @@ osStatus_t osMessageQueueDelete (osMessageQueueId_t mq_id) {
 #endif
 
   return (stat);
+}
+
+void * osMalloc(size_t size)
+{
+	return pvPortMalloc(size);
+}
+
+void osFree(void * pbuffer)
+{
+	vPortFree(pbuffer);
 }
 
 /*---------------------------------------------------------------------------*/

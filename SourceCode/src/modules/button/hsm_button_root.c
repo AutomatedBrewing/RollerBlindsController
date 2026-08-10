@@ -130,8 +130,8 @@ static void initialize_buttons_from_list(void)
         {
             gpio_pin_init(buttons[button].button_info, &buttons[button].button_handle);
             configure_button_exti(&buttons[button]);
-            init_buttons_hsm(&buttons[button]);
             create_timer_for_button(&buttons[button]);
+            init_buttons_hsm(&buttons[button]);
         }
     }
 }

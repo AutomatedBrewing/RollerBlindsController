@@ -9,12 +9,11 @@
 #define SRC_MODULES_BUTTON_HSM_BLINK_H_
 
 /* Private includes ----------------------------------------------------------*/
+#include "button_configuration.h"
 #include "em_timer.h"
 #include "hsm.h"
-#include "button_configuration.h"
 
 /* Public define -------------------------------------------------------------*/
-
 
 DECLARE_EVENT(TIMER_DEBOUNCE_EVENT)
 #define TIMER_DEBOUNCE_EVENT_EVENT_ID ID_OF(TIMER_DEBOUNCE_EVENT)
@@ -23,28 +22,18 @@ DECLARE_EVENT(TIMER_DURATION_EVENT)
 #define TIMER_DURATION_EVENT_EVENT_ID ID_OF(TIMER_DURATION_EVENT)
 
 /* Public typedef ------------------------------------------------------------*/
-enum button_press_state
-{
-    BUTTON_RELEASED,
-    BUTTON_SHORT_PRESSED,
-    BUTTON_LONG_PRESSED,
-    BUTTON_VERY_LONG_PRESSED,
-};
-
 
 struct hsm_button_context
 {
     struct em_timer debounce_timer;
     struct em_timer duration_timer;
     state_machine_t machine;
-
-    struct button_configuration const * configuration;
+    struct button_configuration const *configuration;
     const struct gpio_pin *button_info;
     void *button_handle;
-
-    enum button_press_state state;
     bool is_used;
 };
+
 /* Public macro --------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
 extern const struct subscriber button_subscriber;

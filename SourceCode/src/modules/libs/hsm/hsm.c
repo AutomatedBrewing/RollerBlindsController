@@ -115,7 +115,7 @@ state_machine_result_t dispatch_event(state_machine_t *const pState_Machine[], u
                         return EVENT_UN_HANDLED;
                     }
 
-                    pState = pState->Parent;       // traverse to parent state
+                    pState = pState->Parent; // traverse to parent state
                 } while (pState->Handler == NULL); // repeat again if parent state doesn't have handler
                 continue;
 #endif // HIERARCHICAL_STATES

@@ -30,7 +30,7 @@ struct events
 
 struct button_configuration
 {
-    const enum board_input_pin_id  pin_id;
+    const enum board_input_pin_id pin_id;
     const struct button_timings timings;
     const struct events events;
 };

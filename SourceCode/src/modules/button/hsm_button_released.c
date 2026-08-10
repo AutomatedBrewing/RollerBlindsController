@@ -35,7 +35,6 @@ static void send_button_released_message(struct hsm_button_context *button)
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_button_context *button = CONTAINER_OF(pmachine, struct hsm_button_context, machine);
-    button->state = BUTTON_RELEASED;
     button_input_wait_for_event(button, true);
     send_button_released_message(button);
     return EVENT_HANDLED;

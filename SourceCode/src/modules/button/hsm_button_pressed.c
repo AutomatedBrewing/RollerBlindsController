@@ -25,20 +25,15 @@
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_button_context *button = CONTAINER_OF(pmachine, struct hsm_button_context, machine);
-        
+
     button_input_wait_for_event(button, false);
     switch_state(pmachine, hsm_button_pressed_short);
     return EVENT_HANDLED;
 }
 
-
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
-    struct event *event_id = pmachine->Event;
-    if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID)
-    {
-        /* ?? */
-    }
+    (void)(pmachine);
     return EVENT_UN_HANDLED;
 }
 

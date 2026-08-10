@@ -23,16 +23,13 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-
-
-
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_button_context *button = CONTAINER_OF(pmachine, struct hsm_button_context, machine);
 
     send_event(button->configuration->events.event_pressed, button->configuration->pin_id, SHORT_PRESS);
 
-    /* Restart the debounce_timer. Possibly button will be pressed longer. */
+    /* Start the duration timer. Possibly button will be pressed longer. */
     em_timer_set_period(&button->duration_timer, button->configuration->timings.long_press_time);
     em_timer_start(&button->duration_timer);
 
@@ -50,8 +47,8 @@ static bool isButtonInactive(union timer_message *message)
     else
     {
         em_timer_stop(&button->duration_timer);
+        return true;
     }
-    return true;
 }
 
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
@@ -61,13 +58,12 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     {
         if (isButtonInactive((union timer_message *)event_id))
         {
-            traverse_state(pmachine, hsm_button_released);
+            return traverse_state(pmachine, hsm_button_released);
         }
-        return EVENT_HANDLED;
-    } else if (event_id->id == TIMER_DURATION_EVENT_EVENT_ID)
+    }
+    else if (event_id->id == TIMER_DURATION_EVENT_EVENT_ID)
     {
-        switch_state(pmachine, hsm_button_pressed_long);
-        return EVENT_HANDLED;
+        return switch_state(pmachine, hsm_button_pressed_long);
     }
     return EVENT_UN_HANDLED;
 }

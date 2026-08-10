@@ -20,10 +20,9 @@ struct buzzer_timings
     uint32_t repetitions;
 };
 
-
 struct buzzer_configuration
 {
-    const enum board_input_pin_id  pin_id;
+    const enum board_input_pin_id pin_id;
     const struct buzzer_timings timings;
 };
 

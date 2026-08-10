@@ -42,13 +42,13 @@
  * @brief Value of @p x rounded up to the next multiple of @p align,
  *        which must be a power of 2.
  */
-#define ROUND_UP(x, align) (((unsigned long)(x) + ((unsigned long)(align)-1)) & ~((unsigned long)(align)-1))
+#define ROUND_UP(x, align) (((unsigned long)(x) + ((unsigned long)(align) - 1)) & ~((unsigned long)(align) - 1))
 
 /**
  * @brief Value of @p x rounded down to the previous multiple of @p
  *        align, which must be a power of 2.
  */
-#define ROUND_DOWN(x, align) ((unsigned long)(x) & ~((unsigned long)(align)-1))
+#define ROUND_DOWN(x, align) ((unsigned long)(x) & ~((unsigned long)(align) - 1))
 
 /** @brief Value of @p x rounded up to the next word boundary. */
 #define WB_UP(x) ROUND_UP(x, sizeof(void *))

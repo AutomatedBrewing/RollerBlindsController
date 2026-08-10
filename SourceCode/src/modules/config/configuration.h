@@ -42,14 +42,13 @@ struct device_configuration
 {
     enum device_id id;
     enum device_type type;
-    const void * config;
+    const void *config;
 };
-
 
 /* Public macro --------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
 /* Public function prototypes ------------------------------------------------*/
 
-const struct device_configuration * get_list_of_devices_by_type(enum device_type type, uint8_t * devices_count);
+const struct device_configuration *get_list_of_devices_by_type(enum device_type type, uint8_t *devices_count);
 
 #endif /* CONFIGURATION_H_ */

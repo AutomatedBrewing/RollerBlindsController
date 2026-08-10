@@ -22,7 +22,8 @@
 static state_machine_result_t handler(state_machine_t *const pmachine)
 {
     function_called();
-    uintmax_t event_val = (uintmax_t)pmachine->Event; check_expected_uint(event_val);
+    uintmax_t event_val = (uintmax_t)pmachine->Event;
+    check_expected_uint(event_val);
     uintmax_t state_val = (uintmax_t)pmachine->State;
     check_expected_uint(state_val);
 
@@ -35,7 +36,8 @@ static void expect_handler(uint32_t expected_event, uint32_t next_event, const s
                            state_machine_result_t expected_result)
 {
     expect_function_call(handler);
-    uintmax_t event_val = (uintmax_t)expected_event; expect_uint_value(handler, event_val, event_val);
+    uintmax_t event_val = (uintmax_t)expected_event;
+    expect_uint_value(handler, event_val, event_val);
     uintmax_t state_val = (uintmax_t)expected_state;
     expect_uint_value(handler, state_val, state_val);
     will_return(handler, next_event);

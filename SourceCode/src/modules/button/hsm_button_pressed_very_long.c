@@ -26,7 +26,7 @@
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_button_context *button = CONTAINER_OF(pmachine, struct hsm_button_context, machine);
-    
+
     send_event(button->configuration->events.event_pressed, button->configuration->pin_id, VERY_LONG_PRESS);
 
     return EVENT_HANDLED;
@@ -50,9 +50,8 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     {
         if (isButtonInactive((union timer_message *)event_id))
         {
-            traverse_state(pmachine, hsm_button_released);
+            return traverse_state(pmachine, hsm_button_released);
         }
-        return EVENT_HANDLED;
     }
     return EVENT_UN_HANDLED;
 }

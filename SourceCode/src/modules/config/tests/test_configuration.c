@@ -6,10 +6,10 @@
  */
 
 /* Private includes ----------------------------------------------------------*/
+#include <cmocka.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <cmocka.h>
 
 #include "configuration.h"
 /* Private define ------------------------------------------------------------*/
@@ -23,7 +23,7 @@
 static void given_invalid_count_when_fetching_device_list_then_return_empty_list(void **state)
 {
     /* ARRANGE */
-    const struct device_configuration * list = NULL;
+    const struct device_configuration *list = NULL;
 
     /* ACT */
     list = get_list_of_devices_by_type(DEVICE_TYPE_BUTTON, NULL);
@@ -35,7 +35,7 @@ static void given_invalid_count_when_fetching_device_list_then_return_empty_list
 static void when_fetching_button_device_list_then_return_valid_list(void **state)
 {
     /* ARRANGE */
-    const struct device_configuration * list = NULL;
+    const struct device_configuration *list = NULL;
     uint8_t count = 0;
 
     /* ACT */
@@ -49,14 +49,14 @@ static void when_fetching_button_device_list_then_return_valid_list(void **state
 static void when_fetching_buzzer_device_list_then_return_valid_list(void **state)
 {
     /* ARRANGE */
-    const struct device_configuration * list = NULL;
+    const struct device_configuration *list = NULL;
     uint8_t count = 0;
 
     /* ACT */
     list = get_list_of_devices_by_type(DEVICE_TYPE_BUZZER, &count);
 
     /* ASSERT */
-    //assert_non_null(list);
+    // assert_non_null(list);
     assert_null(list);
     assert_uint_equal(count, 0);
 }
@@ -64,14 +64,14 @@ static void when_fetching_buzzer_device_list_then_return_valid_list(void **state
 static void when_fetching_motor_device_list_then_return_valid_list(void **state)
 {
     /* ARRANGE */
-    const struct device_configuration * list = NULL;
+    const struct device_configuration *list = NULL;
     uint8_t count = 0;
 
     /* ACT */
     list = get_list_of_devices_by_type(DEVICE_TYPE_MOTOR, &count);
 
     /* ASSERT */
-    //assert_non_null(list);
+    // assert_non_null(list);
     assert_null(list);
     assert_uint_equal(count, 0);
 }

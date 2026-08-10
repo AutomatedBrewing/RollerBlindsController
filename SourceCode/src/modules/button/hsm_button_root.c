@@ -6,10 +6,8 @@
  */
 
 /* Private includes ----------------------------------------------------------*/
-#include "cmsis_os.h"
 #include "gpio.h"
 #include "gpio_pins.h"
-#include <stdlib.h>
 
 #include "em_event.h"
 #include "em_timer.h"
@@ -24,7 +22,6 @@
 #include "configuration.h"
 /* Private define ------------------------------------------------------------*/
 
-
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -34,7 +31,7 @@ struct hsm_button_context buttons[NO_OF_SUPPORTED_BUTTONS] = {0};
 /* Private function bodies ---------------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-void button_activity_handler(void *data)
+static void button_activity_handler(void *data)
 {
     struct hsm_button_context *context = data;
     gpio_input_interrupt_disable(context->button_handle);
@@ -56,7 +53,7 @@ static struct hsm_button_context *get_free_entry(void)
     return NULL;
 }
 
-static void add_button_to_buttons_list(struct button_configuration const * configuration)
+static void add_button_to_buttons_list(struct button_configuration const *configuration)
 {
     struct hsm_button_context *entry = get_free_entry();
     if (entry != NULL)
@@ -81,7 +78,8 @@ static void fill_input_pin_config(struct hsm_button_context *button_entry, struc
 {
     cfg->callback = button_activity_handler;
     cfg->callback_data = (void *)button_entry;
-    cfg->activity = wait_for_activity ? INTERRUPT_PIN_ACTIVITY_INACTIVE_TO_ACTIVE : INTERRUPT_PIN_ACTIVITY_ACTIVE_TO_INACTIVE;
+    cfg->activity =
+        wait_for_activity ? INTERRUPT_PIN_ACTIVITY_INACTIVE_TO_ACTIVE : INTERRUPT_PIN_ACTIVITY_ACTIVE_TO_INACTIVE;
 }
 
 void button_input_wait_for_event(struct hsm_button_context *button_entry, bool wait_for_activity)
@@ -107,7 +105,6 @@ static const state_t *button_state_to_hsm_initial_state(struct hsm_button_contex
 static void init_buttons_hsm(struct hsm_button_context *button)
 {
     const state_t *initial_state;
-    button->state = BUTTON_RELEASED;
     initial_state = button_state_to_hsm_initial_state(button);
     button->machine.State = initial_state;
     traverse_state(&button->machine, initial_state);
@@ -129,7 +126,7 @@ static void initialize_buttons_from_list(void)
 {
     for (uint32_t button = 0; button < NO_OF_SUPPORTED_BUTTONS; button++)
     {
-        if(buttons[button].is_used)
+        if (buttons[button].is_used)
         {
             gpio_pin_init(buttons[button].button_info, &buttons[button].button_handle);
             configure_button_exti(&buttons[button]);
@@ -143,25 +140,24 @@ static void handle_init_event(uint32_t flags)
 {
     (void)(flags);
     uint8_t devices_count = 0;
-    const struct device_configuration * list = get_list_of_devices_by_type(DEVICE_TYPE_BUTTON, &devices_count);
+    const struct device_configuration *list = get_list_of_devices_by_type(DEVICE_TYPE_BUTTON, &devices_count);
 
-    if((list != NULL) && (devices_count > 0))
+    if ((list != NULL) && (devices_count > 0))
     {
-        for(uint8_t device = 0; device < devices_count; device++)
+        for (uint8_t device = 0; device < devices_count; device++)
         {
-            const struct device_configuration * current_device = (const struct device_configuration * ) &list[device];
+            const struct device_configuration *current_device = (const struct device_configuration *)&list[device];
             add_button_to_buttons_list((const struct button_configuration *)current_device->config);
         }
-    }
 
-    initialize_buttons_from_list();
+        initialize_buttons_from_list();
+    }
 }
 
 static void handle_incoming_event(void *event)
 {
     struct event *event_id = event;
-    if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID ||
-        event_id->id == TIMER_DURATION_EVENT_EVENT_ID )
+    if (event_id->id == TIMER_DEBOUNCE_EVENT_EVENT_ID || event_id->id == TIMER_DURATION_EVENT_EVENT_ID)
     {
         struct timer_event *timer_event = event;
         struct hsm_button_context *button_context = timer_event->context;

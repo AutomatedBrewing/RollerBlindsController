@@ -4,7 +4,8 @@ set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "Root Directory" FORCE)
 set(APP_DIR ${ROOT_DIR}/src/apps CACHE PATH "Application Directory" FORCE)
 set(MAIN_APP_DIR ${ROOT_DIR}/src/common CACHE PATH "Main application directory" FORCE)
 set(FIRMWARE_VERSION_HEADER_DIR ${ROOT_DIR}/build/${CONFIG} CACHE PATH "Firmware version header directory" FORCE) 
-    
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #Location of cmake scripts.
 set(CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(WARNINGS_FLAGS_FILE ${CMAKE_SCRIPTS_DIR}/compiler_flags.cmake)

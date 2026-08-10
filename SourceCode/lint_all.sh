@@ -3,23 +3,48 @@
 echo "Running clang-tidy analysis..."
 echo ""
 
-# Temporary file for collecting errors
-TEMP_FILE=$(mktemp)
+# Directories to analyze
+DIRECTORIES=(
+    "src/apps"
+    "src/common"
+    "src/modules"
+)
 
-# Run clang-tidy and capture only real warnings/errors
-find src -regex '.*\.[c]$' -not -path "*/external/*" | sort | while read file; do
-    clang-tidy "$file" 2>&1
-done | grep -E "warning:|error:|^[^ ].*\[[a-zA-Z0-9-]+\]" | grep -v "error: '" | grep -v "Could not auto-detect" > "$TEMP_FILE"
+# CMake build directory
+BUILD_DIR="build/test"
 
-# Display results if there are any
-if [ -s "$TEMP_FILE" ]; then
-    cat "$TEMP_FILE"
-    rm "$TEMP_FILE"
+# Check compilation database
+if [ ! -f "$BUILD_DIR/compile_commands.json" ]; then
+    echo "ERROR: Compilation database not found:"
+    echo "  $BUILD_DIR/compile_commands.json"
     echo ""
-    echo "Linting complete. Found issues above."
-    exit 0
-else
-    echo "✓ No issues found!"
-    rm "$TEMP_FILE"
-    exit 0
+    echo "Please build/configure the project first."
+    exit 1
 fi
+
+ERRORS=0
+
+while IFS= read -r -d '' file; do
+    echo "Checking: $file"
+
+    if ! clang-tidy -p "$BUILD_DIR" "$file"; then
+        ERRORS=1
+    fi
+
+done < <(
+    find "${DIRECTORIES[@]}" \
+        -type f \
+        -name "*.c" \
+        -not -path "*/external/*" \
+        -print0
+)
+
+echo ""
+
+if [ "$ERRORS" -eq 0 ]; then
+    echo "✓ No issues found!"
+else
+    echo "Linting complete. Found issues above."
+fi
+
+exit "$ERRORS"

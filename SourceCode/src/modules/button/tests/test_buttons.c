@@ -345,11 +345,6 @@ static void expect_init_all_buttons(struct test_harness *test)
         expect_gpio_pin_init(&test->gpios[button].pin_info, &test->gpios[button].pin_handle, GPIO_OK);
         expect_gpio_input_configure(&test->gpios[button].pin_handle, false, &test->gpios[button].isr);
 
-        /* Assumption: pin inactive -> traversing to Released state. */
-        expect_gpio_input_is_active(&test->gpios[button].pin_handle, false);
-        expect_enter_released_state(test->gpios[button].config->pin_id, &test->gpios[button].pin_handle,
-                                    &test->gpios[button].isr);
-
         /* Expect Debounce timer init */
         expect_em_timer_create(true);
         expect_em_timer_set_event_id();
@@ -358,6 +353,11 @@ static void expect_init_all_buttons(struct test_harness *test)
         /* Expect Duration timer init */
         expect_em_timer_create(true);
         expect_em_timer_set_event_id();
+
+        /* Assumption: pin inactive -> traversing to Released state. */
+        expect_gpio_input_is_active(&test->gpios[button].pin_handle, false);
+        expect_enter_released_state(test->gpios[button].config->pin_id, &test->gpios[button].pin_handle,
+                                    &test->gpios[button].isr);
     }
 }
 

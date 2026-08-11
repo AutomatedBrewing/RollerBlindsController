@@ -13,6 +13,8 @@
 #include "utils.h"
 
 /* Private define ------------------------------------------------------------*/
+#define MOTOR_SAFETY_TIMER_TIMEOUT (MINUTES(2))
+
 #define BUTTON_TIMINGS_DEFAULT                                                                                         \
     {                                                                                                                  \
         .debounce_time = 20, .long_press_time = 500, .very_long_press_time = 5000                                      \
@@ -26,29 +28,30 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+/*-------------------   BUTTONS */
 static const struct button_configuration button_local_up = {
     .pin_id = BUTTON_LOCAL_UP_PIN_ID,
     .timings = BUTTON_TIMINGS_DEFAULT,
     .events = BUTTON_EVENTS_DEFAULT,
 };
 
-// static const struct button_configuration button_local_down = {
-//     .pin_id = BUTTON_LOCAL_DOWN_PIN_ID,
-//     .timings = BUTTON_TIMINGS_DEFAULT,
-//     .events = BUTTON_EVENTS_DEFAULT,
-// };
+static const struct button_configuration button_local_down = {
+    .pin_id = BUTTON_LOCAL_DOWN_PIN_ID,
+    .timings = BUTTON_TIMINGS_DEFAULT,
+    .events = BUTTON_EVENTS_DEFAULT,
+};
 
-// static const struct button_configuration button_remote_up = {
-//     .pin_id = BUTTON_REMOTE_UP_PIN_ID,
-//     .timings = BUTTON_TIMINGS_DEFAULT,
-//     .events = BUTTON_EVENTS_DEFAULT,
-// };
+static const struct button_configuration button_remote_up = {
+    .pin_id = BUTTON_REMOTE_UP_PIN_ID,
+    .timings = BUTTON_TIMINGS_DEFAULT,
+    .events = BUTTON_EVENTS_DEFAULT,
+};
 
-// static const struct button_configuration button_remote_down = {
-//     .pin_id = BUTTON_REMOTE_DOWN_PIN_ID,
-//     .timings = BUTTON_TIMINGS_DEFAULT,
-//     .events = BUTTON_EVENTS_DEFAULT,
-// };
+static const struct button_configuration button_remote_down = {
+    .pin_id = BUTTON_REMOTE_DOWN_PIN_ID,
+    .timings = BUTTON_TIMINGS_DEFAULT,
+    .events = BUTTON_EVENTS_DEFAULT,
+};
 
 static const struct device_configuration button_devices_list[] = {
     {
@@ -56,21 +59,37 @@ static const struct device_configuration button_devices_list[] = {
         .type = DEVICE_TYPE_BUTTON,
         .config = &button_local_up,
     },
-    // {
-    //     .id = DEVICE_BUTTON_LOCAL_DOWN,
-    //     .type = DEVICE_TYPE_BUTTON,
-    //     .config = &button_local_down,
-    // },
-    // {
-    //     .id = DEVICE_BUTTON_REMOTE_UP,
-    //     .type = DEVICE_TYPE_BUTTON,
-    //     .config = &button_remote_up,
-    // },
-    // {
-    //     .id = DEVICE_BUTTON_REMOTE_DOWN,
-    //     .type = DEVICE_TYPE_BUTTON,
-    //     .config = &button_remote_down,
-    // },
+    {
+        .id = DEVICE_BUTTON_LOCAL_DOWN,
+        .type = DEVICE_TYPE_BUTTON,
+        .config = &button_local_down,
+    },
+    {
+        .id = DEVICE_BUTTON_REMOTE_UP,
+        .type = DEVICE_TYPE_BUTTON,
+        .config = &button_remote_up,
+    },
+    {
+        .id = DEVICE_BUTTON_REMOTE_DOWN,
+        .type = DEVICE_TYPE_BUTTON,
+        .config = &button_remote_down,
+    },
+};
+
+/*-------------------   MOTOR */
+static const struct motor_configuration motor_config = {
+    .motor_up_pin_id = MOTOR_UP_PIN_ID,
+    .motor_down_pin_id = MOTOR_DOWN_PIN_ID,
+    .timeout = MOTOR_SAFETY_TIMER_TIMEOUT,
+};
+
+
+static const struct device_configuration motor_devices_list[] = {
+    {
+        .id = DEVICE_MOTOR,
+        .type = DEVICE_TYPE_MOTOR,
+        .config = &motor_config,
+    },
 };
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
@@ -93,8 +112,8 @@ const struct device_configuration *get_list_of_devices_by_type(enum device_type 
         return NULL;
 
     case DEVICE_TYPE_MOTOR:
-        *devices_count = 0;
-        return NULL;
+        *devices_count = ARRAY_SIZE(motor_devices_list);
+        return motor_devices_list;
 
     default:
         *devices_count = 0;

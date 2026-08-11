@@ -12,6 +12,15 @@
 #include <inttypes.h>
 
 /* Public define -------------------------------------------------------------*/
+#define MS_PER_SECOND    (1000U)
+#define MS_PER_MINUTE    (60U * MS_PER_SECOND)
+
+#define MS(seconds)      ((seconds) * MS_PER_SECOND)
+#define MINUTES(minutes) ((minutes) * MS_PER_MINUTE)
+
+#define TIME_MS(minutes, seconds, milliseconds) \
+    (MINUTES(minutes) + MS(seconds) + (milliseconds))
+
 /* Public typedef ------------------------------------------------------------*/
 /* Public macro --------------------------------------------------------------*/
 

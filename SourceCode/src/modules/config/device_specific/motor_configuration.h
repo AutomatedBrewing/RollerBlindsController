@@ -16,7 +16,9 @@
 
 struct motor_configuration
 {
-    const enum board_input_pin_id pin_id;
+    const enum board_input_pin_id motor_up_pin_id;
+    const enum board_input_pin_id motor_down_pin_id;
+    uint32_t timeout;
 };
 
 /* Public macro --------------------------------------------------------------*/

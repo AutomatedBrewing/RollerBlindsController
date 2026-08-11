@@ -1,0 +1,7 @@
+target_include_directories(${FW_LIBRARY_TARGET} PUBLIC 
+    ${CMAKE_CURRENT_LIST_DIR})
+
+target_sources(${FW_LIBRARY_TARGET} PRIVATE 
+    ${CMAKE_CURRENT_LIST_DIR}/motor_up_event.c
+    ${CMAKE_CURRENT_LIST_DIR}/motor_down_event.c
+    ${CMAKE_CURRENT_LIST_DIR}/motor_stop_event.c)

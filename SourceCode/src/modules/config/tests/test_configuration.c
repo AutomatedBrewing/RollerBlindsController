@@ -72,8 +72,8 @@ static void when_fetching_motor_device_list_then_return_valid_list(void **state)
 
     /* ASSERT */
     // assert_non_null(list);
-    assert_null(list);
-    assert_uint_equal(count, 0);
+    assert_non_null(list);
+    assert_uint_equal(count, 1);
 }
 
 int main(void)

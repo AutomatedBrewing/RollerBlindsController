@@ -6,19 +6,15 @@
  */
 
 /* Private includes ----------------------------------------------------------*/
-#include "gpio.h"
-
 #include "em_event.h"
 
-#include "hsm_controller.h"
-#include "hsm_controller_states.h"
+#include "motor_up_event.h"
+#include "motor_down_event.h"
+
+#include "hsm_motor.h"
+#include "hsm_motor_states.h"
 
 #include "utils.h"
-
-#include "button_pressed_event.h"
-#include "button_released_event.h"
-
-
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -26,34 +22,21 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-static void handleButtonPressed(union button_pressed_message *message)
-{
-    (void)(message);
-}
-
-static void handleButtonReleased(union button_released_message *message)
-{
-    (void)(message);
-}
 
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
-    (void)(pmachine);
-    
     struct event *event_id = pmachine->Event;
-    if (event_id->id == BUTTON_PRESSED_EVENT_ID)
+    if (event_id->id == MOTOR_UP_EVENT_ID)
     {
-        handleButtonPressed((union button_pressed_message *)event_id);
-        return EVENT_HANDLED;
+        return switch_state(pmachine, hsm_motor_moves_up);
     }
-    else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
+    else if (event_id->id == MOTOR_DOWN_EVENT_ID)
     {
-        handleButtonReleased((union button_released_message *)event_id);
-        return EVENT_HANDLED;
+        return switch_state(pmachine, hsm_motor_moves_down);
     }
     return EVENT_UN_HANDLED;
 }
 
-const state_t hsm_controller_idle[] = {
-    {event_handler, NULL, NULL, hsm_controller_root, NULL, 1},
+const state_t hsm_motor_idle[] = {
+    {event_handler, NULL, NULL, hsm_motor_root, NULL, 1},
 };

@@ -19,6 +19,7 @@
 
 #include "hsm_motor.h"
 #include "hsm_motor_states.h"
+#include "hsm_motor_internal.h"
 
 #include "configuration.h"
 #include "motor_configuration.h"
@@ -31,7 +32,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static struct hsm_motor_context motor = {0};
+struct hsm_motor_context motor = {0};
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/

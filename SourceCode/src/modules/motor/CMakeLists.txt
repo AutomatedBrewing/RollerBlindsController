@@ -7,4 +7,4 @@ target_sources(${FW_LIBRARY_TARGET} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/hsm_motor_moves_up.c
     ${CMAKE_CURRENT_LIST_DIR}/hsm_motor_moves_down.c)
 
-#add_subdirectory(tests)
+add_subdirectory(tests)

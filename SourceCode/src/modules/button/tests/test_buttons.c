@@ -317,8 +317,8 @@ static void expect_enter_very_long_pressed_state(const enum board_input_pin_id p
 static void setup_test_harness(struct test_harness *harness, const struct device_configuration *buttons_list,
                                uint8_t list_size)
 {
-    uint32_t initial_pin_info = 0x69;
-    uint32_t initial_pin_handle = 0x100;
+    uintptr_t initial_pin_info = 0x69;
+    uintptr_t initial_pin_handle = 0x100;
 
     for (uint8_t id = 0; id < list_size; id++)
     {

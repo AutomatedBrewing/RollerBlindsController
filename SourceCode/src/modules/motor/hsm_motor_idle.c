@@ -8,8 +8,8 @@
 /* Private includes ----------------------------------------------------------*/
 #include "em_event.h"
 
-#include "motor_up_event.h"
 #include "motor_down_event.h"
+#include "motor_up_event.h"
 
 #include "hsm_motor.h"
 #include "hsm_motor_states.h"
@@ -21,7 +21,6 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
-
 
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {

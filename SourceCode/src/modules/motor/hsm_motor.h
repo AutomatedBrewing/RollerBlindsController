@@ -9,8 +9,8 @@
 #define SRC_MODULES_MOTOR_HSM_MOTOR_H_
 
 /* Private includes ----------------------------------------------------------*/
-#include "hsm.h"
 #include "em_timer.h"
+#include "hsm.h"
 
 #include "motor_configuration.h"
 /* Public define -------------------------------------------------------------*/
@@ -19,7 +19,7 @@ DECLARE_EVENT(SAFETY_TIMER_EVENT)
 
 /* Public typedef ------------------------------------------------------------*/
 
-struct motor 
+struct motor
 {
     const struct gpio_pin *gpio_info;
     void *gpio_handle;
@@ -39,6 +39,5 @@ struct hsm_motor_context
 extern const struct subscriber motor_subscriber;
 
 /* Public function prototypes ------------------------------------------------*/
-
 
 #endif /* SRC_MODULES_MOTOR_HSM_MOTOR_H_ */

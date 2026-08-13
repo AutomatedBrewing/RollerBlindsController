@@ -20,7 +20,6 @@
 #include "button_pressed_event.h"
 #include "button_released_event.h"
 
-
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -46,13 +45,9 @@ static void handle_test_event(void *event)
     dispatch_event(machineList, 1);
 }
 
-
-
-
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
     (void)(pmachine);
-    
 
     return EVENT_UN_HANDLED;
 }

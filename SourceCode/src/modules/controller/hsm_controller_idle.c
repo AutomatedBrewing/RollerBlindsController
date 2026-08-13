@@ -18,7 +18,6 @@
 #include "button_pressed_event.h"
 #include "button_released_event.h"
 
-
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -39,7 +38,7 @@ static void handleButtonReleased(union button_released_message *message)
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
     (void)(pmachine);
-    
+
     struct event *event_id = pmachine->Event;
     if (event_id->id == BUTTON_PRESSED_EVENT_ID)
     {

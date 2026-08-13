@@ -8,9 +8,8 @@
 /* Private includes ----------------------------------------------------------*/
 #include "ui_test_vectors.h"
 
-#include "ui_configuration.h"
 #include "configuration.h"
-
+#include "ui_configuration.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -23,12 +22,12 @@
 /* Private variables ---------------------------------------------------------*/
 static const struct buzzer_configuration buzzer_config = {
     .pin_id = BUZZER_PIN_ID,
-    .timings = 
-    {
-        .on_time = 100,
-        .off_time = 200,
-        .repetitions = 1,
-    },
+    .timings =
+        {
+            .on_time = 100,
+            .off_time = 200,
+            .repetitions = 1,
+        },
 };
 
 const struct device_configuration one_buzzer_list[] = {

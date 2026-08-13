@@ -330,10 +330,13 @@ static uint32_t convert_pin_mode_to_driver_output_type(enum board_pin_mode mode)
 
 static void gpio_configure(const struct gpio_pin *pin_info)
 {
-    if (pin_info->polarity == ACTIVE_LOW) {
-        LL_GPIO_SetOutputPin((GPIO_TypeDef*) pin_info->port, pin_info->pin);
-    } else {
-        LL_GPIO_ResetOutputPin((GPIO_TypeDef*) pin_info->port, pin_info->pin);
+    if (pin_info->polarity == ACTIVE_LOW)
+    {
+        LL_GPIO_SetOutputPin((GPIO_TypeDef *)pin_info->port, pin_info->pin);
+    }
+    else
+    {
+        LL_GPIO_ResetOutputPin((GPIO_TypeDef *)pin_info->port, pin_info->pin);
     }
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -374,14 +377,16 @@ void gpio_output_toggle(void *pin_handle)
     LL_GPIO_TogglePin(driver_port, handle->info->pin);
 }
 
-
 void gpio_output_set(void *pin_handle)
 {
     struct pin_context *handle = pin_handle;
     GPIO_TypeDef *driver_port = (GPIO_TypeDef *)handle->info->port;
-    if (handle->info->polarity == ACTIVE_LOW) {
+    if (handle->info->polarity == ACTIVE_LOW)
+    {
         LL_GPIO_ResetOutputPin(driver_port, handle->info->pin);
-    } else {
+    }
+    else
+    {
         LL_GPIO_SetOutputPin(driver_port, handle->info->pin);
     }
 }
@@ -389,10 +394,13 @@ void gpio_output_set(void *pin_handle)
 void gpio_output_clear(void *pin_handle)
 {
     struct pin_context *handle = pin_handle;
-    GPIO_TypeDef *driver_port = (GPIO_TypeDef*) handle->info->port;
-    if (handle->info->polarity == ACTIVE_LOW) {
+    GPIO_TypeDef *driver_port = (GPIO_TypeDef *)handle->info->port;
+    if (handle->info->polarity == ACTIVE_LOW)
+    {
         LL_GPIO_SetOutputPin(driver_port, handle->info->pin);
-    } else {
+    }
+    else
+    {
         LL_GPIO_ResetOutputPin(driver_port, handle->info->pin);
     }
 }

@@ -8,7 +8,6 @@
 #ifndef MOTOR_INTERNAL_H_
 #define MOTOR_INTERNAL_H_
 
-
 #include "hsm_motor.h"
 
 extern struct hsm_motor_context motor;

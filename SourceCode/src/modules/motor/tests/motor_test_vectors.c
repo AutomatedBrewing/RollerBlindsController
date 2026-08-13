@@ -8,9 +8,8 @@
 /* Private includes ----------------------------------------------------------*/
 #include "motor_test_vectors.h"
 
-#include "motor_configuration.h"
 #include "configuration.h"
-
+#include "motor_configuration.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -26,7 +25,6 @@ static const struct motor_configuration motor_config = {
     .motor_down_pin_id = MOTOR_DOWN_PIN_ID,
     .timeout = 69,
 };
-
 
 const struct device_configuration one_motor_list[] = {
     {

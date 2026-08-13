@@ -83,7 +83,6 @@ static const struct motor_configuration motor_config = {
     .timeout = MOTOR_SAFETY_TIMER_TIMEOUT,
 };
 
-
 static const struct device_configuration motor_devices_list[] = {
     {
         .id = DEVICE_MOTOR,
@@ -95,14 +94,13 @@ static const struct device_configuration motor_devices_list[] = {
 /*-------------------   BUZZER */
 static const struct buzzer_configuration buzzer_config = {
     .pin_id = BUZZER_PIN_ID,
-    .timings = 
-    {
-        .on_time = 100,
-        .off_time = 100,
-        .repetitions = 2,
-    },
+    .timings =
+        {
+            .on_time = 100,
+            .off_time = 100,
+            .repetitions = 2,
+        },
 };
-
 
 static const struct device_configuration ui_devices_list[] = {
     {
@@ -130,7 +128,7 @@ const struct device_configuration *get_list_of_devices_by_type(enum device_type 
     case DEVICE_TYPE_BUZZER:
         *devices_count = ARRAY_SIZE(ui_devices_list);
         return ui_devices_list;
-        
+
     case DEVICE_TYPE_MOTOR:
         *devices_count = ARRAY_SIZE(motor_devices_list);
         return motor_devices_list;

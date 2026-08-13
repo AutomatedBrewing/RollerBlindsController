@@ -21,7 +21,6 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
     struct event *event_id = pmachine->Event;

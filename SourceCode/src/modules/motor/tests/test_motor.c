@@ -15,13 +15,12 @@
 #include "hsm_motor_internal.h"
 #include "motor_test_vectors.h"
 
-#include "motor_up_event.h"
 #include "motor_down_event.h"
 #include "motor_stop_event.h"
+#include "motor_up_event.h"
 
 #include "em_timer.h"
 #include "gpio.h"
-
 
 #include "configuration_mock.h"
 #include "gpio_pins_mock.h"
@@ -136,14 +135,14 @@ void __wrap_gpio_output_configure(void *pin_handle, enum board_pin_mode mode)
     (void)(mode);
     function_called();
     check_expected(pin_handle);
-    //check_expected(mode);
+    // check_expected(mode);
 }
 
 void expect_gpio_output_configure(void *expected_pin_handle)
 {
     expect_function_call(__wrap_gpio_output_configure);
     expect_uint_value(__wrap_gpio_output_configure, pin_handle, (uintmax_t)expected_pin_handle);
-    //expect_uint_value(__wrap_gpio_output_configure, mode, expected_mode);
+    // expect_uint_value(__wrap_gpio_output_configure, mode, expected_mode);
 }
 
 void __wrap_gpio_output_set(void *pin_handle)
@@ -169,7 +168,6 @@ void expect_gpio_output_clear(void *expected_pin_handle)
     expect_function_call(__wrap_gpio_output_clear);
     expect_uint_value(__wrap_gpio_output_clear, pin_handle, (uintmax_t)expected_pin_handle);
 }
-
 
 /*----------------------------------GPIO MOCKS TO BE EXPORTED -----------------*/
 
@@ -202,7 +200,6 @@ static void send_motor_stop_event(void)
     em_publish_message(&message);
 }
 
-
 void __wrap_em_publish_message(void *message)
 {
     struct event *event_id = message;
@@ -211,21 +208,20 @@ void __wrap_em_publish_message(void *message)
     motor_subscriber.handle_event(message);
 }
 
-
-
 static int test_setup(void **state)
 {
     memset(&motor, 0, sizeof(motor));
     return 0;
 }
 
-static void init_motor_entry(struct motor_entry * motor, void *pin_info, void *pin_handle)
+static void init_motor_entry(struct motor_entry *motor, void *pin_info, void *pin_handle)
 {
     motor->pin_handle = pin_handle;
     motor->pin_info = pin_info;
 }
 
-static void setup_test_harness(struct test_harness *harness, const struct device_configuration *motor_list, uint32_t list_size)
+static void setup_test_harness(struct test_harness *harness, const struct device_configuration *motor_list,
+                               uint32_t list_size)
 {
     uintptr_t initial_pin_info = 0x69;
     uintptr_t initial_pin_handle = 0x100;
@@ -246,7 +242,6 @@ static void expect_init_all_motors(struct test_harness *test)
     expect_gpio_pin_init(&test->motor_up.pin_info, test->motor_up.pin_handle, GPIO_OK);
     expect_gpio_output_configure(test->motor_up.pin_handle);
     expect_gpio_output_clear(test->motor_up.pin_handle);
-    
 
     expect_find_gpio_pin_context(test->config->motor_down_pin_id, &test->motor_down.pin_info);
     expect_gpio_pin_init(&test->motor_down.pin_info, test->motor_down.pin_handle, GPIO_OK);
@@ -440,7 +435,6 @@ static void given_motor_down_running_when_timeout_then_motor_down_stops(void **s
     /* ACT */
     send_safety_timer_event(&motor);
 }
-
 
 int main(void)
 {

@@ -24,7 +24,7 @@
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_ui_context *ui = CONTAINER_OF(pmachine, struct hsm_ui_context, machine);
-    
+
     em_timer_set_period(&ui->timer, ui->configuration->timings.off_time);
     em_timer_start(&ui->timer);
 
@@ -40,16 +40,15 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
     return EVENT_HANDLED;
 }
 
-
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
-    
+
     struct event *event_id = pmachine->Event;
     if ((event_id->id == UI_TIMER_EVENT_ID))
     {
         return switch_state(pmachine, hsm_ui_notifying);
     }
-    
+
     return EVENT_UN_HANDLED;
 }
 

@@ -43,12 +43,10 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
     return EVENT_HANDLED;
 }
 
-
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
     struct event *event_id = pmachine->Event;
-    if ((event_id->id == MOTOR_STOP_EVENT_ID) ||
-        (event_id->id == SAFETY_TIMER_EVENT_ID))
+    if ((event_id->id == MOTOR_STOP_EVENT_ID) || (event_id->id == SAFETY_TIMER_EVENT_ID))
     {
         return switch_state(pmachine, hsm_motor_idle);
     }

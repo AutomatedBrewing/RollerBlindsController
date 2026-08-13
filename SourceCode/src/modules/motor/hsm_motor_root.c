@@ -18,8 +18,8 @@
 #include "hsm.h"
 
 #include "hsm_motor.h"
-#include "hsm_motor_states.h"
 #include "hsm_motor_internal.h"
+#include "hsm_motor_states.h"
 
 #include "configuration.h"
 #include "motor_configuration.h"
@@ -27,7 +27,6 @@
 #include "utils.h"
 
 /* Private define ------------------------------------------------------------*/
-
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -44,7 +43,7 @@ static void init_motor_hsm(struct hsm_motor_context *hsm)
     traverse_state(&hsm->machine, initial_state);
 }
 
-static void create_safety_timer(struct em_timer * timer, void * context, uint32_t timeout)
+static void create_safety_timer(struct em_timer *timer, void *context, uint32_t timeout)
 {
     /* Debounce timer. */
     em_timer_create(timer, NULL, false, context);
@@ -52,7 +51,7 @@ static void create_safety_timer(struct em_timer * timer, void * context, uint32_
     em_timer_set_period(timer, timeout);
 }
 
-static void configure_gpio(struct motor * motor, const enum board_input_pin_id motor_pin_id)
+static void configure_gpio(struct motor *motor, const enum board_input_pin_id motor_pin_id)
 {
     motor->gpio_info = find_gpio_pin_context(motor_pin_id);
     gpio_pin_init(motor->gpio_info, &motor->gpio_handle);
@@ -60,7 +59,7 @@ static void configure_gpio(struct motor * motor, const enum board_input_pin_id m
     gpio_output_clear(motor->gpio_handle);
 }
 
-static void configure_motors(struct hsm_motor_context *hsm, const struct motor_configuration * config)
+static void configure_motors(struct hsm_motor_context *hsm, const struct motor_configuration *config)
 {
     configure_gpio(&hsm->motor_up, config->motor_up_pin_id);
     configure_gpio(&hsm->motor_down, config->motor_down_pin_id);
@@ -92,13 +91,9 @@ static void handle_test_event(void *event)
     dispatch_event(machineList, 1);
 }
 
-
-
-
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
 {
     (void)(pmachine);
-    
 
     return EVENT_UN_HANDLED;
 }
@@ -106,7 +101,6 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
 const struct subscriber motor_subscriber = {.init = handle_init_event, .handle_event = handle_test_event};
 CREATE_LIST_OF_SUBSCRIBERS_IN_EXECUTOR(main_executor_subscribers, main_executor, ADD_SUBSCRIBER(&motor_subscriber))
 CREATE_EVENT(SAFETY_TIMER_EVENT, ADD_SUBSCRIBER(&main_executor_subscribers))
-
 
 const state_t hsm_motor_root[] = {
     {event_handler, NULL, NULL, NULL, NULL, 0},

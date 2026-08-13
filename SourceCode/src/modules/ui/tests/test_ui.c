@@ -20,7 +20,6 @@
 #include "em_timer.h"
 #include "gpio.h"
 
-
 #include "configuration_mock.h"
 #include "gpio_pins_mock.h"
 
@@ -28,8 +27,6 @@
 #include <string.h>
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
-
-
 
 struct test_harness
 {
@@ -124,14 +121,14 @@ void __wrap_gpio_output_configure(void *gpio_handle, enum board_pin_mode mode)
     (void)(mode);
     function_called();
     check_expected(gpio_handle);
-    //check_expected(mode);
+    // check_expected(mode);
 }
 
 void expect_gpio_output_configure(void *expected_gpio_handle)
 {
     expect_function_call(__wrap_gpio_output_configure);
     expect_uint_value(__wrap_gpio_output_configure, gpio_handle, (uintmax_t)expected_gpio_handle);
-    //expect_uint_value(__wrap_gpio_output_configure, mode, expected_mode);
+    // expect_uint_value(__wrap_gpio_output_configure, mode, expected_mode);
 }
 
 void __wrap_gpio_output_set(void *gpio_handle)
@@ -158,7 +155,6 @@ void expect_gpio_output_clear(void *expected_gpio_handle)
     expect_uint_value(__wrap_gpio_output_clear, gpio_handle, (uintmax_t)expected_gpio_handle);
 }
 
-
 /*----------------------------------GPIO MOCKS TO BE EXPORTED -----------------*/
 
 static void send_ui_timer_event(void *context)
@@ -176,8 +172,6 @@ static void send_ui_notify_event(void)
     em_publish_message(&message);
 }
 
-
-
 void __wrap_em_publish_message(void *message)
 {
     struct event *event_id = message;
@@ -186,27 +180,26 @@ void __wrap_em_publish_message(void *message)
     ui_subscriber.handle_event(message);
 }
 
-
 static int test_setup(void **state)
 {
     memset(&ui, 0, sizeof(ui));
     return 0;
 }
 
-static void init_buzzer_entry(struct buzzer * buzzer, void *gpio_info, void *gpio_handle)
+static void init_buzzer_entry(struct buzzer *buzzer, void *gpio_info, void *gpio_handle)
 {
     buzzer->gpio_handle = gpio_handle;
     buzzer->gpio_info = gpio_info;
     buzzer->finished_repetitions = 0;
 }
 
-static void setup_test_harness(struct test_harness *harness, const struct device_configuration *buzzers_list, uint32_t list_size)
+static void setup_test_harness(struct test_harness *harness, const struct device_configuration *buzzers_list,
+                               uint32_t list_size)
 {
     uintptr_t initial_gpio_info = 0x69;
     uintptr_t initial_gpio_handle = 0x100;
 
     init_buzzer_entry(&harness->buzzer, (void *)initial_gpio_info++, (void *)initial_gpio_handle++);
-    
 
     harness->ui_list = buzzers_list;
     harness->config = buzzers_list->config;
@@ -255,14 +248,14 @@ static void given_one_buzzer_in_device_list_when_initializing_then_init_it(void 
     test_subscriber->init(0);
 }
 
-static void expect_activation(uint32_t expected_active_period, void * expected_gpio_handle)
+static void expect_activation(uint32_t expected_active_period, void *expected_gpio_handle)
 {
     expect_em_timer_set_period(expected_active_period);
     expect_em_timer_start();
     expect_gpio_output_set(expected_gpio_handle);
 }
 
-static void expect_deactivation(uint32_t expected_inactive_period, void * expected_gpio_handle)
+static void expect_deactivation(uint32_t expected_inactive_period, void *expected_gpio_handle)
 {
     expect_gpio_output_clear(expected_gpio_handle);
     expect_em_timer_set_period(expected_inactive_period);
@@ -300,8 +293,6 @@ static void given_idled_ui_when_received_notify_event_then_perform_notification_
     /* ACT */
     send_ui_timer_event(&ui);
 }
-
-
 
 int main(void)
 {

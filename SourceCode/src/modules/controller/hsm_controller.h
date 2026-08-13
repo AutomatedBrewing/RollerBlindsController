@@ -25,5 +25,4 @@ extern const struct subscriber controller_subscriber;
 
 /* Public function prototypes ------------------------------------------------*/
 
-
 #endif /* SRC_MODULES_CONTROLLER_HSM_CONTROLLER_H_ */

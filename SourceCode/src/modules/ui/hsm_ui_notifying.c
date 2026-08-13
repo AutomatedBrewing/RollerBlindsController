@@ -24,7 +24,7 @@
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_ui_context *ui = CONTAINER_OF(pmachine, struct hsm_ui_context, machine);
-    if(ui->buzzer.finished_repetitions < ui->configuration->timings.repetitions)
+    if (ui->buzzer.finished_repetitions < ui->configuration->timings.repetitions)
     {
         return switch_state(pmachine, hsm_ui_active);
     }
@@ -32,7 +32,7 @@ static state_machine_result_t entry_handler(state_machine_t *const pmachine)
     {
         ui->buzzer.finished_repetitions = 0;
         return switch_state(pmachine, hsm_ui_idle);
-    }    
+    }
 }
 
 static state_machine_result_t event_handler(state_machine_t *const pmachine)

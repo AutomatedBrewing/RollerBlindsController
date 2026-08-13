@@ -56,9 +56,8 @@ static void when_fetching_buzzer_device_list_then_return_valid_list(void **state
     list = get_list_of_devices_by_type(DEVICE_TYPE_BUZZER, &count);
 
     /* ASSERT */
-    // assert_non_null(list);
-    assert_null(list);
-    assert_uint_equal(count, 0);
+    assert_non_null(list);
+    assert_uint_equal(count, 1);
 }
 
 static void when_fetching_motor_device_list_then_return_valid_list(void **state)
@@ -71,7 +70,6 @@ static void when_fetching_motor_device_list_then_return_valid_list(void **state)
     list = get_list_of_devices_by_type(DEVICE_TYPE_MOTOR, &count);
 
     /* ASSERT */
-    // assert_non_null(list);
     assert_non_null(list);
     assert_uint_equal(count, 1);
 }

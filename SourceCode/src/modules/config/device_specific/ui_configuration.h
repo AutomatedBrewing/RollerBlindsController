@@ -5,8 +5,8 @@
  *      Author: dev
  */
 
-#ifndef BUZZER_CONFIGURATION_H_
-#define BUZZER_CONFIGURATION_H_
+#ifndef UI_CONFIGURATION_H_
+#define UI_CONFIGURATION_H_
 
 /* Private includes ----------------------------------------------------------*/
 #include "gpio_pins.h"
@@ -30,4 +30,4 @@ struct buzzer_configuration
 /* Public variables ----------------------------------------------------------*/
 /* Public function prototypes ------------------------------------------------*/
 
-#endif /* BUZZER_CONFIGURATION_H_ */
+#endif /* UI_CONFIGURATION_H_ */

@@ -13,7 +13,7 @@
 
 /* Includes for devices configurations. */
 #include "button_configuration.h"
-#include "buzzer_configuration.h"
+#include "ui_configuration.h"
 #include "motor_configuration.h"
 
 /* Public define -------------------------------------------------------------*/

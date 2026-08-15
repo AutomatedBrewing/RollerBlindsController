@@ -41,6 +41,12 @@ void gpio_configure_pullup_down(void *pin_handle, enum gpio_pin_pull pull)
     (void)(pull);
 }
 
+void gpio_output_configure(void *pin_handle, enum board_pin_mode mode)
+{
+    (void)(pin_handle);
+    (void)(mode);
+}
+
 void gpio_output_toggle(void *pin_handle)
 {
     (void)(pin_handle);

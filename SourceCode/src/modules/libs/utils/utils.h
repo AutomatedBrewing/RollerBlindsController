@@ -24,6 +24,10 @@
 /* Public macro --------------------------------------------------------------*/
 
 #define BIT(n) (1 << (n))
+#define SET_BITS(value, mask)   ((value) |= (mask))
+#define CLEAR_BITS(value, mask)   ((value) &= ~(mask))
+#define IS_BIT_SET(value, mask) \
+    (((value) & (mask)) != 0U)
 
 /**
  * @brief Macro for getting the number of elements in an array.

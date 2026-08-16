@@ -67,7 +67,7 @@ struct hsm_controller_context
     struct em_timer timer;
     uint32_t movement_time;
     struct buttons_events buttons;
-    enum board_input_pin_id currently_active_manual_button;
+    enum board_input_pin_id currently_operating_button;
 };
 
 /* Public macro --------------------------------------------------------------*/

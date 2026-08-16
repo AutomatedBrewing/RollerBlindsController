@@ -17,6 +17,7 @@
 #include "motor_up_event.h"
 #include "motor_down_event.h"
 #include "motor_stop_event.h"
+#include "ui_notify_event.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -107,5 +108,12 @@ void send_motor_stop_request(void)
 {
     union motor_down_message message = {0};
     em_set_message_event(&message.event.super, MOTOR_DOWN_EVENT_ID);
+    em_publish_message(&message);
+}
+
+void send_ui_notify_request(void)
+{
+    union ui_notify_message message = {0};
+    em_set_message_event(&message.event.super, UI_NOTIFY_EVENT_ID);
     em_publish_message(&message);
 }

@@ -29,7 +29,7 @@
 static state_machine_result_t determine_manual_or_config(state_machine_t *const pmachine, union button_pressed_message *message, struct hsm_controller_context *controller)
 {
     process_pressed_event(message, controller);
-    if(MORE_THAN_ONE_BIT_SET(controller->buttons.very_long_pressed))
+    if(IS_BIT_SET(controller->buttons.very_long_pressed, LOCAL_UP_BIT_POS) && IS_BIT_SET(controller->buttons.very_long_pressed, LOCAL_DOWN_BIT_POS))
     {
         return switch_state(pmachine, hsm_controller_config_mode);
     }

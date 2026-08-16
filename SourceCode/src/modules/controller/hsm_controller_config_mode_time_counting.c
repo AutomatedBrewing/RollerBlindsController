@@ -26,21 +26,36 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
+static bool is_counting = false;
 
-static state_machine_result_t entry_handler(state_machine_t *const pmachine)
-{ 
-    (void)(pmachine);
-    send_ui_notify_request();
-    
-    return EVENT_HANDLED;
+/* Private function prototypes -----------------------------------------------*/
+static void start_counting_movement_time(struct em_timer *timer, uint32_t movement_time)
+{
+    (void)(timer);
+    (void)(movement_time);
+    //em_timer_set_period(timer, movement_time);
+    //em_timer_start(timer);
 }
+
+static void request_motor_movement(enum direction motor_direction)
+{
+    if (motor_direction == UP)
+    {
+        send_motor_up_request();
+    }
+    else if (motor_direction == DOWN)
+    {
+        send_motor_down_request();
+    }
+}
+
 
 static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 {
     (void)(pmachine);
 
-    send_ui_notify_request();
+    send_motor_stop_request();
+    is_counting = false;
 
     return EVENT_HANDLED;
 }
@@ -50,15 +65,25 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 static void handleButtonPressed(union button_pressed_message *message, struct hsm_controller_context *controller)
 {
     process_pressed_event(message, controller);
+
+    if(is_counting == false)
+    {
+        controller->currently_operating_button = message->event.button;
+        enum direction motor_direction = pin_id_to_direction(message->event.button);
+
+        request_motor_movement(motor_direction);
+        start_counting_movement_time(&controller->timer, controller->movement_time);
+    }
 }
 
 static state_machine_result_t handleButtonReleased(state_machine_t *const pmachine, union button_released_message *message, struct hsm_controller_context *controller)
 {
     process_released_event(message, controller);
 
-    if(ALL_BITS_CLEAR(controller->buttons.short_pressed, ALL_BUTTONS))
+    if(message->event.button == controller->currently_operating_button)
     {
-        return switch_state(pmachine, hsm_controller_config_mode_time_counting);
+        controller->currently_operating_button = INVALID_PIN_ID;
+        return switch_state(pmachine, hsm_controller_idle);
     }   
     else
     {
@@ -73,7 +98,7 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     if (event_id->id == BUTTON_PRESSED_EVENT_ID)
     {
         handleButtonPressed((union button_pressed_message *)event_id, controller);
-        return EVENT_HANDLED;
+        return switch_state(pmachine, hsm_controller_idle);
     }
     else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
     {
@@ -83,6 +108,6 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     return EVENT_UN_HANDLED;
 }
 
-const state_t hsm_controller_config_mode[] = {
-    {event_handler, entry_handler, exit_handler, hsm_controller_any_mode_candidate, hsm_controller_config_mode_time_counting, 3},
+const state_t hsm_controller_config_mode_time_counting[] = {
+    {event_handler, NULL, exit_handler, hsm_controller_config_mode, NULL, 4},
 };

@@ -42,7 +42,7 @@ static state_machine_result_t entry_handler(state_machine_t *const pmachine)
     struct hsm_controller_context *controller = CONTAINER_OF(pmachine, struct hsm_controller_context, machine);
     union button_pressed_message *event = (union button_pressed_message *)pmachine->Event;
 
-    controller->currently_active_manual_button = event->event.button;
+    controller->currently_operating_button = event->event.button;
     enum direction motor_direction = pin_id_to_direction(event->event.button);
     request_motor_movement(motor_direction);
 
@@ -69,9 +69,9 @@ static state_machine_result_t handleButtonReleased(state_machine_t *const pmachi
 {
     process_released_event(message, controller);
 
-    if(message->event.button == controller->currently_active_manual_button)
+    if(message->event.button == controller->currently_operating_button)
     {
-        controller->currently_active_manual_button = INVALID_PIN_ID;
+        controller->currently_operating_button = INVALID_PIN_ID;
         return switch_state(pmachine, hsm_controller_idle);
     }   
     else

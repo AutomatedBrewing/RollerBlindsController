@@ -22,5 +22,6 @@ void process_released_event(union button_released_message *event, struct hsm_con
 void send_motor_up_request(void);
 void send_motor_down_request(void);
 void send_motor_stop_request(void);
+void send_ui_notify_request(void);
 
 #endif /* CONTROLLER_INTERNAL_H_ */

@@ -49,7 +49,7 @@ static state_machine_result_t entry_handler(state_machine_t *const pmachine)
     union button_released_message *event = (union button_released_message *)pmachine->Event;
 
     /* Clear button pressed status now. */
-    process_released_event(event, controller);
+    //process_pressed_event(event, controller);
 
     enum direction motor_direction = pin_id_to_direction(event->event.button);
     request_motor_movement(motor_direction);
@@ -93,6 +93,6 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     return EVENT_UN_HANDLED;
 }
 
-const state_t hsm_controller_auto_mode[] = {
+const state_t hsm_controller_config_mode[] = {
     {event_handler, entry_handler, exit_handler, hsm_controller_any_mode_candidate, NULL, 3},
 };

@@ -26,25 +26,32 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-static void handleButtonPressed(union button_pressed_message *message)
+static state_machine_result_t determine_manual_or_config(state_machine_t *const pmachine, union button_pressed_message *message, struct hsm_controller_context *controller)
 {
-    (void)(message);
+    process_pressed_event(message, controller);
+    if(MORE_THAN_ONE_BIT_SET(controller->buttons.very_long_pressed))
+    {
+        return switch_state(pmachine, hsm_controller_config_mode);
+    }
+    else if((message->event.duration == LONG_PRESS) && (!MORE_THAN_ONE_BIT_SET(controller->buttons.short_pressed)))
+    {
+        return switch_state(pmachine, hsm_controller_manual_mode);
+    }
+    else 
+    {
+        return EVENT_HANDLED;
+    }
 }
 
-static bool canEnterAutoMode(union button_released_message *message, struct hsm_controller_context *controller)
-{
-    uint32_t bit = pin_id_to_bit(message->event.button);
-    
-    /* Clear this particular button. */
-    CLEAR_BITS(controller->buttons, bit);
 
-    if(ANY_BITS_SET(controller->buttons, ALL_BUTTONS))
+static bool canEnterAutoMode(struct hsm_controller_context *controller)
+{
+    if(MORE_THAN_ONE_BIT_SET(controller->buttons.short_pressed))
     {
         return false;
     }
     else
     {
-        controller->pending_request_direction = pin_id_to_direction(message->event.button);
         return true;
     }
 }
@@ -55,18 +62,18 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     struct event *event_id = pmachine->Event;
     if (event_id->id == BUTTON_PRESSED_EVENT_ID)
     {
-        handleButtonPressed((union button_pressed_message *)event_id);
-        return EVENT_HANDLED;
+        return determine_manual_or_config(pmachine, (union button_pressed_message *)event_id, controller);
     }
     else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
     {
-        if(canEnterAutoMode((union button_released_message *)event_id, controller))
+        if(canEnterAutoMode(controller))
         {
             return switch_state(pmachine, hsm_controller_auto_mode);
         }
         else
         {
-            return EVENT_HANDLED;
+            /* At least one more signal is active. Go to idle to ignore it. */
+            return switch_state(pmachine, hsm_controller_idle);
         }
         
     }

@@ -25,12 +25,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-static void start_counting_movement_time(struct em_timer *timer, uint32_t movement_time)
-{
-    em_timer_set_period(timer, movement_time);
-    em_timer_start(timer);
-}
-
 static void request_motor_movement(enum direction motor_direction)
 {
     if (motor_direction == UP)
@@ -46,15 +40,11 @@ static void request_motor_movement(enum direction motor_direction)
 static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 {
     struct hsm_controller_context *controller = CONTAINER_OF(pmachine, struct hsm_controller_context, machine);
-    union button_released_message *event = (union button_released_message *)pmachine->Event;
+    union button_pressed_message *event = (union button_pressed_message *)pmachine->Event;
 
-    /* Clear button pressed status now. */
-    process_released_event(event, controller);
-
+    controller->currently_active_manual_button = event->event.button;
     enum direction motor_direction = pin_id_to_direction(event->event.button);
     request_motor_movement(motor_direction);
-
-    start_counting_movement_time(&controller->timer, controller->movement_time);
 
     return EVENT_HANDLED;
 }
@@ -73,7 +63,21 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 static void handleButtonPressed(union button_pressed_message *message, struct hsm_controller_context *controller)
 {
     process_pressed_event(message, controller);
-    em_timer_stop(&controller->timer);
+}
+
+static state_machine_result_t handleButtonReleased(state_machine_t *const pmachine, union button_released_message *message, struct hsm_controller_context *controller)
+{
+    process_released_event(message, controller);
+
+    if(message->event.button == controller->currently_active_manual_button)
+    {
+        controller->currently_active_manual_button = INVALID_PIN_ID;
+        return switch_state(pmachine, hsm_controller_idle);
+    }   
+    else
+    {
+        return EVENT_HANDLED;
+    }
 }
 
 static state_machine_result_t event_handler(state_machine_t *const pmachine)
@@ -83,16 +87,16 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     if (event_id->id == BUTTON_PRESSED_EVENT_ID)
     {
         handleButtonPressed((union button_pressed_message *)event_id, controller);
-        return switch_state(pmachine, hsm_controller_idle);
+        return EVENT_HANDLED;
     }
-    else if (event_id->id == CONTROLLER_TIMER_EVENT_ID)
+    else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
     {
-        return switch_state(pmachine, hsm_controller_idle);
+        return handleButtonReleased(pmachine, (union button_released_message *)event_id, controller);
     }
 
     return EVENT_UN_HANDLED;
 }
 
-const state_t hsm_controller_auto_mode[] = {
+const state_t hsm_controller_manual_mode[] = {
     {event_handler, entry_handler, exit_handler, hsm_controller_any_mode_candidate, NULL, 3},
 };

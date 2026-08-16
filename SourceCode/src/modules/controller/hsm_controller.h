@@ -12,6 +12,7 @@
 #include "hsm.h"
 #include "em_timer.h"
 #include "utils.h"
+#include "gpio_pins.h"
 
 /* Public define -------------------------------------------------------------*/
 #define BUTTONS_COUNT (4)
@@ -53,14 +54,20 @@ enum direction
     INVALID
 };
 
+struct buttons_events
+{
+    uint32_t short_pressed;
+    uint32_t long_pressed;
+    uint32_t very_long_pressed;
+};
+
 struct hsm_controller_context
 {
     state_machine_t machine;
     struct em_timer timer;
     uint32_t movement_time;
-    
-    uint32_t buttons;
-    enum direction pending_request_direction;
+    struct buttons_events buttons;
+    enum board_input_pin_id currently_active_manual_button;
 };
 
 /* Public macro --------------------------------------------------------------*/

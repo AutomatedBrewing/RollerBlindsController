@@ -60,14 +60,32 @@ void process_pressed_event(union button_pressed_message *event, struct hsm_contr
 {
     enum board_input_pin_id pin_id = event->event.button;
     uint32_t bit = pin_id_to_bit(pin_id);
-    SET_BITS(controller->buttons, bit);
+    switch(event->event.duration)
+    {
+    case SHORT_PRESS:
+        SET_BITS(controller->buttons.short_pressed, bit);
+        break;
+
+    case LONG_PRESS:
+        SET_BITS(controller->buttons.long_pressed, bit);
+        break;
+
+    case VERY_LONG_PRESS:
+        SET_BITS(controller->buttons.very_long_pressed, bit);
+        break;
+    }
+
 }
 
-void process_released_event(union button_pressed_message *event,struct hsm_controller_context *controller)
+void process_released_event(union button_released_message *event,struct hsm_controller_context *controller)
 {
     enum board_input_pin_id pin_id = event->event.button;
     uint32_t bit = pin_id_to_bit(pin_id);
-    CLEAR_BITS(controller->buttons, bit);
+
+    /* Clear everything. */
+    CLEAR_BITS(controller->buttons.short_pressed, bit);
+    CLEAR_BITS(controller->buttons.long_pressed, bit);
+    CLEAR_BITS(controller->buttons.very_long_pressed, bit);
 }
 
 

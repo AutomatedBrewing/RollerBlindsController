@@ -36,6 +36,12 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
         process_pressed_event((union button_pressed_message *)event_id, controller);
         return switch_state(pmachine, hsm_controller_any_mode_candidate);
     }
+    else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
+    {
+        /* In idle statuses of released are only saved, nothing more. */
+        process_released_event((union button_released_message *)event_id, controller);
+        return EVENT_HANDLED;
+    }
     return EVENT_UN_HANDLED;
 }
 

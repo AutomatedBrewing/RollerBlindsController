@@ -13,6 +13,8 @@
 #include "em_timer.h"
 #include "utils.h"
 #include "gpio_pins.h"
+#include "nvm.h"
+#include "nvm_configuration.h"
 
 /* Public define -------------------------------------------------------------*/
 #define BUTTONS_COUNT (4)
@@ -65,7 +67,7 @@ struct hsm_controller_context
 {
     state_machine_t machine;
     struct em_timer timer;
-    uint32_t movement_time;
+    struct travel_time movement_config;
     struct buttons_events buttons;
     enum board_input_pin_id currently_operating_button;
 };

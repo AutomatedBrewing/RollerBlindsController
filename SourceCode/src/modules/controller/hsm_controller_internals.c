@@ -106,8 +106,8 @@ void send_motor_down_request(void)
 
 void send_motor_stop_request(void)
 {
-    union motor_down_message message = {0};
-    em_set_message_event(&message.event.super, MOTOR_DOWN_EVENT_ID);
+    union motor_stop_message message = {0};
+    em_set_message_event(&message.event.super, MOTOR_STOP_EVENT_ID);
     em_publish_message(&message);
 }
 

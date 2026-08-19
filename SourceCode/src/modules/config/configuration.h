@@ -15,6 +15,7 @@
 #include "button_configuration.h"
 #include "motor_configuration.h"
 #include "ui_configuration.h"
+#include "nvm_configuration.h"
 
 /* Public define -------------------------------------------------------------*/
 /* Public typedef ------------------------------------------------------------*/
@@ -26,6 +27,7 @@ enum device_id
     DEVICE_BUTTON_REMOTE_DOWN,
     DEVICE_BUZZER,
     DEVICE_MOTOR,
+    DEVICE_NVM,
     DEVICE_COUNT,
 };
 
@@ -35,6 +37,7 @@ enum device_type
     DEVICE_TYPE_BUTTON,
     DEVICE_TYPE_BUZZER,
     DEVICE_TYPE_MOTOR,
+    DEVICE_TYPE_NVM,
 };
 
 struct device_configuration

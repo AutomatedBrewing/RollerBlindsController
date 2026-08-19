@@ -54,7 +54,7 @@ static state_machine_result_t entry_handler(state_machine_t *const pmachine)
     enum direction motor_direction = pin_id_to_direction(event->event.button);
     request_motor_movement(motor_direction);
 
-    start_counting_movement_time(&controller->timer, controller->movement_time);
+    start_counting_movement_time(&controller->timer, controller->movement_config.time);
 
     return EVENT_HANDLED;
 }

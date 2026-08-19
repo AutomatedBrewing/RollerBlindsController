@@ -21,6 +21,7 @@
 #include "button_released_event.h"
 #include "ui_notify_event.h"
 
+#include "nvm.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -49,12 +50,21 @@ static void request_motor_movement(enum direction motor_direction)
     }
 }
 
+static void save_measured_time(uint32_t travel_time, struct hsm_controller_context *controller)
+{
+    controller->movement_config.time = travel_time;
+    nvm_write(NVM_ID_TRAVEL_TIME, &controller->movement_config);
+}
 
 static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 {
-    (void)(pmachine);
+    struct hsm_controller_context *controller = CONTAINER_OF(pmachine, struct hsm_controller_context, machine);
 
     send_motor_stop_request();
+
+    uint32_t measured_time = 69; /* To be removed. */
+    save_measured_time(measured_time, controller);
+
     is_counting = false;
 
     return EVENT_HANDLED;
@@ -72,7 +82,7 @@ static void handleButtonPressed(union button_pressed_message *message, struct hs
         enum direction motor_direction = pin_id_to_direction(message->event.button);
 
         request_motor_movement(motor_direction);
-        start_counting_movement_time(&controller->timer, controller->movement_time);
+        start_counting_movement_time(&controller->timer, controller->movement_config.time);
     }
 }
 

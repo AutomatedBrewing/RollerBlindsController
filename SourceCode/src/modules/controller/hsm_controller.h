@@ -70,6 +70,7 @@ struct hsm_controller_context
     struct travel_time movement_config;
     struct buttons_events buttons;
     enum board_input_pin_id currently_operating_button;
+    uint32_t timestamp;
 };
 
 /* Public macro --------------------------------------------------------------*/

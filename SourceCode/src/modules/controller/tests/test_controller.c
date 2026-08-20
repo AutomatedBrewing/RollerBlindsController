@@ -558,6 +558,62 @@ static void given_controller_idle_when_buttons_pressed_long_then_buttons_state_i
 }
 
 
+static void given_controller_in_idle_mode_when_two_very_long_buttons_pressed_then_config_mode_activated(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &controller_subscriber;
+    struct travel_time mocked_time = {.time =60};
+
+    expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
+    expect_init(&mocked_time);
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, SHORT_PRESS);
+
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, LONG_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, LONG_PRESS);
+
+    /* ARRANGE */
+    expect_ui_notify_event();
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, VERY_LONG_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, VERY_LONG_PRESS);
+
+    /* ARRANGE */
+    /* Releasing one button has no effect. */
+
+    /* ACT */
+    send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);
+
+    /* Releasing second button enables measurement of time. */
+    send_button_released_event(BUTTON_LOCAL_DOWN_PIN_ID);
+
+    /* ARRANGE */
+    /* On button press, time measurements starts and motor is moving. */
+    expect_motor_up_event();
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, LONG_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, VERY_LONG_PRESS);
+
+    /* ARRANGE*/
+    /* Button is released -> shutter is closed. Stop motor & notify user. */
+    expect_motor_stop_event();
+    expect_ui_notify_event();
+
+    /* ACT */
+    send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -567,6 +623,8 @@ int main(void)
         cmocka_unit_test_setup(given_controller_in_auto_mode_when_short_press_then_stop_movement_and_go_to_idle, test_setup),
         cmocka_unit_test_setup(given_controller_idle_when_long_press_then_manual_mode, test_setup),
         cmocka_unit_test_setup(given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement, test_setup),
+        cmocka_unit_test_setup(given_controller_in_idle_mode_when_two_very_long_buttons_pressed_then_config_mode_activated, test_setup),
+        
 
         cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_shortly_then_buttons_state_is_corretly_saved, test_setup),
         cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_long_then_buttons_state_is_corretly_saved, test_setup),

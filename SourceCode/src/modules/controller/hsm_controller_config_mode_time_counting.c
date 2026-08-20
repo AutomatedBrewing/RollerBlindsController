@@ -7,6 +7,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 #include "gpio.h"
+#include "cmsis_os2.h"
 
 #include "em_event.h"
 #include "em_timer.h"
@@ -27,15 +28,22 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static bool is_counting = false;
 
 /* Private function prototypes -----------------------------------------------*/
-static void start_counting_movement_time(struct em_timer *timer, uint32_t movement_time)
+static uint32_t elapsed_ms(uint32_t start)
 {
-    (void)(timer);
-    (void)(movement_time);
-    //em_timer_set_period(timer, movement_time);
-    //em_timer_start(timer);
+    uint32_t elapsed_ticks = osKernelGetTickCount() - start;
+
+    if(elapsed_ticks > 0)
+    {
+        return (uint32_t)(((uint64_t)elapsed_ticks * 1000U) / osKernelGetTickFreq());
+    }
+    return 0;
+}
+
+static void start_counting_movement_time(struct hsm_controller_context *controller)
+{
+    controller->timestamp = osKernelGetTickCount();
 }
 
 static void request_motor_movement(enum direction motor_direction)
@@ -62,10 +70,12 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 
     send_motor_stop_request();
 
-    uint32_t measured_time = 69; /* To be removed. */
+    uint32_t measured_time = elapsed_ms(controller->timestamp); /* To be removed. */
     save_measured_time(measured_time, controller);
 
-    is_counting = false;
+    controller->currently_operating_button = INVALID_PIN_ID;
+
+    send_ui_notify_request();
 
     return EVENT_HANDLED;
 }
@@ -76,13 +86,13 @@ static void handleButtonPressed(union button_pressed_message *message, struct hs
 {
     process_pressed_event(message, controller);
 
-    if(is_counting == false)
+    if(controller->currently_operating_button == INVALID_PIN_ID)
     {
         controller->currently_operating_button = message->event.button;
         enum direction motor_direction = pin_id_to_direction(message->event.button);
 
         request_motor_movement(motor_direction);
-        start_counting_movement_time(&controller->timer, controller->movement_config.time);
+        start_counting_movement_time(controller);
     }
 }
 
@@ -108,7 +118,7 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     if (event_id->id == BUTTON_PRESSED_EVENT_ID)
     {
         handleButtonPressed((union button_pressed_message *)event_id, controller);
-        return switch_state(pmachine, hsm_controller_idle);
+        return EVENT_HANDLED;
     }
     else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
     {

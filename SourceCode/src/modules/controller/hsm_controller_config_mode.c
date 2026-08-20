@@ -40,7 +40,6 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 {
     (void)(pmachine);
 
-    send_ui_notify_request();
 
     return EVENT_HANDLED;
 }

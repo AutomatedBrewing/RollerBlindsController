@@ -48,9 +48,6 @@ static state_machine_result_t entry_handler(state_machine_t *const pmachine)
     struct hsm_controller_context *controller = CONTAINER_OF(pmachine, struct hsm_controller_context, machine);
     union button_released_message *event = (union button_released_message *)pmachine->Event;
 
-    /* Clear button pressed status now. */
-    process_released_event(event, controller);
-
     enum direction motor_direction = pin_id_to_direction(event->event.button);
     request_motor_movement(motor_direction);
 

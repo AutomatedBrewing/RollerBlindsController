@@ -240,6 +240,29 @@ static void expect_init(struct travel_time * mocked_travel_time)
     expect_em_timer_set_event_id();    
 }
 
+static void expect_motor_movement(enum direction expected_direction)
+{
+    if(expected_direction == UP)
+    {
+        expect_motor_up_event();
+    } else if (expected_direction == DOWN)
+    {
+        expect_motor_down_event();
+    }
+}
+
+static void expect_enter_auto_mode(enum direction expected_direction, uint32_t expected_movement_time)
+{
+    expect_motor_movement(expected_direction);
+    expect_em_timer_set_period(expected_movement_time);
+    expect_em_timer_start();
+}
+
+static void expect_enter_manual_mode(enum direction expected_direction)
+{
+    expect_motor_movement(expected_direction);
+}
+
 /* Private function bodies ---------------------------------------------------*/
 
 static void given_empty_device_list_when_initializing_then_hsm_idles(void **state)
@@ -269,18 +292,8 @@ static void given_valid_nvm_in_device_list_when_initializing_then_init_it(void *
     test_subscriber->init(0);
 }
 
-static void expect_enter_auto_mode(enum direction expected_direction, uint32_t expected_movement_time)
-{
-    if(expected_direction == UP)
-    {
-        expect_motor_up_event();
-    } else if (expected_direction == DOWN)
-    {
-        expect_motor_down_event();
-    }
-    expect_em_timer_set_period(expected_movement_time);
-    expect_em_timer_start();
-}
+
+
 
 static void given_controller_idle_when_short_press_then_auto_mode(void **state)
 {
@@ -313,7 +326,236 @@ static void given_controller_idle_when_short_press_then_auto_mode(void **state)
     send_controller_timer_event(&controller);
 }
 
+static void given_controller_in_auto_mode_when_short_press_then_stop_movement_and_go_to_idle(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &controller_subscriber;
+    struct travel_time mocked_time = {.time =60};
 
+    expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
+    expect_init(&mocked_time);
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+
+    /* ARRANGE*/
+    expect_enter_auto_mode(UP, mocked_time.time);
+
+    /* ACT */
+    send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);
+
+    /* ARRANGE */
+    expect_em_timer_stop();
+    expect_motor_stop_event();
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, SHORT_PRESS);
+}
+
+
+static void given_controller_idle_when_long_press_then_manual_mode(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &controller_subscriber;
+    struct travel_time mocked_time = {.time =60};
+
+    expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
+    expect_init(&mocked_time);
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+    /* ASSERT */
+
+
+    /* ARRANGE*/
+    expect_enter_manual_mode(UP);
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, LONG_PRESS);
+
+    /* ARRANGE */
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, VERY_LONG_PRESS);
+
+    /* ARRANGE */
+    expect_motor_stop_event();
+
+    /* ACT */
+    send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);
+
+    /* ASSERT */
+}
+
+
+
+static void given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &controller_subscriber;
+    struct travel_time mocked_time = {.time =60};
+
+    expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
+    expect_init(&mocked_time);
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+
+    /* ARRANGE*/
+    expect_enter_manual_mode(UP);
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, LONG_PRESS);
+
+    /* ARRANGE */
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_REMOTE_UP_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_REMOTE_DOWN_PIN_ID, SHORT_PRESS);
+
+    /* ARRANGE */
+    expect_motor_stop_event();
+
+    /* ACT */
+    send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, LOCAL_DOWN_BIT_POS | REMOTE_UP_BIT_POS | REMOTE_DOWN_BIT_POS);
+    assert_int_equal(controller.buttons.long_pressed, 0);
+    assert_int_equal(controller.buttons.very_long_pressed, 0);
+    assert_int_equal(controller.currently_operating_button, INVALID_PIN_ID);
+}
+
+static void given_controller_idle_when_buttons_pressed_shortly_then_buttons_state_is_corretly_saved(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &controller_subscriber;
+    struct travel_time mocked_time = {.time =60};
+
+    expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
+    expect_init(&mocked_time);
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, 0);
+    assert_int_equal(controller.buttons.long_pressed, 0);
+    assert_int_equal(controller.buttons.very_long_pressed, 0);
+    assert_int_equal(controller.currently_operating_button, INVALID_PIN_ID);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, LOCAL_UP_BIT_POS);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, SHORT_PRESS);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_REMOTE_UP_PIN_ID, SHORT_PRESS);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS | REMOTE_UP_BIT_POS);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_REMOTE_DOWN_PIN_ID, SHORT_PRESS);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, ALL_BUTTONS);
+    assert_int_equal(controller.currently_operating_button, INVALID_PIN_ID);
+}
+
+static void given_controller_idle_when_buttons_pressed_long_then_buttons_state_is_corretly_saved(void **state)
+{
+    /* ARRANGE */
+    const struct subscriber *test_subscriber = &controller_subscriber;
+    struct travel_time mocked_time = {.time =60};
+
+    expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
+    expect_init(&mocked_time);
+
+    /* ACT */
+    test_subscriber->init(0);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, 0);
+    assert_int_equal(controller.buttons.long_pressed, 0);
+    assert_int_equal(controller.buttons.very_long_pressed, 0);
+    assert_int_equal(controller.currently_operating_button, INVALID_PIN_ID);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_REMOTE_UP_PIN_ID, SHORT_PRESS);
+    send_button_pressed_event(BUTTON_REMOTE_DOWN_PIN_ID, SHORT_PRESS);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, LONG_PRESS);
+    send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, LONG_PRESS);
+    send_button_pressed_event(BUTTON_REMOTE_UP_PIN_ID, LONG_PRESS);
+    send_button_pressed_event(BUTTON_REMOTE_DOWN_PIN_ID, LONG_PRESS);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.long_pressed, ALL_BUTTONS);
+
+    /* ARRANGE*/
+    /* Nothing expected. */
+
+    /* ACT */
+    send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);
+    send_button_released_event(BUTTON_LOCAL_DOWN_PIN_ID);
+    send_button_released_event(BUTTON_REMOTE_UP_PIN_ID);
+    send_button_released_event(BUTTON_REMOTE_DOWN_PIN_ID);
+
+    /* ASSERT */
+    assert_int_equal(controller.buttons.short_pressed, 0);
+    assert_int_equal(controller.buttons.long_pressed, 0);
+    assert_int_equal(controller.buttons.very_long_pressed, 0);
+}
 
 
 int main(void)
@@ -322,6 +564,12 @@ int main(void)
         cmocka_unit_test_setup(given_empty_device_list_when_initializing_then_hsm_idles, test_setup),
         cmocka_unit_test_setup(given_valid_nvm_in_device_list_when_initializing_then_init_it, test_setup),
         cmocka_unit_test_setup(given_controller_idle_when_short_press_then_auto_mode, test_setup),
+        cmocka_unit_test_setup(given_controller_in_auto_mode_when_short_press_then_stop_movement_and_go_to_idle, test_setup),
+        cmocka_unit_test_setup(given_controller_idle_when_long_press_then_manual_mode, test_setup),
+        cmocka_unit_test_setup(given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement, test_setup),
+
+        cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_shortly_then_buttons_state_is_corretly_saved, test_setup),
+        cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_long_then_buttons_state_is_corretly_saved, test_setup),
         
     };
 

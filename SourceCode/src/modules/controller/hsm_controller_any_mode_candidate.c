@@ -46,7 +46,7 @@ static state_machine_result_t determine_manual_or_config(state_machine_t *const 
 
 static bool canEnterAutoMode(struct hsm_controller_context *controller)
 {
-    if(MORE_THAN_ONE_BIT_SET(controller->buttons.short_pressed))
+    if(ANY_BITS_SET(controller->buttons.short_pressed, ALL_BUTTONS))
     {
         return false;
     }
@@ -66,6 +66,7 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     }
     else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
     {
+        process_released_event((union button_released_message *)event_id, controller);
         if(canEnterAutoMode(controller))
         {
             return switch_state(pmachine, hsm_controller_auto_mode);

@@ -62,6 +62,8 @@ static void read_travel_time(struct hsm_controller_context *hsm, const struct nv
 
 static void configure_hsm(struct hsm_controller_context * hsm)
 {
+    hsm->currently_operating_button = INVALID_PIN_ID;
+    
     hsm->machine.State = hsm_controller_idle;
     traverse_state(&hsm->machine, hsm_controller_idle);
 }

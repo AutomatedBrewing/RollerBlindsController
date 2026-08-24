@@ -14,7 +14,7 @@ set(CXX_FLAGS "-std=gnu++14 -fno-rtti -fno-exceptions -fverbose-asm -MMD")
 # -O0 - optimization level: -O0, -O1, -O2, -O3, -Os
 # fverbose-asm - additional comments for generated assembler code
 # -MMD - create dependency files
-set(C_FLAGS "-std=gnu11 -ffunction-sections -fdata-sections -fverbose-asm -MMD -O0")
+set(C_FLAGS "-std=gnu11 -ffunction-sections -fdata-sections -fverbose-asm -MMD -Og")
 #set(C_FLAGS "-std=gnu11 -ffunction-sections -fdata-sections -fverbose-asm -Wstack-usage=512 -MMD -Og --specs=nano.specs ")
 
 #set(ASM_FLAGS "--specs=nano.specs -c -x assembler-with-cpp")

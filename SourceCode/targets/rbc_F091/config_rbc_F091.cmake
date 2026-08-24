@@ -1,7 +1,7 @@
 set(HARDWARE nucleoF091 CACHE STRING "Used hardware board" FORCE)
 set(APP shutterController CACHE STRING "Application name" FORCE)
 set(OS freertos CACHE STRING "Used OS" FORCE)
-set(LOGS_ENABLED true CACHE STRING "Enalbes the logs" FORCE)
+set(LOGS_ENABLED false CACHE STRING "Enalbes the logs" FORCE)
 
 # Compilation and linking flags.
 include(targets/${CONFIG}/flags/flags.cmake)

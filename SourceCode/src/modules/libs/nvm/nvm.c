@@ -25,7 +25,7 @@ enum nvm_result nvm_read(enum nvm_id id, void *data)
 {
     (void)(id);
     (void)(data);
-    return NVM_OK;
+    return NVM_NOT_FOUND;
 }
 
 /**

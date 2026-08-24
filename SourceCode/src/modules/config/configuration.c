@@ -28,7 +28,8 @@
         .event_pressed = BUTTON_PRESSED_EVENT_ID, .event_released = BUTTON_RELEASED_EVENT_ID,                          \
     }
 
-#define DEFAULT_TRAVEL_TIME MINUTES(1)
+//#define DEFAULT_TRAVEL_TIME MINUTES(1)
+#define DEFAULT_TRAVEL_TIME (5000)
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -44,6 +45,7 @@ static const struct button_configuration button_local_down = {
     .timings = BUTTON_TIMINGS_DEFAULT,
     .events = BUTTON_EVENTS_DEFAULT,
 };
+
 
 static const struct button_configuration button_remote_up = {
     .pin_id = BUTTON_REMOTE_UP_PIN_ID,
@@ -63,11 +65,13 @@ static const struct device_configuration button_devices_list[] = {
         .type = DEVICE_TYPE_BUTTON,
         .config = &button_local_up,
     },
+    
     {
         .id = DEVICE_BUTTON_LOCAL_DOWN,
         .type = DEVICE_TYPE_BUTTON,
         .config = &button_local_down,
     },
+
     {
         .id = DEVICE_BUTTON_REMOTE_UP,
         .type = DEVICE_TYPE_BUTTON,

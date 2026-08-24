@@ -5,8 +5,8 @@
  *      Author: dev
  */
 
-#ifndef SRC_MODULES_MOTOR_HSM_MOTOR_H_
-#define SRC_MODULES_MOTOR_HSM_MOTOR_H_
+#ifndef SRC_MODULES_UI_HSM_UI_H_
+#define SRC_MODULES_UI_HSM_UI_H_
 
 /* Private includes ----------------------------------------------------------*/
 #include "em_timer.h"
@@ -40,4 +40,4 @@ extern const struct subscriber ui_subscriber;
 
 /* Public function prototypes ------------------------------------------------*/
 
-#endif /* SRC_MODULES_MOTOR_HSM_MOTOR_H_ */
+#endif /* SRC_MODULES_UI_HSM_UI_H_ */

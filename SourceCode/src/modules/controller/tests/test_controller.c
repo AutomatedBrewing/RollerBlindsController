@@ -625,7 +625,6 @@ int main(void)
         cmocka_unit_test_setup(given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement, test_setup),
         cmocka_unit_test_setup(given_controller_in_idle_mode_when_two_very_long_buttons_pressed_then_config_mode_activated, test_setup),
         
-
         cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_shortly_then_buttons_state_is_corretly_saved, test_setup),
         cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_long_then_buttons_state_is_corretly_saved, test_setup),
         

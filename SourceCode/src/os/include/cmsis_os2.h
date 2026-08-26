@@ -322,6 +322,9 @@ uint32_t osKernelSuspend (void);
 /// \param[in]     sleep_ticks   time in ticks for how long the system was in sleep or power-down mode.
 void osKernelResume (uint32_t sleep_ticks);
 
+/// Increases the kernel tick count.
+void osKernelTick(void);
+
 /// Get the RTOS kernel tick count.
 /// \return RTOS kernel current tick count.
 uint32_t osKernelGetTickCount (void);

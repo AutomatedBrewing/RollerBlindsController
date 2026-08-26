@@ -11,6 +11,8 @@
 #include "em_executor.h"
 #include "em_subscriber.h"
 #include "em_system_events.h"
+#include "em_executor_memory.h"
+#include "em_executor_config.h"
 
 static void dispatch_event_for_all_subscribers(struct event *event, const struct subscriber **subscribers)
 {
@@ -106,7 +108,10 @@ static void initialize_all_subscribers(struct executor *me)
 static void executor_code(void *executor)
 {
     struct executor *me = executor;
+    
+    #if EM_EXECUTOR_RTOS_ENALBED
     initialize_all_subscribers(me);
+        
     osStatus_t status;
     uint8_t receive_buffer[EVENT_SIZE];
     while (true)
@@ -117,6 +122,28 @@ static void executor_code(void *executor)
             dispatch_event(me, (struct event *)receive_buffer);
         }
     }
+    #endif
+    #if EM_EXECUTOR_BAREMETAL_ENALBED
+    static bool is_initialized = false;
+
+    if(is_initialized == false)
+    {
+        is_initialized = true;
+        initialize_all_subscribers(me);
+    }
+    
+    osStatus_t status;
+    static uint8_t receive_buffer[EVENT_SIZE] = {0};
+
+    do
+    {
+        status = osMessageQueueGet(me->queue, receive_buffer, NULL, osWaitForever);
+        if (status == osOK)
+        {
+            dispatch_event(me, (struct event *)receive_buffer);
+        }
+    } while (status != osErrorResource);
+    #endif
 }
 
 static bool create_thread(struct executor *executor, const osThreadAttr_t *attributes)
@@ -129,27 +156,75 @@ static bool create_thread(struct executor *executor, const osThreadAttr_t *attri
     return true;
 }
 
-static bool create_queue(struct executor *executor, uint8_t max_enqueued_events)
+static bool create_queue(struct executor *executor,
+                         uint8_t max_enqueued_events)
 {
-    executor->queue = osMessageQueueNew((uint32_t)max_enqueued_events, EVENT_SIZE, NULL);
-    if (executor->queue == NULL)
+    void *queue_memory;
+    osMessageQueueAttr_t queue_attributes;
+
+    if (max_enqueued_events == 0U)
     {
         return false;
     }
+
+    if (max_enqueued_events > EM_EXECUTOR_QUEUE_SIZE)
+    {
+        return false;
+    }
+
+    if (!em_executor_memory_acquire(
+            &queue_memory,
+            (uint32_t)max_enqueued_events * EVENT_SIZE))
+    {
+        return false;
+    }
+
+    queue_attributes = (osMessageQueueAttr_t)
+    {
+        .name = NULL,
+        .attr_bits = 0U,
+        .mq_mem = queue_memory,
+        .mq_size = (uint32_t)max_enqueued_events * EVENT_SIZE,
+        .cb_mem = NULL,
+        .cb_size = 0U
+    };
+
+    executor->queue = osMessageQueueNew(
+        (uint32_t)max_enqueued_events,
+        EVENT_SIZE,
+        &queue_attributes
+    );
+
+    if (executor->queue == NULL)
+    {
+        em_executor_memory_release(queue_memory);
+        return false;
+    }
+
+    executor->queue_memory = queue_memory;
+
     return true;
 }
 
 bool em_create_executor(struct executor *executor, const osThreadAttr_t *attributes, uint8_t max_enqueued_events)
 {
-    bool result;
-    result = create_thread(executor, attributes);
-    if (!result)
+    if (!create_thread(executor, attributes))
     {
-        return result;
+        return false;
     }
 
-    result = create_queue(executor, max_enqueued_events);
-    return result;
+    if (!create_queue(executor, max_enqueued_events))
+    {
+        /*
+         * If thread deletion is supported by the CMSIS layer,
+         * delete it here.
+         */
+        osThreadTerminate(executor->task);
+
+        return false;
+    }
+
+    return true;
 }
 
 static void send_event_to_all_executors(void *message, const struct event_subscribers_in_executor **executor_list_entry)

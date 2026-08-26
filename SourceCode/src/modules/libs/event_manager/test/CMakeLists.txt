@@ -4,6 +4,9 @@ mock_function(test_executor osMessageQueueNew)
 mock_function(test_executor osMessageQueueGet)
 mock_function(test_executor osMessageQueuePut)
 
+mock_function(test_executor em_executor_memory_acquire)
+mock_function(test_executor em_executor_memory_release)
+
 
 add_unit_test(${FW_LIBRARY_TARGET} test_timer test_timer.c)
 mock_function(test_timer osMessageQueueNew)

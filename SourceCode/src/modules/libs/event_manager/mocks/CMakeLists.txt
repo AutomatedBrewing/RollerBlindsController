@@ -5,5 +5,6 @@ if (NOT CMAKE_CROSSCOMPILING)
 	
 	target_sources(${FW_LIBRARY_TARGET} PRIVATE
 	    ${CMAKE_CURRENT_LIST_DIR}/em_timer_mock.c
+		${CMAKE_CURRENT_LIST_DIR}/em_executor_memory_mock.c
 	)
 endif()

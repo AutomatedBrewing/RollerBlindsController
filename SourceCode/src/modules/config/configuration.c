@@ -20,7 +20,7 @@
 
 #define BUTTON_TIMINGS_DEFAULT                                                                                         \
     {                                                                                                                  \
-        .debounce_time = 20, .long_press_time = 500, .very_long_press_time = 5000                                      \
+        .debounce_time = 20, .long_press_time = 200, .very_long_press_time = 5000                                      \
     }
 
 #define BUTTON_EVENTS_DEFAULT                                                                                          \

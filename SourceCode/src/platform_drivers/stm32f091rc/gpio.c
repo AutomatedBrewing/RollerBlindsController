@@ -14,7 +14,7 @@
 
 static bool is_initialized = false;
 #define BIT(x) (1 << (x))
-#define MAX_NUMBER_OF_SUPPORTED_PINS (16)
+#define MAX_NUMBER_OF_SUPPORTED_PINS (10)
 
 enum interrupt_pin_polarity
 {

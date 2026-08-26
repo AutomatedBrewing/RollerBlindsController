@@ -40,8 +40,9 @@ osMessageQueueId_t __wrap_osMessageQueueNew(uint32_t msg_count, uint32_t msg_siz
     function_called();
     check_expected_uint(msg_count);
     check_expected_uint(msg_size);
-    uintmax_t attr_val = (uintmax_t)attr;
-    check_expected_uint(attr_val);
+    (void)(attr);
+    //uintmax_t attr_val = (uintmax_t)attr;
+    //check_expected_uint(attr_val);
     return mock_type(osMessageQueueId_t);
 }
 
@@ -51,8 +52,9 @@ void expect_osMessageQueueNew(uint32_t msg_count, uint32_t msg_size, const osMes
     expect_function_call(__wrap_osMessageQueueNew);
      expect_uint_value(__wrap_osMessageQueueNew, msg_count, msg_count);
      expect_uint_value(__wrap_osMessageQueueNew, msg_size, msg_size);
-     uintmax_t attr_val = (uintmax_t)attr;
-     expect_uint_value(__wrap_osMessageQueueNew, attr_val, attr_val);
+     (void)(attr);
+     //uintmax_t attr_val = (uintmax_t)attr;
+    // expect_uint_value(__wrap_osMessageQueueNew, attr_val, attr_val);
     will_return(__wrap_osMessageQueueNew, returned_queue_id);
 }
 

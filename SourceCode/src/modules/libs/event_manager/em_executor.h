@@ -20,6 +20,7 @@ struct executor
     void *task;
     void *queue;
     const struct subscriber **subscribers;
+    void *queue_memory;
 };
 
 /* Public macro --------------------------------------------------------------*/

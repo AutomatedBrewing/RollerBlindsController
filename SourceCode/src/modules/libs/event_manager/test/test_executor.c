@@ -17,6 +17,7 @@
 #include "em_system_events.h"
 
 #include "cmsis_mock.h"
+#include "em_executor_memory_mock.h"
 
 /* Included to test static functions. */
 #include "em_executor.c"
@@ -87,6 +88,7 @@ static void test_create_executor(void **state)
     uint8_t enqueued_events = 4;
 
     expect_osThreadNew(&executor, NULL, expected_thread_id);
+    expect_em_executor_memory_acquire();
     expect_osMessageQueueNew(enqueued_events, EVENT_SIZE, NULL, expected_queue_id);
     result = em_create_executor(&executor, NULL, enqueued_events);
     assert_true(result);
@@ -98,7 +100,9 @@ static void test_create_executor(void **state)
 
     /* Queue creation returns NULL. */
     expect_osThreadNew(&executor, NULL, expected_thread_id);
+    expect_em_executor_memory_acquire();
     expect_osMessageQueueNew(enqueued_events, EVENT_SIZE, NULL, NULL);
+    expect_em_executor_memory_release();
     result = em_create_executor(&executor, NULL, enqueued_events);
     assert_false(result);
 }
@@ -116,6 +120,7 @@ static void test_create_executor_statically(void **state)
         .stack_size = 1024 // Create the thread stack with a size of 1024 bytes
     };
     expect_osThreadNew(&executor, &thread1_attr, expected_thread_id);
+    expect_em_executor_memory_acquire();
     expect_osMessageQueueNew(enqueued_events, EVENT_SIZE, NULL, expected_queue_id);
     result = em_create_executor(&executor, &thread1_attr, enqueued_events);
     assert_true(result);
@@ -124,6 +129,7 @@ static void test_create_executor_statically(void **state)
     static uint64_t thread2_stack[64];
     const osThreadAttr_t thread2_attr = {.stack_mem = &thread2_stack[0], .stack_size = sizeof(thread2_stack)};
     expect_osThreadNew(&executor, &thread2_attr, expected_thread_id);
+    expect_em_executor_memory_acquire();
     expect_osMessageQueueNew(enqueued_events, EVENT_SIZE, NULL, expected_queue_id);
     result = em_create_executor(&executor, &thread2_attr, enqueued_events);
     assert_true(result);

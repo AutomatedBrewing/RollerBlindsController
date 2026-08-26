@@ -79,6 +79,12 @@ osThreadId_t osThreadNew (osThreadFunc_t func, void * argument,
     return NULL;
 }
 
+osStatus_t osThreadTerminate (osThreadId_t thread_id)
+{
+    (void)(thread_id);
+    return osOK;
+}
+
 osStatus_t osDelay (uint32_t ticks)
 {
     (void) (ticks);

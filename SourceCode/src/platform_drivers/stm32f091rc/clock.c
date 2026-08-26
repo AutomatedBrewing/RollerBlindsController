@@ -60,8 +60,8 @@ void clock_configure()
     while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
     {
     }
-    
+
     LL_SetSystemCoreClock(48000000);
-    //LL_Init1msTick(48000000);
+    // LL_Init1msTick(48000000);
     SysTick_Config(48000000 / 1000U);
 }

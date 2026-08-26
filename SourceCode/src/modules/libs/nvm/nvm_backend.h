@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-struct nvm_backend {
+struct nvm_backend
+{
     /*
      * Total size of the storage area.
      */
@@ -20,10 +21,7 @@ struct nvm_backend {
     /*
      * Read bytes from NVM.
      */
-    int (*read)(
-        uint32_t address,
-        void *data,
-        uint16_t size);
+    int (*read)(uint32_t address, void *data, uint16_t size);
 
     /*
      * Program/write bytes to NVM.
@@ -31,18 +29,14 @@ struct nvm_backend {
      * The implementation must obey the physical
      * memory's programming restrictions.
      */
-    int (*write)(
-        uint32_t address,
-        const void *data,
-        uint16_t size);
+    int (*write)(uint32_t address, const void *data, uint16_t size);
 
     /*
      * Erase one erase unit.
      *
      * address is aligned to erase_size.
      */
-    int (*erase)(
-        uint32_t address);
+    int (*erase)(uint32_t address);
 };
 
 #endif

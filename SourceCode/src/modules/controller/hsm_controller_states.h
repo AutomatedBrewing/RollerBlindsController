@@ -18,6 +18,4 @@ extern const state_t hsm_controller_manual_mode[];
 extern const state_t hsm_controller_config_mode[];
 extern const state_t hsm_controller_config_mode_time_counting[];
 
-
-
 #endif /* SRC_MODULES_CONTROLLER_HSM_CONTROLLER_STATES_H_ */

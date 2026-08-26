@@ -9,10 +9,10 @@
 
 #include "em_event.h"
 #include "em_executor.h"
+#include "em_executor_config.h"
+#include "em_executor_memory.h"
 #include "em_subscriber.h"
 #include "em_system_events.h"
-#include "em_executor_memory.h"
-#include "em_executor_config.h"
 
 static void dispatch_event_for_all_subscribers(struct event *event, const struct subscriber **subscribers)
 {
@@ -108,10 +108,10 @@ static void initialize_all_subscribers(struct executor *me)
 static void executor_code(void *executor)
 {
     struct executor *me = executor;
-    
-    #if EM_EXECUTOR_RTOS_ENALBED
+
+#if EM_EXECUTOR_RTOS_ENALBED
     initialize_all_subscribers(me);
-        
+
     osStatus_t status;
     uint8_t receive_buffer[EVENT_SIZE];
     while (true)
@@ -122,16 +122,16 @@ static void executor_code(void *executor)
             dispatch_event(me, (struct event *)receive_buffer);
         }
     }
-    #endif
-    #if EM_EXECUTOR_BAREMETAL_ENALBED
+#endif
+#if EM_EXECUTOR_BAREMETAL_ENALBED
     static bool is_initialized = false;
 
-    if(is_initialized == false)
+    if (is_initialized == false)
     {
         is_initialized = true;
         initialize_all_subscribers(me);
     }
-    
+
     osStatus_t status;
     static uint8_t receive_buffer[EVENT_SIZE] = {0};
 
@@ -143,7 +143,7 @@ static void executor_code(void *executor)
             dispatch_event(me, (struct event *)receive_buffer);
         }
     } while (status != osErrorResource);
-    #endif
+#endif
 }
 
 static bool create_thread(struct executor *executor, const osThreadAttr_t *attributes)
@@ -156,8 +156,7 @@ static bool create_thread(struct executor *executor, const osThreadAttr_t *attri
     return true;
 }
 
-static bool create_queue(struct executor *executor,
-                         uint8_t max_enqueued_events)
+static bool create_queue(struct executor *executor, uint8_t max_enqueued_events)
 {
     void *queue_memory;
     osMessageQueueAttr_t queue_attributes;
@@ -172,28 +171,19 @@ static bool create_queue(struct executor *executor,
         return false;
     }
 
-    if (!em_executor_memory_acquire(
-            &queue_memory,
-            (uint32_t)max_enqueued_events * EVENT_SIZE))
+    if (!em_executor_memory_acquire(&queue_memory, (uint32_t)max_enqueued_events * EVENT_SIZE))
     {
         return false;
     }
 
-    queue_attributes = (osMessageQueueAttr_t)
-    {
-        .name = NULL,
-        .attr_bits = 0U,
-        .mq_mem = queue_memory,
-        .mq_size = (uint32_t)max_enqueued_events * EVENT_SIZE,
-        .cb_mem = NULL,
-        .cb_size = 0U
-    };
+    queue_attributes = (osMessageQueueAttr_t){.name = NULL,
+                                              .attr_bits = 0U,
+                                              .mq_mem = queue_memory,
+                                              .mq_size = (uint32_t)max_enqueued_events * EVENT_SIZE,
+                                              .cb_mem = NULL,
+                                              .cb_size = 0U};
 
-    executor->queue = osMessageQueueNew(
-        (uint32_t)max_enqueued_events,
-        EVENT_SIZE,
-        &queue_attributes
-    );
+    executor->queue = osMessageQueueNew((uint32_t)max_enqueued_events, EVENT_SIZE, &queue_attributes);
 
     if (executor->queue == NULL)
     {

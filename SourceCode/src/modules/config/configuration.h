@@ -14,8 +14,8 @@
 /* Includes for devices configurations. */
 #include "button_configuration.h"
 #include "motor_configuration.h"
-#include "ui_configuration.h"
 #include "nvm_configuration.h"
+#include "ui_configuration.h"
 
 /* Public define -------------------------------------------------------------*/
 /* Public typedef ------------------------------------------------------------*/

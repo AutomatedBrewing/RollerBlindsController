@@ -26,27 +26,29 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-static state_machine_result_t determine_manual_or_config(state_machine_t *const pmachine, union button_pressed_message *message, struct hsm_controller_context *controller)
+static state_machine_result_t determine_manual_or_config(state_machine_t *const pmachine,
+                                                         union button_pressed_message *message,
+                                                         struct hsm_controller_context *controller)
 {
     process_pressed_event(message, controller);
-    if(IS_BIT_SET(controller->buttons.very_long_pressed, LOCAL_UP_BIT_POS) && IS_BIT_SET(controller->buttons.very_long_pressed, LOCAL_DOWN_BIT_POS))
+    if (IS_BIT_SET(controller->buttons.very_long_pressed, LOCAL_UP_BIT_POS) &&
+        IS_BIT_SET(controller->buttons.very_long_pressed, LOCAL_DOWN_BIT_POS))
     {
         return switch_state(pmachine, hsm_controller_config_mode);
     }
-    else if((message->event.duration == LONG_PRESS) && (!MORE_THAN_ONE_BIT_SET(controller->buttons.short_pressed)))
+    else if ((message->event.duration == LONG_PRESS) && (!MORE_THAN_ONE_BIT_SET(controller->buttons.short_pressed)))
     {
         return switch_state(pmachine, hsm_controller_manual_mode);
     }
-    else 
+    else
     {
         return EVENT_HANDLED;
     }
 }
 
-
 static bool canEnterAutoMode(struct hsm_controller_context *controller)
 {
-    if(ANY_BITS_SET(controller->buttons.short_pressed, ALL_BUTTONS))
+    if (ANY_BITS_SET(controller->buttons.short_pressed, ALL_BUTTONS))
     {
         return false;
     }
@@ -67,7 +69,7 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
     else if (event_id->id == BUTTON_RELEASED_EVENT_ID)
     {
         process_released_event((union button_released_message *)event_id, controller);
-        if(canEnterAutoMode(controller))
+        if (canEnterAutoMode(controller))
         {
             return switch_state(pmachine, hsm_controller_auto_mode);
         }
@@ -76,7 +78,6 @@ static state_machine_result_t event_handler(state_machine_t *const pmachine)
             /* At least one more signal is active. Go to idle to ignore it. */
             return switch_state(pmachine, hsm_controller_idle);
         }
-        
     }
     return EVENT_UN_HANDLED;
 }

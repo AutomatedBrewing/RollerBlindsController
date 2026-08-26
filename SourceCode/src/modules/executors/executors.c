@@ -16,10 +16,8 @@
 #include "hsm_motor.h"
 #include "hsm_ui.h"
 
-
-CREATE_EXECUTOR_WITH_SUPPORTED_SUBSCRIBERS(main_executor, ADD_SUBSCRIBER(&button_subscriber, &controller_subscriber, &motor_subscriber, &ui_subscriber))
-
-
+CREATE_EXECUTOR_WITH_SUPPORTED_SUBSCRIBERS(main_executor, ADD_SUBSCRIBER(&button_subscriber, &controller_subscriber,
+                                                                         &motor_subscriber, &ui_subscriber))
 
 void create_executors(void)
 {

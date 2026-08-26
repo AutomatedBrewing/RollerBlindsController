@@ -6,8 +6,8 @@
  */
 
 /* Private includes ----------------------------------------------------------*/
-#include "gpio.h"
 #include "cmsis_os2.h"
+#include "gpio.h"
 
 #include "em_event.h"
 #include "em_timer.h"
@@ -34,7 +34,7 @@ static uint32_t elapsed_ms(uint32_t start)
 {
     uint32_t elapsed_ticks = osKernelGetTickCount() - start;
 
-    if(elapsed_ticks > 0)
+    if (elapsed_ticks > 0)
     {
         return (uint32_t)(((uint64_t)elapsed_ticks * 1000U) / osKernelGetTickFreq());
     }
@@ -86,7 +86,7 @@ static void handleButtonPressed(union button_pressed_message *message, struct hs
 {
     process_pressed_event(message, controller);
 
-    if(controller->currently_operating_button == INVALID_PIN_ID)
+    if (controller->currently_operating_button == INVALID_PIN_ID)
     {
         controller->currently_operating_button = message->event.button;
         enum direction motor_direction = pin_id_to_direction(message->event.button);
@@ -96,15 +96,17 @@ static void handleButtonPressed(union button_pressed_message *message, struct hs
     }
 }
 
-static state_machine_result_t handleButtonReleased(state_machine_t *const pmachine, union button_released_message *message, struct hsm_controller_context *controller)
+static state_machine_result_t handleButtonReleased(state_machine_t *const pmachine,
+                                                   union button_released_message *message,
+                                                   struct hsm_controller_context *controller)
 {
     process_released_event(message, controller);
 
-    if(message->event.button == controller->currently_operating_button)
+    if (message->event.button == controller->currently_operating_button)
     {
         controller->currently_operating_button = INVALID_PIN_ID;
         return switch_state(pmachine, hsm_controller_idle);
-    }   
+    }
     else
     {
         return EVENT_HANDLED;

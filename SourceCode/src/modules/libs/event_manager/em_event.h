@@ -12,13 +12,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "em_subscriber.h"
 #include "em_executor_config.h"
+#include "em_subscriber.h"
 /* Public define -------------------------------------------------------------*/
 /* Size of an event. It directly influences the executors queue size.
  * For unit tests this variable has to be greater than on embedded platform.
  * It is due to alignment problem.*/
-//#define EVENT_SIZE (32)
+// #define EVENT_SIZE (32)
 
 /* Public typedef ------------------------------------------------------------*/
 typedef void *event_id_t;

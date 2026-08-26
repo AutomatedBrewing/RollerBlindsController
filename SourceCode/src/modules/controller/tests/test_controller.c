@@ -11,19 +11,19 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#include "controller_test_vectors.h"
 #include "hsm_controller.h"
 #include "hsm_controller_internal.h"
-#include "controller_test_vectors.h"
 
 /* Received events*/
 #include "button_pressed_event.h"
 #include "button_released_event.h"
 
 /* Produced events*/
-#include "ui_notify_event.h"
-#include "motor_up_event.h"
 #include "motor_down_event.h"
 #include "motor_stop_event.h"
+#include "motor_up_event.h"
+#include "ui_notify_event.h"
 
 #include "em_timer.h"
 #include "gpio.h"
@@ -115,14 +115,13 @@ static void expect_nvm_init(enum nvm_result returned_code)
 enum nvm_result __wrap_nvm_read(enum nvm_id id, void *data)
 {
     function_called();
-    struct travel_time *returned_travel_time =
-        mock_type(struct travel_time *);
+    struct travel_time *returned_travel_time = mock_type(struct travel_time *);
 
     *((struct travel_time *)data) = *returned_travel_time;
     return mock_type(enum nvm_result);
 }
 
-static void expect_nvm_read(enum nvm_result returned_code, struct travel_time * returned_travel_time)
+static void expect_nvm_read(enum nvm_result returned_code, struct travel_time *returned_travel_time)
 {
     expect_function_call(__wrap_nvm_read);
     will_return(__wrap_nvm_read, returned_travel_time);
@@ -178,8 +177,7 @@ static void expect_motor_stop_event(void)
     expect_function_call(validate_motor_stop_event);
 }
 
-
-static void send_button_pressed_event( enum board_input_pin_id button, enum button_press_duration duration)
+static void send_button_pressed_event(enum board_input_pin_id button, enum button_press_duration duration)
 {
     union button_pressed_message message = {0};
     em_set_message_event(&message.event.super, BUTTON_PRESSED_EVENT_ID);
@@ -196,11 +194,9 @@ static void send_button_released_event(enum board_input_pin_id button)
     em_publish_message(&message);
 }
 
-
 void __wrap_em_publish_message(void *message)
 {
     struct event *event_id = message;
-
 
     if (event_id->id == UI_NOTIFY_EVENT_ID)
     {
@@ -229,23 +225,22 @@ static int test_setup(void **state)
     return 0;
 }
 
-
-
-static void expect_init(struct travel_time * mocked_travel_time)
+static void expect_init(struct travel_time *mocked_travel_time)
 {
     expect_nvm_init(NVM_OK);
     expect_nvm_read(NVM_OK, mocked_travel_time);
 
     expect_em_timer_create(true);
-    expect_em_timer_set_event_id();    
+    expect_em_timer_set_event_id();
 }
 
 static void expect_motor_movement(enum direction expected_direction)
 {
-    if(expected_direction == UP)
+    if (expected_direction == UP)
     {
         expect_motor_up_event();
-    } else if (expected_direction == DOWN)
+    }
+    else if (expected_direction == DOWN)
     {
         expect_motor_down_event();
     }
@@ -283,7 +278,7 @@ static void given_valid_nvm_in_device_list_when_initializing_then_init_it(void *
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -292,14 +287,11 @@ static void given_valid_nvm_in_device_list_when_initializing_then_init_it(void *
     test_subscriber->init(0);
 }
 
-
-
-
 static void given_controller_idle_when_short_press_then_auto_mode(void **state)
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -330,7 +322,7 @@ static void given_controller_in_auto_mode_when_short_press_then_stop_movement_an
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -358,12 +350,11 @@ static void given_controller_in_auto_mode_when_short_press_then_stop_movement_an
     send_button_pressed_event(BUTTON_LOCAL_DOWN_PIN_ID, SHORT_PRESS);
 }
 
-
 static void given_controller_idle_when_long_press_then_manual_mode(void **state)
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -377,7 +368,6 @@ static void given_controller_idle_when_long_press_then_manual_mode(void **state)
     /* ACT */
     send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
     /* ASSERT */
-
 
     /* ARRANGE*/
     expect_enter_manual_mode(UP);
@@ -400,13 +390,11 @@ static void given_controller_idle_when_long_press_then_manual_mode(void **state)
     /* ASSERT */
 }
 
-
-
 static void given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement(void **state)
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -451,7 +439,7 @@ static void given_controller_idle_when_buttons_pressed_shortly_then_buttons_stat
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -507,7 +495,7 @@ static void given_controller_idle_when_buttons_pressed_long_then_buttons_state_i
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -557,12 +545,11 @@ static void given_controller_idle_when_buttons_pressed_long_then_buttons_state_i
     assert_int_equal(controller.buttons.very_long_pressed, 0);
 }
 
-
 static void given_controller_in_idle_mode_when_two_very_long_buttons_pressed_then_config_mode_activated(void **state)
 {
     /* ARRANGE */
     const struct subscriber *test_subscriber = &controller_subscriber;
-    struct travel_time mocked_time = {.time =60};
+    struct travel_time mocked_time = {.time = 60};
 
     expect_get_list_of_devices_by_type(DEVICE_TYPE_NVM, nvm_list, 1);
     expect_init(&mocked_time);
@@ -620,14 +607,19 @@ int main(void)
         cmocka_unit_test_setup(given_empty_device_list_when_initializing_then_hsm_idles, test_setup),
         cmocka_unit_test_setup(given_valid_nvm_in_device_list_when_initializing_then_init_it, test_setup),
         cmocka_unit_test_setup(given_controller_idle_when_short_press_then_auto_mode, test_setup),
-        cmocka_unit_test_setup(given_controller_in_auto_mode_when_short_press_then_stop_movement_and_go_to_idle, test_setup),
+        cmocka_unit_test_setup(given_controller_in_auto_mode_when_short_press_then_stop_movement_and_go_to_idle,
+                               test_setup),
         cmocka_unit_test_setup(given_controller_idle_when_long_press_then_manual_mode, test_setup),
-        cmocka_unit_test_setup(given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement, test_setup),
-        cmocka_unit_test_setup(given_controller_in_idle_mode_when_two_very_long_buttons_pressed_then_config_mode_activated, test_setup),
-        
-        cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_shortly_then_buttons_state_is_corretly_saved, test_setup),
-        cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_long_then_buttons_state_is_corretly_saved, test_setup),
-        
+        cmocka_unit_test_setup(given_controller_in_manual_mode_when_other_buttons_pressed_then_no_influence_on_movement,
+                               test_setup),
+        cmocka_unit_test_setup(
+            given_controller_in_idle_mode_when_two_very_long_buttons_pressed_then_config_mode_activated, test_setup),
+
+        cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_shortly_then_buttons_state_is_corretly_saved,
+                               test_setup),
+        cmocka_unit_test_setup(given_controller_idle_when_buttons_pressed_long_then_buttons_state_is_corretly_saved,
+                               test_setup),
+
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

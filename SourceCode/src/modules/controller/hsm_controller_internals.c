@@ -14,9 +14,9 @@
 #include "hsm_controller_internal.h"
 #include "utils.h"
 
-#include "motor_up_event.h"
 #include "motor_down_event.h"
 #include "motor_stop_event.h"
+#include "motor_up_event.h"
 #include "ui_notify_event.h"
 
 /* Private define ------------------------------------------------------------*/
@@ -28,32 +28,32 @@ uint32_t pin_id_to_bit(enum board_input_pin_id pin_id)
 {
     switch (pin_id)
     {
-        case BUTTON_LOCAL_UP_PIN_ID:
-            return LOCAL_UP_BIT_POS;
-        case BUTTON_LOCAL_DOWN_PIN_ID:
-            return LOCAL_DOWN_BIT_POS;
-        case BUTTON_REMOTE_UP_PIN_ID:
-            return REMOTE_UP_BIT_POS;
-        case BUTTON_REMOTE_DOWN_PIN_ID:
-            return REMOTE_DOWN_BIT_POS;
-        default: 
-            return 0UL;
+    case BUTTON_LOCAL_UP_PIN_ID:
+        return LOCAL_UP_BIT_POS;
+    case BUTTON_LOCAL_DOWN_PIN_ID:
+        return LOCAL_DOWN_BIT_POS;
+    case BUTTON_REMOTE_UP_PIN_ID:
+        return REMOTE_UP_BIT_POS;
+    case BUTTON_REMOTE_DOWN_PIN_ID:
+        return REMOTE_DOWN_BIT_POS;
+    default:
+        return 0UL;
     }
 }
 enum direction pin_id_to_direction(enum board_input_pin_id pin_id)
 {
-      switch (pin_id)
+    switch (pin_id)
     {
-        case BUTTON_LOCAL_UP_PIN_ID:
-        case BUTTON_REMOTE_UP_PIN_ID:
-            return UP;
-        case BUTTON_LOCAL_DOWN_PIN_ID:
-        case BUTTON_REMOTE_DOWN_PIN_ID:
-            return DOWN;
+    case BUTTON_LOCAL_UP_PIN_ID:
+    case BUTTON_REMOTE_UP_PIN_ID:
+        return UP;
+    case BUTTON_LOCAL_DOWN_PIN_ID:
+    case BUTTON_REMOTE_DOWN_PIN_ID:
+        return DOWN;
 
-        default: 
-            return INVALID;
-    }  
+    default:
+        return INVALID;
+    }
 }
 /* Private function bodies ---------------------------------------------------*/
 
@@ -61,7 +61,7 @@ void process_pressed_event(union button_pressed_message *event, struct hsm_contr
 {
     enum board_input_pin_id pin_id = event->event.button;
     uint32_t bit = pin_id_to_bit(pin_id);
-    switch(event->event.duration)
+    switch (event->event.duration)
     {
     case SHORT_PRESS:
         SET_BITS(controller->buttons.short_pressed, bit);
@@ -75,10 +75,9 @@ void process_pressed_event(union button_pressed_message *event, struct hsm_contr
         SET_BITS(controller->buttons.very_long_pressed, bit);
         break;
     }
-
 }
 
-void process_released_event(union button_released_message *event,struct hsm_controller_context *controller)
+void process_released_event(union button_released_message *event, struct hsm_controller_context *controller)
 {
     enum board_input_pin_id pin_id = event->event.button;
     uint32_t bit = pin_id_to_bit(pin_id);
@@ -88,7 +87,6 @@ void process_released_event(union button_released_message *event,struct hsm_cont
     CLEAR_BITS(controller->buttons.long_pressed, bit);
     CLEAR_BITS(controller->buttons.very_long_pressed, bit);
 }
-
 
 void send_motor_up_request(void)
 {

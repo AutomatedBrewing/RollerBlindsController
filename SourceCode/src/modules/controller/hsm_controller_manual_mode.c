@@ -65,15 +65,17 @@ static void handleButtonPressed(union button_pressed_message *message, struct hs
     process_pressed_event(message, controller);
 }
 
-static state_machine_result_t handleButtonReleased(state_machine_t *const pmachine, union button_released_message *message, struct hsm_controller_context *controller)
+static state_machine_result_t handleButtonReleased(state_machine_t *const pmachine,
+                                                   union button_released_message *message,
+                                                   struct hsm_controller_context *controller)
 {
     process_released_event(message, controller);
 
-    if(message->event.button == controller->currently_operating_button)
+    if (message->event.button == controller->currently_operating_button)
     {
         controller->currently_operating_button = INVALID_PIN_ID;
         return switch_state(pmachine, hsm_controller_idle);
-    }   
+    }
     else
     {
         return EVENT_HANDLED;

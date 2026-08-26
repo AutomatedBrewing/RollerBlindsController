@@ -8,15 +8,15 @@
 #ifndef CONTROLLER_INTERNAL_H_
 #define CONTROLLER_INTERNAL_H_
 
-#include "hsm_controller.h"
 #include "button_pressed_event.h"
 #include "button_released_event.h"
+#include "hsm_controller.h"
 
 extern struct hsm_controller_context controller;
 
 uint32_t pin_id_to_bit(enum board_input_pin_id pin_id);
 enum direction pin_id_to_direction(enum board_input_pin_id pin_id);
-void process_pressed_event(union button_pressed_message *event,struct hsm_controller_context *controller);
+void process_pressed_event(union button_pressed_message *event, struct hsm_controller_context *controller);
 void process_released_event(union button_released_message *event, struct hsm_controller_context *controller);
 
 void send_motor_up_request(void);

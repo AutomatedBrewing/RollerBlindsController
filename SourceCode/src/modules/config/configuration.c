@@ -10,8 +10,8 @@
 #include "button_pressed_event.h"
 #include "button_released_event.h"
 
-#include "nvm.h"
 #include "flash.h"
+#include "nvm.h"
 
 #include "utils.h"
 
@@ -28,7 +28,7 @@
         .event_pressed = BUTTON_PRESSED_EVENT_ID, .event_released = BUTTON_RELEASED_EVENT_ID,                          \
     }
 
-//#define DEFAULT_TRAVEL_TIME MINUTES(1)
+// #define DEFAULT_TRAVEL_TIME MINUTES(1)
 #define DEFAULT_TRAVEL_TIME (5000)
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -45,7 +45,6 @@ static const struct button_configuration button_local_down = {
     .timings = BUTTON_TIMINGS_DEFAULT,
     .events = BUTTON_EVENTS_DEFAULT,
 };
-
 
 static const struct button_configuration button_remote_up = {
     .pin_id = BUTTON_REMOTE_UP_PIN_ID,
@@ -65,7 +64,7 @@ static const struct device_configuration button_devices_list[] = {
         .type = DEVICE_TYPE_BUTTON,
         .config = &button_local_up,
     },
-    
+
     {
         .id = DEVICE_BUTTON_LOCAL_DOWN,
         .type = DEVICE_TYPE_BUTTON,
@@ -118,36 +117,24 @@ static const struct device_configuration ui_devices_list[] = {
     },
 };
 
-
 /*-------------------   NVM */
 static const struct nvm_object nvm_objects[] = {
-    {
-        .id = NVM_ID_TRAVEL_TIME,
-        .size = sizeof(struct travel_time)
-    },
+    {.id = NVM_ID_TRAVEL_TIME, .size = sizeof(struct travel_time)},
 };
-
 
 static const struct nvm_backend nvm_backend = {
-    .size = 2048U,
-    .erase_size = 256U,
-/*
-    .read = flash_read,
-    .write = flash_program,
-    .erase = flash_erase
-    */
+    .size = 2048U, .erase_size = 256U,
+    /*
+        .read = flash_read,
+        .write = flash_program,
+        .erase = flash_erase
+        */
 };
 
-
-static const struct nvm_configuration nvm_config =
-{
-    .configuration = 
-    {    
-        .backend = &nvm_backend,
-        .objects = nvm_objects,
-        .object_count =
-        sizeof(nvm_objects) / sizeof(nvm_objects[0])
-    },
+static const struct nvm_configuration nvm_config = {
+    .configuration = {.backend = &nvm_backend,
+                      .objects = nvm_objects,
+                      .object_count = sizeof(nvm_objects) / sizeof(nvm_objects[0])},
     .default_time = DEFAULT_TRAVEL_TIME,
 };
 

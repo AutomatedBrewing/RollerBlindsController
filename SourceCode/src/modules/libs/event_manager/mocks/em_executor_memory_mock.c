@@ -39,7 +39,6 @@ void __wrap_em_executor_memory_release(void *memory)
 void expect_em_executor_memory_acquire(void)
 {
     expect_function_call(__wrap_em_executor_memory_acquire);
-
 }
 void expect_em_executor_memory_release(void)
 {

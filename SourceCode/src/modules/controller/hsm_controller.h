@@ -9,12 +9,12 @@
 #define SRC_MODULES_CONTROLLER_HSM_CONTROLLER_H_
 
 /* Private includes ----------------------------------------------------------*/
-#include "hsm.h"
 #include "em_timer.h"
-#include "utils.h"
 #include "gpio_pins.h"
+#include "hsm.h"
 #include "nvm.h"
 #include "nvm_configuration.h"
+#include "utils.h"
 
 /* Public define -------------------------------------------------------------*/
 #define BUTTONS_COUNT (4)
@@ -24,20 +24,16 @@
 #define REMOTE_UP_BIT_POS (BIT(2))
 #define REMOTE_DOWN_BIT_POS (BIT(3))
 
-#define ALL_BUTTONS ( LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS | REMOTE_UP_BIT_POS | REMOTE_DOWN_BIT_POS)
+#define ALL_BUTTONS (LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS | REMOTE_UP_BIT_POS | REMOTE_DOWN_BIT_POS)
 
-#define ANY_BITS_SET(value, mask) \
-    (((value) & (mask)) != 0U)
+#define ANY_BITS_SET(value, mask) (((value) & (mask)) != 0U)
 
-#define ALL_BITS_CLEAR(value, mask) \
-    (((value) & (mask)) == 0U)
+#define ALL_BITS_CLEAR(value, mask) (((value) & (mask)) == 0U)
 
-#define LOCAL_BITS_SET(value) \
-    (((value) & (LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS)) == \
-     (LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS))
+#define LOCAL_BITS_SET(value)                                                                                          \
+    (((value) & (LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS)) == (LOCAL_UP_BIT_POS | LOCAL_DOWN_BIT_POS))
 
-#define MORE_THAN_ONE_BIT_SET(value) \
-    ((value) != 0U && ((value) & ((value) - 1U)) != 0U)
+#define MORE_THAN_ONE_BIT_SET(value) ((value) != 0U && ((value) & ((value) - 1U)) != 0U)
 
 DECLARE_EVENT(CONTROLLER_TIMER_EVENT)
 #define CONTROLLER_TIMER_EVENT_ID ID_OF(CONTROLLER_TIMER_EVENT)

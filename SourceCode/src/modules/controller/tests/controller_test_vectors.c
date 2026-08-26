@@ -21,32 +21,22 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static const struct nvm_object nvm_objects[] = {
-    {
-        .id = NVM_ID_TRAVEL_TIME,
-        .size = sizeof(struct travel_time)
-    },
+    {.id = NVM_ID_TRAVEL_TIME, .size = sizeof(struct travel_time)},
 };
-
 
 static const struct nvm_backend nvm_backend = {
-    .size = 2048U,
-    .erase_size = 256U,
-/*
-    .read = flash_read,
-    .write = flash_program,
-    .erase = flash_erase
-    */
+    .size = 2048U, .erase_size = 256U,
+    /*
+        .read = flash_read,
+        .write = flash_program,
+        .erase = flash_erase
+        */
 };
 
-static const struct nvm_configuration nvm_config =
-{
-    .configuration = 
-    {    
-        .backend = &nvm_backend,
-        .objects = nvm_objects,
-        .object_count =
-        sizeof(nvm_objects) / sizeof(nvm_objects[0])
-    },
+static const struct nvm_configuration nvm_config = {
+    .configuration = {.backend = &nvm_backend,
+                      .objects = nvm_objects,
+                      .object_count = sizeof(nvm_objects) / sizeof(nvm_objects[0])},
     .default_time = 69,
 };
 

@@ -33,12 +33,9 @@
 static uint32_t elapsed_ms(uint32_t start)
 {
     uint32_t elapsed_ticks = osKernelGetTickCount() - start;
+    uint32_t tick_freq = osKernelGetTickFreq();
 
-    if (elapsed_ticks > 0)
-    {
-        return (uint32_t)(((uint64_t)elapsed_ticks * 1000U) / osKernelGetTickFreq());
-    }
-    return 0;
+    return (uint32_t)(((uint64_t)elapsed_ticks * 1000U) / tick_freq);
 }
 
 static void start_counting_movement_time(struct hsm_controller_context *controller)

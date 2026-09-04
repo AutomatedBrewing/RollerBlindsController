@@ -217,7 +217,7 @@ package ProductComponents {
 
     part def ControlMCU {
         doc
-        /* Single low-cost 8-bit MCU (ADR-006) hosting all seven firmware components.
+        /* Single low-cost MCU (ADR-006) hosting all seven firmware components.
          * Many-to-one hosting modeled via allocation, not specialization (ADR-007).
          * localRawIn/remoteRawIn's four signal lines (local up/down, remote up/down) are each
          * wired to a dedicated GPIO configured for change-notification interrupts (ADR-SW-010);
@@ -225,18 +225,17 @@ package ProductComponents {
          * not sufficient to debounce genuine mechanical wall-switch actuation, so
          * CommandArbitrationSoftware performs the additional software debounce confirmation. */
 
-        attribute mcuFamily : String = "Ultra-low-cost 8-bit MCU, STM8S003F3P6-class";
+        attribute mcuFamily : String = "STM32C011F4P6";
         attribute packageType : String = "TSSOP-20";
-        attribute gpioCount : Natural = 14;
+        attribute gpioCount : Natural = 18;
         // Of gpioCount, four are dedicated to change-notification interrupts on the
         // local/remote up/down dry-contact lines (ADR-SW-010).
         attribute inputChangeNotificationGpioCount : Natural = 4;
         attribute flashSizeKB : Natural = 16;
-        attribute internalEepromBytes : Natural = 128;
         // RAM capacity for aggregate firmware estimatedRamBytes budget check.
-        attribute internalRamBytes : Natural = 1024;
-        attribute clockSpeedMHz : Natural = 16;
-        attribute unitCostPLN : Real = 2.0;
+        attribute ramSizeKB : Natural = 6;
+        attribute clockSpeedMHz : Natural = 48;
+        attribute unitCostPLN : Real = 3.65;
 
         attribute mtbfHours : Real = 500000.0;
 
@@ -351,6 +350,7 @@ package ProductComponents {
         attribute buzzerType : String =
             "Active (self-oscillating) buzzer, 3.3V logic-level drive, single MCU GPIO (ADR-008)";
         attribute unitCostPLN : Real = 0.5;
+        attribute model : String = "LD-BZEL-T56-0505"
 
         port driveIn : ~BuzzerControlPort;
         port powerIn : ~LogicPowerRailPort;

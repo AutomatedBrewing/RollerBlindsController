@@ -1,0 +1,6 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "AZ921") (type "KiCad") (uri "${KIPRJMOD}/AZ921.pretty") (options "") (descr ""))
+	(lib (name "LD-BZEL") (type "KiCad") (uri "${KIPRJMOD}/LD-BZEL.pretty") (options "") (descr ""))
+	(lib (name "DG301-5.0") (type "KiCad") (uri "${KIPRJMOD}/DG301-5.0.pretty") (options "") (descr ""))
+)

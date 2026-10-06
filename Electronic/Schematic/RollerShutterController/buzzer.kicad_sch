@@ -1273,15 +1273,29 @@
 		)
 		(uuid "f227a5a1-6c82-4e72-924b-d6deb2a84bcc")
 	)
-	(label "BUZZER"
-		(at 113.03 104.14 0)
+	(global_label "BUZZER"
+		(shape input)
+		(at 113.03 104.14 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left bottom)
+			(justify right)
 		)
-		(uuid "e5e5ac5c-0990-4607-a1f7-08f44f0c0bd0")
+		(uuid "68f632ae-33c8-4ff0-9bf9-e75bceb92a1b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 102.6063 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -1536,7 +1550,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 132.08 105.918 90)
 			(hide yes)
 			(show_name no)
@@ -1617,7 +1631,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "Diode_SMD:D_SOD-323_HandSoldering"
 			(at 141.605 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -1721,7 +1735,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+		(property "Footprint" "LD-BZEL:LD-BZEL-T56-0505"
 			(at 158.115 86.36 90)
 			(hide yes)
 			(show_name no)
@@ -1836,7 +1850,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 137.922 111.76 90)
 			(hide yes)
 			(show_name no)

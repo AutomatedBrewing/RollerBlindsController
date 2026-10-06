@@ -1,0 +1,19 @@
+Qty,Value,Footprint,Alerady have
+1,Buzzer,LD-BZEL:LD-BZEL-T56-0505,NO
+3,1u 25V,Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder,YES
+5,100n 50V,Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder,YES
+1,SDB160WS-AQ,Diode_SMD:D_SOD-323,NO
+5,STS321150U751,Diode_SMD:D_SOD-323F,NO
+3,1N4148WSTR,Diode_SMD:D_SOD-323,NO
+1,SN005-60,Fuse:Fuse_1206_3216Metric_Pad1.42x1.75mm_HandSolder,NO
+2,Conn_01x02_Socket,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,NO
+1,Conn_01x03_Socket,"TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",NO
+1,Conn_01x03_Socket,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,NO
+2,AZ921-1A-12DE,AZ921:AZ921,NO
+3,BSS138,Package_TO_SOT_SMD:SOT-323_SC-70,NO
+2,100k,Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,YES
+7,330R,Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,NO
+4,2K,Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,YES
+1,LDK320M33R,Package_TO_SOT_SMD:SOT-23-5_HandSoldering,NO
+1,STM32C011F4Px,Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm,NO
+1,LTV-247,Package_SO:SOP-16_4.4x10.4mm_P1.27mm,NO

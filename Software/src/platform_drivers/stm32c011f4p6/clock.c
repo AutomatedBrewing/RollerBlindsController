@@ -40,7 +40,7 @@ void clock_configure()
 
     /* HSI configuration and activation */
     LL_RCC_HSI_Enable();
-    while(LL_RCC_HSI_IsReady() != 1)
+    while (LL_RCC_HSI_IsReady() != 1)
     {
     }
 
@@ -51,7 +51,7 @@ void clock_configure()
 
     /* Sysclk activation on the HSI */
     LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSI);
-    while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI)
+    while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI)
     {
     }
 

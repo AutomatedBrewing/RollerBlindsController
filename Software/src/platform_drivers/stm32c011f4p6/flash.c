@@ -1,41 +1,36 @@
 #include "flash.h"
 #include "cmsis_os.h"
 #include "stm32c0xx.h"
-#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
-#define PAGE_SIZE               2048U
-#define WRITE_SIZE              8U
+#define PAGE_SIZE 2048U
+#define WRITE_SIZE 8U
 
-#define FLASH_FKEY1             0x45670123U
-#define FLASH_FKEY2             0xCDEF89ABU
+#define FLASH_FKEY1 0x45670123U
+#define FLASH_FKEY2 0xCDEF89ABU
 
-#define PAGE_ERASE_TIMEOUT      50U     /* ms */
-#define PAGE_WRITE_TIMEOUT      1U      /* ms */
-#define PAGE_UNLOCK_TIMEOUT     1U      /* ms */
-
+#define PAGE_ERASE_TIMEOUT 50U /* ms */
+#define PAGE_WRITE_TIMEOUT 1U  /* ms */
+#define PAGE_UNLOCK_TIMEOUT 1U /* ms */
 
 /* -------------------------------------------------------------------------- */
 /* Private functions                                                          */
 /* -------------------------------------------------------------------------- */
 
-static uint32_t flash_no_of_iterations_get(uint32_t size,
-                                           uint32_t block_size)
+static uint32_t flash_no_of_iterations_get(uint32_t size, uint32_t block_size)
 {
     return (size + block_size - 1U) / block_size;
 }
-
 
 static bool flash_wait_until_ready(uint32_t timeout)
 {
     uint32_t tickstart = osKernelGetTickCount();
 
-    while ((READ_BIT(FLASH->SR, FLASH_SR_BSY1) != 0U) ||
-           (READ_BIT(FLASH->SR, FLASH_SR_CFGBSY) != 0U))
+    while ((READ_BIT(FLASH->SR, FLASH_SR_BSY1) != 0U) || (READ_BIT(FLASH->SR, FLASH_SR_CFGBSY) != 0U))
     {
-        if ((timeout == 0U) ||
-            ((osKernelGetTickCount() - tickstart) > timeout))
+        if ((timeout == 0U) || ((osKernelGetTickCount() - tickstart) > timeout))
         {
             return true;
         }
@@ -44,7 +39,6 @@ static bool flash_wait_until_ready(uint32_t timeout)
     return false;
 }
 
-
 static void flash_clear_status_flags(void)
 {
     /*
@@ -52,17 +46,9 @@ static void flash_clear_status_flags(void)
      *
      * On STM32C0 these flags are cleared by writing 1.
      */
-    FLASH->SR = FLASH_SR_EOP   |
-                FLASH_SR_OPERR |
-                FLASH_SR_PROGERR |
-                FLASH_SR_WRPERR |
-                FLASH_SR_PGAERR |
-                FLASH_SR_SIZERR |
-                FLASH_SR_PGSERR |
-                FLASH_SR_MISERR |
-                FLASH_SR_FASTERR;
+    FLASH->SR = FLASH_SR_EOP | FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR |
+                FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR;
 }
-
 
 static bool flash_unlock(uint32_t timeout)
 {
@@ -80,20 +66,16 @@ static bool flash_unlock(uint32_t timeout)
     return (READ_BIT(FLASH->CR, FLASH_CR_LOCK) != 0U);
 }
 
-
 static void flash_lock(void)
 {
     SET_BIT(FLASH->CR, FLASH_CR_LOCK);
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Flash programming                                                          */
 /* -------------------------------------------------------------------------- */
 
-static bool flash_write(uint64_t data,
-                        uint32_t addr,
-                        uint32_t timeout)
+static bool flash_write(uint64_t data, uint32_t addr, uint32_t timeout)
 {
     /*
      * STM32C0 can only program 64-bit double words.
@@ -118,13 +100,11 @@ static bool flash_write(uint64_t data,
     /*
      * STM32C0 requires two consecutive 32-bit writes.
      */
-    *(__IO uint32_t *)addr =
-        (uint32_t)(data & 0xFFFFFFFFULL);
+    *(__IO uint32_t *)addr = (uint32_t)(data & 0xFFFFFFFFULL);
 
     __ISB();
 
-    *(__IO uint32_t *)(addr + 4U) =
-        (uint32_t)(data >> 32);
+    *(__IO uint32_t *)(addr + 4U) = (uint32_t)(data >> 32);
 
     /*
      * Wait for completion.
@@ -160,14 +140,8 @@ static bool flash_write(uint64_t data,
     /*
      * Check for programming errors.
      */
-    if ((FLASH->SR & (FLASH_SR_OPERR   |
-                      FLASH_SR_PROGERR |
-                      FLASH_SR_WRPERR  |
-                      FLASH_SR_PGAERR  |
-                      FLASH_SR_SIZERR  |
-                      FLASH_SR_PGSERR  |
-                      FLASH_SR_MISERR  |
-                      FLASH_SR_FASTERR)) != 0U)
+    if ((FLASH->SR & (FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR |
+                      FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR)) != 0U)
     {
         return true;
     }
@@ -175,13 +149,11 @@ static bool flash_write(uint64_t data,
     return false;
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Flash page erase                                                           */
 /* -------------------------------------------------------------------------- */
 
-static bool flash_page_erase(uint32_t page_addr,
-                             uint32_t timeout)
+static bool flash_page_erase(uint32_t page_addr, uint32_t timeout)
 {
     uint32_t page_number;
 
@@ -212,9 +184,7 @@ static bool flash_page_erase(uint32_t page_addr,
      */
     SET_BIT(FLASH->CR, FLASH_CR_PER);
 
-    MODIFY_REG(FLASH->CR,
-               FLASH_CR_PNB,
-               page_number << FLASH_CR_PNB_Pos);
+    MODIFY_REG(FLASH->CR, FLASH_CR_PNB, page_number << FLASH_CR_PNB_Pos);
 
     /*
      * Start erase.
@@ -252,21 +222,14 @@ static bool flash_page_erase(uint32_t page_addr,
     /*
      * Check errors.
      */
-    if ((FLASH->SR & (FLASH_SR_OPERR   |
-                      FLASH_SR_PROGERR |
-                      FLASH_SR_WRPERR  |
-                      FLASH_SR_PGAERR  |
-                      FLASH_SR_SIZERR  |
-                      FLASH_SR_PGSERR  |
-                      FLASH_SR_MISERR  |
-                      FLASH_SR_FASTERR)) != 0U)
+    if ((FLASH->SR & (FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR |
+                      FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR)) != 0U)
     {
         return true;
     }
 
     return false;
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* Public API                                                                 */
@@ -292,8 +255,7 @@ bool flash_erase(uint32_t addr, uint32_t size)
         return true;
     }
 
-    uint32_t iterations =
-        flash_no_of_iterations_get(size, PAGE_SIZE);
+    uint32_t iterations = flash_no_of_iterations_get(size, PAGE_SIZE);
 
     for (uint32_t i = 0U; i < iterations; i++)
     {
@@ -311,10 +273,7 @@ bool flash_erase(uint32_t addr, uint32_t size)
     return false;
 }
 
-
-bool flash_program_and_verify(uint32_t addr,
-                              uint8_t *p_data,
-                              uint32_t size)
+bool flash_program_and_verify(uint32_t addr, uint8_t *p_data, uint32_t size)
 {
     if ((p_data == NULL) || (size == 0U))
     {
@@ -339,8 +298,7 @@ bool flash_program_and_verify(uint32_t addr,
     while (remaining > 0U)
     {
         uint64_t data = UINT64_MAX;
-        uint32_t write_size =
-            (remaining >= WRITE_SIZE) ? WRITE_SIZE : remaining;
+        uint32_t write_size = (remaining >= WRITE_SIZE) ? WRITE_SIZE : remaining;
 
         /*
          * Fill missing bytes with 0xFF.
@@ -353,11 +311,9 @@ bool flash_program_and_verify(uint32_t addr,
             return true;
         }
 
-        uint64_t read =
-            *(__IO uint32_t *)addr;
+        uint64_t read = *(__IO uint32_t *)addr;
 
-        read |=
-            ((uint64_t)*(__IO uint32_t *)(addr + 4U)) << 32;
+        read |= ((uint64_t) * (__IO uint32_t *)(addr + 4U)) << 32;
 
         if (read != data)
         {
@@ -376,10 +332,7 @@ bool flash_program_and_verify(uint32_t addr,
     return false;
 }
 
-
-bool flash_program(uint32_t addr,
-                   uint8_t *p_data,
-                   uint32_t size)
+bool flash_program(uint32_t addr, uint8_t *p_data, uint32_t size)
 {
     if ((p_data == NULL) || (size == 0U))
     {
@@ -401,8 +354,7 @@ bool flash_program(uint32_t addr,
     while (remaining > 0U)
     {
         uint64_t data = UINT64_MAX;
-        uint32_t write_size =
-            (remaining >= WRITE_SIZE) ? WRITE_SIZE : remaining;
+        uint32_t write_size = (remaining >= WRITE_SIZE) ? WRITE_SIZE : remaining;
 
         /*
          * For a partial final double-word, remaining bytes stay 0xFF.
@@ -426,19 +378,14 @@ bool flash_program(uint32_t addr,
     return false;
 }
 
-
-bool flash_read(uint32_t addr,
-                uint8_t *p_data,
-                uint32_t size)
+bool flash_read(uint32_t addr, uint8_t *p_data, uint32_t size)
 {
     if ((p_data == NULL) || (size == 0U))
     {
         return false;
     }
 
-    memcpy(p_data,
-           (const void *)addr,
-           size);
+    memcpy(p_data, (const void *)addr, size);
 
     return false;
 }

@@ -60,27 +60,20 @@ struct pin_context
 
 static bool is_initialized = false;
 
-static struct pin_context
-    pin_context_list[MAX_NUMBER_OF_SUPPORTED_PINS];
+static struct pin_context pin_context_list[MAX_NUMBER_OF_SUPPORTED_PINS];
 
 /* Private functions --------------------------------------------------------*/
 
-static enum interrupt_pin_polarity
-interrupt_pin_polarity_from_activity(
-    enum board_input_polarity polarity,
-    enum interrupt_pin_activity activity)
+static enum interrupt_pin_polarity interrupt_pin_polarity_from_activity(enum board_input_polarity polarity,
+                                                                        enum interrupt_pin_activity activity)
 {
     if (activity)
     {
-        return (polarity == ACTIVE_HIGH)
-                   ? INTERRUPT_PIN_POLARITY_LOTOHI
-                   : INTERRUPT_PIN_POLARITY_HITOLO;
+        return (polarity == ACTIVE_HIGH) ? INTERRUPT_PIN_POLARITY_LOTOHI : INTERRUPT_PIN_POLARITY_HITOLO;
     }
     else
     {
-        return (polarity != ACTIVE_HIGH)
-                   ? INTERRUPT_PIN_POLARITY_LOTOHI
-                   : INTERRUPT_PIN_POLARITY_HITOLO;
+        return (polarity != ACTIVE_HIGH) ? INTERRUPT_PIN_POLARITY_LOTOHI : INTERRUPT_PIN_POLARITY_HITOLO;
     }
 }
 
@@ -89,17 +82,13 @@ interrupt_pin_polarity_from_activity(
  */
 static void find_context_and_call_callback(uint32_t exti_line)
 {
-    for (uint32_t pin = 0U;
-         pin < MAX_NUMBER_OF_SUPPORTED_PINS;
-         pin++)
+    for (uint32_t pin = 0U; pin < MAX_NUMBER_OF_SUPPORTED_PINS; pin++)
     {
-        if (pin_context_list[pin].is_used &&
-            pin_context_list[pin].exti.exti_line == exti_line)
+        if (pin_context_list[pin].is_used && pin_context_list[pin].exti.exti_line == exti_line)
         {
             if (pin_context_list[pin].callback != NULL)
             {
-                pin_context_list[pin].callback(
-                    pin_context_list[pin].callback_data);
+                pin_context_list[pin].callback(pin_context_list[pin].callback_data);
             }
 
             break;
@@ -112,11 +101,9 @@ static void find_context_and_call_callback(uint32_t exti_line)
  */
 static uint32_t get_pending_interrupt_lines(void)
 {
-    uint32_t rising_flags =
-        LL_EXTI_ReadRisingFlag_0_31(LL_EXTI_LINE_ALL_0_31);
+    uint32_t rising_flags = LL_EXTI_ReadRisingFlag_0_31(LL_EXTI_LINE_ALL_0_31);
 
-    uint32_t falling_flags =
-        LL_EXTI_ReadFallingFlag_0_31(LL_EXTI_LINE_ALL_0_31);
+    uint32_t falling_flags = LL_EXTI_ReadFallingFlag_0_31(LL_EXTI_LINE_ALL_0_31);
 
     return rising_flags | falling_flags;
 }
@@ -127,8 +114,7 @@ static void irq_handler(void)
 
     while ((pending = get_pending_interrupt_lines()) != 0U)
     {
-        uint32_t active_exti_line =
-            (uint32_t)(1UL << __builtin_ctz(pending));
+        uint32_t active_exti_line = (uint32_t)(1UL << __builtin_ctz(pending));
 
         /*
          * STM32C0 has separate rising/falling pending registers.
@@ -171,9 +157,7 @@ void EXTI4_15_IRQHandler(void)
 
 static struct pin_context *find_free_entry_for_pin(void)
 {
-    for (uint8_t handle_idx = 0U;
-         handle_idx < MAX_NUMBER_OF_SUPPORTED_PINS;
-         handle_idx++)
+    for (uint8_t handle_idx = 0U; handle_idx < MAX_NUMBER_OF_SUPPORTED_PINS; handle_idx++)
     {
         if (!pin_context_list[handle_idx].is_used)
         {
@@ -184,8 +168,7 @@ static struct pin_context *find_free_entry_for_pin(void)
     return NULL;
 }
 
-static struct pin_context *
-entry_add(const struct gpio_pin *info)
+static struct pin_context *entry_add(const struct gpio_pin *info)
 {
     struct pin_context *handle = find_free_entry_for_pin();
 
@@ -205,15 +188,13 @@ entry_add(const struct gpio_pin *info)
 /*
  * Map GPIO pin number to STM32C0 EXTI configuration line.
  */
-#define CASE_PIN(x)                                      \
-    case LL_GPIO_PIN_##x:                                \
-        handle->exti.exti_line = LL_EXTI_LINE_##x;      \
-        handle->exti.exti_config_line =                 \
-            LL_EXTI_CONFIG_LINE##x;                     \
+#define CASE_PIN(x)                                                                                                    \
+    case LL_GPIO_PIN_##x:                                                                                              \
+        handle->exti.exti_line = LL_EXTI_LINE_##x;                                                                     \
+        handle->exti.exti_config_line = LL_EXTI_CONFIG_LINE##x;                                                        \
         break;
 
-static void fill_exti_pin_configuration(
-    struct pin_context *handle)
+static void fill_exti_pin_configuration(struct pin_context *handle)
 {
     switch (handle->info->pin)
     {
@@ -246,28 +227,23 @@ static void fill_exti_pin_configuration(
  *
  * STM32C011F4P6 has GPIOA/B/C/F.
  */
-static void fill_exti_port_configuration(
-    struct pin_context *handle)
+static void fill_exti_port_configuration(struct pin_context *handle)
 {
     if (handle->info->port == (uint32_t)GPIOA)
     {
-        handle->exti.exti_config_port =
-            LL_EXTI_CONFIG_PORTA;
+        handle->exti.exti_config_port = LL_EXTI_CONFIG_PORTA;
     }
     else if (handle->info->port == (uint32_t)GPIOB)
     {
-        handle->exti.exti_config_port =
-            LL_EXTI_CONFIG_PORTB;
+        handle->exti.exti_config_port = LL_EXTI_CONFIG_PORTB;
     }
     else if (handle->info->port == (uint32_t)GPIOC)
     {
-        handle->exti.exti_config_port =
-            LL_EXTI_CONFIG_PORTC;
+        handle->exti.exti_config_port = LL_EXTI_CONFIG_PORTC;
     }
     else if (handle->info->port == (uint32_t)GPIOF)
     {
-        handle->exti.exti_config_port =
-            LL_EXTI_CONFIG_PORTF;
+        handle->exti.exti_config_port = LL_EXTI_CONFIG_PORTF;
     }
 }
 
@@ -287,9 +263,7 @@ static uint32_t find_IRQ_for_pin(uint32_t pin)
     }
 }
 
-static void entry_update(
-    struct pin_context *handle,
-    struct input_pin_config *input_config)
+static void entry_update(struct pin_context *handle, struct input_pin_config *input_config)
 {
     handle->callback = input_config->callback;
     handle->callback_data = input_config->callback_data;
@@ -297,20 +271,14 @@ static void entry_update(
     fill_exti_pin_configuration(handle);
     fill_exti_port_configuration(handle);
 
-    handle->exti.IRQ =
-        find_IRQ_for_pin(handle->info->pin);
+    handle->exti.IRQ = find_IRQ_for_pin(handle->info->pin);
 }
 
-static struct pin_context *
-find_matching_entry_for_info(
-    const struct gpio_pin *info)
+static struct pin_context *find_matching_entry_for_info(const struct gpio_pin *info)
 {
-    for (uint8_t handle_idx = 0U;
-         handle_idx < MAX_NUMBER_OF_SUPPORTED_PINS;
-         handle_idx++)
+    for (uint8_t handle_idx = 0U; handle_idx < MAX_NUMBER_OF_SUPPORTED_PINS; handle_idx++)
     {
-        if (pin_context_list[handle_idx].is_used &&
-            info == pin_context_list[handle_idx].info)
+        if (pin_context_list[handle_idx].is_used && info == pin_context_list[handle_idx].info)
         {
             return &pin_context_list[handle_idx];
         }
@@ -319,13 +287,9 @@ find_matching_entry_for_info(
     return NULL;
 }
 
-static enum gpio_pin_status
-find_or_create_pin_entry_if_not_existing(
-    const struct gpio_pin *info,
-    void **handle)
+static enum gpio_pin_status find_or_create_pin_entry_if_not_existing(const struct gpio_pin *info, void **handle)
 {
-    struct pin_context *entry =
-        find_matching_entry_for_info(info);
+    struct pin_context *entry = find_matching_entry_for_info(info);
 
     if (entry == NULL)
     {
@@ -351,37 +315,30 @@ find_or_create_pin_entry_if_not_existing(
  */
 static void initialize_gpio_peripheral(void)
 {
-    LL_IOP_GRP1_EnableClock(
-        LL_IOP_GRP1_PERIPH_GPIOA);
+    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
 
-    LL_IOP_GRP1_EnableClock(
-        LL_IOP_GRP1_PERIPH_GPIOB);
+    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
 
-    LL_IOP_GRP1_EnableClock(
-        LL_IOP_GRP1_PERIPH_GPIOC);
+    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
 
     /*
      * GPIOF is present on STM32C0.
      * It is harmless to enable it even if this particular
      * application does not currently use it.
      */
-    LL_IOP_GRP1_EnableClock(
-        LL_IOP_GRP1_PERIPH_GPIOF);
+    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOF);
 
     /*
      * Required by the EXTI GPIO source configuration.
      */
-    LL_APB2_GRP1_EnableClock(
-        LL_APB2_GRP1_PERIPH_SYSCFG);
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
 
     is_initialized = true;
 }
 
 /* GPIO configuration -------------------------------------------------------*/
 
-static uint32_t
-convert_pin_mode_to_driver_mode(
-    enum board_pin_mode mode)
+static uint32_t convert_pin_mode_to_driver_mode(enum board_pin_mode mode)
 {
     switch (mode)
     {
@@ -401,9 +358,7 @@ convert_pin_mode_to_driver_mode(
     }
 }
 
-static uint32_t
-convert_pin_pull_to_driver_pull(
-    enum board_input_pin_pull pull)
+static uint32_t convert_pin_pull_to_driver_pull(enum board_input_pin_pull pull)
 {
     switch (pull)
     {
@@ -419,9 +374,7 @@ convert_pin_pull_to_driver_pull(
     }
 }
 
-static uint32_t
-convert_pin_speed_to_driver_speed(
-    enum board_input_pin_speed speed)
+static uint32_t convert_pin_speed_to_driver_speed(enum board_input_pin_speed speed)
 {
     switch (speed)
     {
@@ -437,9 +390,7 @@ convert_pin_speed_to_driver_speed(
     }
 }
 
-static uint32_t
-convert_pin_mode_to_driver_output_type(
-    enum board_pin_mode mode)
+static uint32_t convert_pin_mode_to_driver_output_type(enum board_pin_mode mode)
 {
     switch (mode)
     {
@@ -452,72 +403,48 @@ convert_pin_mode_to_driver_output_type(
     }
 }
 
-static void gpio_configure(
-    const struct gpio_pin *pin_info)
+static void gpio_configure(const struct gpio_pin *pin_info)
 {
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     GPIO_InitStruct.Pin = pin_info->pin;
 
-    GPIO_InitStruct.Mode =
-        convert_pin_mode_to_driver_mode(
-            pin_info->mode);
+    GPIO_InitStruct.Mode = convert_pin_mode_to_driver_mode(pin_info->mode);
 
-    GPIO_InitStruct.Pull =
-        convert_pin_pull_to_driver_pull(
-            pin_info->pull);
+    GPIO_InitStruct.Pull = convert_pin_pull_to_driver_pull(pin_info->pull);
 
-    GPIO_InitStruct.Speed =
-        convert_pin_speed_to_driver_speed(
-            pin_info->speed);
+    GPIO_InitStruct.Speed = convert_pin_speed_to_driver_speed(pin_info->speed);
 
-    GPIO_InitStruct.OutputType =
-        convert_pin_mode_to_driver_output_type(
-            pin_info->mode);
+    GPIO_InitStruct.OutputType = convert_pin_mode_to_driver_output_type(pin_info->mode);
 
-    GPIO_InitStruct.Alternate =
-        pin_info->alternate_function;
+    GPIO_InitStruct.Alternate = pin_info->alternate_function;
 
-    LL_GPIO_Init(
-        (GPIO_TypeDef *)pin_info->port,
-        &GPIO_InitStruct);
+    LL_GPIO_Init((GPIO_TypeDef *)pin_info->port, &GPIO_InitStruct);
 }
 
-enum gpio_pin_status
-gpio_pin_init(
-    const void *pin_info,
-    void **pin_handle)
+enum gpio_pin_status gpio_pin_init(const void *pin_info, void **pin_handle)
 {
     if (!is_initialized)
     {
         initialize_gpio_peripheral();
     }
 
-    const struct gpio_pin *info =
-        (const struct gpio_pin *)pin_info;
+    const struct gpio_pin *info = (const struct gpio_pin *)pin_info;
 
     gpio_configure(info);
 
-    return find_or_create_pin_entry_if_not_existing(
-        info,
-        pin_handle);
+    return find_or_create_pin_entry_if_not_existing(info, pin_handle);
 }
 
 /* GPIO output --------------------------------------------------------------*/
 
-void gpio_output_configure(
-    void *pin_handle,
-    enum board_pin_mode mode)
+void gpio_output_configure(void *pin_handle, enum board_pin_mode mode)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
     struct gpio_pin pin_info;
 
-    memcpy(
-        &pin_info,
-        handle->info,
-        sizeof(struct gpio_pin));
+    memcpy(&pin_info, handle->info, sizeof(struct gpio_pin));
 
     pin_info.mode = mode;
 
@@ -526,96 +453,66 @@ void gpio_output_configure(
 
 void gpio_output_toggle(void *pin_handle)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    GPIO_TypeDef *driver_port =
-        (GPIO_TypeDef *)handle->info->port;
+    GPIO_TypeDef *driver_port = (GPIO_TypeDef *)handle->info->port;
 
-    LL_GPIO_TogglePin(
-        driver_port,
-        handle->info->pin);
+    LL_GPIO_TogglePin(driver_port, handle->info->pin);
 }
 
 void gpio_output_set(void *pin_handle)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    GPIO_TypeDef *driver_port =
-        (GPIO_TypeDef *)handle->info->port;
+    GPIO_TypeDef *driver_port = (GPIO_TypeDef *)handle->info->port;
 
-    LL_GPIO_SetOutputPin(
-        driver_port,
-        handle->info->pin);
+    LL_GPIO_SetOutputPin(driver_port, handle->info->pin);
 }
 
 void gpio_output_clear(void *pin_handle)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    GPIO_TypeDef *driver_port =
-        (GPIO_TypeDef *)handle->info->port;
+    GPIO_TypeDef *driver_port = (GPIO_TypeDef *)handle->info->port;
 
-    LL_GPIO_ResetOutputPin(
-        driver_port,
-        handle->info->pin);
+    LL_GPIO_ResetOutputPin(driver_port, handle->info->pin);
 }
 
 /* GPIO input ---------------------------------------------------------------*/
 
-static void set_pin_pullup_down(
-    struct pin_context *handle,
-    enum board_input_pin_pull pull)
+static void set_pin_pullup_down(struct pin_context *handle, enum board_input_pin_pull pull)
 {
-    uint32_t driver_pull =
-        convert_pin_pull_to_driver_pull(pull);
+    uint32_t driver_pull = convert_pin_pull_to_driver_pull(pull);
 
-    GPIO_TypeDef *driver_port =
-        (GPIO_TypeDef *)handle->info->port;
+    GPIO_TypeDef *driver_port = (GPIO_TypeDef *)handle->info->port;
 
-    LL_GPIO_SetPinPull(
-        driver_port,
-        handle->info->pin,
-        driver_pull);
+    LL_GPIO_SetPinPull(driver_port, handle->info->pin, driver_pull);
 }
 
-void gpio_configure_pullup_down(
-    void *pin_handle,
-    enum gpio_pin_pull pull)
+void gpio_configure_pullup_down(void *pin_handle, enum gpio_pin_pull pull)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    set_pin_pullup_down(
-        handle,
-        (enum board_input_pin_pull)pull);
+    set_pin_pullup_down(handle, (enum board_input_pin_pull)pull);
 }
 
 /* EXTI ---------------------------------------------------------------------*/
 
 void gpio_input_interrupt_enable(void *pin_handle)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    LL_EXTI_EnableIT_0_31(
-        handle->exti.exti_line);
+    LL_EXTI_EnableIT_0_31(handle->exti.exti_line);
 }
 
 void gpio_input_interrupt_disable(void *pin_handle)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    LL_EXTI_DisableIT_0_31(
-        handle->exti.exti_line);
+    LL_EXTI_DisableIT_0_31(handle->exti.exti_line);
 }
 
-static uint8_t
-pin_polarity_to_driver_edge_trigger(
-    enum interrupt_pin_polarity polarity)
+static uint8_t pin_polarity_to_driver_edge_trigger(enum interrupt_pin_polarity polarity)
 {
     switch (polarity)
     {
@@ -631,22 +528,17 @@ pin_polarity_to_driver_edge_trigger(
     }
 }
 
-static void configure_exti(
-    struct pin_context *handle,
-    uint8_t edge_trigger)
+static void configure_exti(struct pin_context *handle, uint8_t edge_trigger)
 {
     /*
      * STM32C0 uses EXTI itself to select the GPIO source.
      * STM32F0 used SYSCFG for this.
      */
-    LL_EXTI_SetEXTISource(
-        handle->exti.exti_config_port,
-        handle->exti.exti_config_line);
+    LL_EXTI_SetEXTISource(handle->exti.exti_config_port, handle->exti.exti_config_line);
 
     LL_EXTI_InitTypeDef EXTI_InitStruct = {0};
 
-    EXTI_InitStruct.Line_0_31 =
-        handle->exti.exti_line;
+    EXTI_InitStruct.Line_0_31 = handle->exti.exti_line;
 
     EXTI_InitStruct.LineCommand = ENABLE;
     EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
@@ -661,75 +553,47 @@ static void configure_nvic(uint32_t IRQ)
     NVIC_EnableIRQ(IRQ);
 }
 
-static uint8_t
-get_edge_trigger_from_pin_polarity_and_activity(
-    struct pin_context *handle,
-    struct input_pin_config *input_config)
+static uint8_t get_edge_trigger_from_pin_polarity_and_activity(struct pin_context *handle,
+                                                               struct input_pin_config *input_config)
 {
     enum interrupt_pin_polarity polarity =
-        interrupt_pin_polarity_from_activity(
-            handle->info->polarity,
-            input_config->activity);
+        interrupt_pin_polarity_from_activity(handle->info->polarity, input_config->activity);
 
-    return pin_polarity_to_driver_edge_trigger(
-        polarity);
+    return pin_polarity_to_driver_edge_trigger(polarity);
 }
 
-static void configure_external_interrupt(
-    struct pin_context *handle,
-    struct input_pin_config *input_config,
-    bool int_enabled)
+static void configure_external_interrupt(struct pin_context *handle, struct input_pin_config *input_config,
+                                         bool int_enabled)
 {
-    uint8_t edge_trigger =
-        get_edge_trigger_from_pin_polarity_and_activity(
-            handle,
-            input_config);
+    uint8_t edge_trigger = get_edge_trigger_from_pin_polarity_and_activity(handle, input_config);
 
-    configure_exti(
-        handle,
-        edge_trigger);
+    configure_exti(handle, edge_trigger);
 
-    configure_nvic(
-        handle->exti.IRQ);
+    configure_nvic(handle->exti.IRQ);
 
     if (int_enabled)
     {
-        LL_EXTI_EnableIT_0_31(
-            handle->exti.exti_line);
+        LL_EXTI_EnableIT_0_31(handle->exti.exti_line);
     }
 }
 
-void gpio_input_configure(
-    void *pin_handle,
-    struct input_pin_config *input_config,
-    bool int_enabled)
+void gpio_input_configure(void *pin_handle, struct input_pin_config *input_config, bool int_enabled)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
     if (input_config)
     {
-        entry_update(
-            handle,
-            input_config);
+        entry_update(handle, input_config);
 
-        set_pin_pullup_down(
-            handle,
-            handle->info->pull);
+        set_pin_pullup_down(handle, handle->info->pull);
 
-        configure_external_interrupt(
-            handle,
-            input_config,
-            int_enabled);
+        configure_external_interrupt(handle, input_config, int_enabled);
     }
     else
     {
         struct gpio_pin pin_info;
 
-        memcpy(
-            &pin_info,
-            handle->info,
-            sizeof(struct gpio_pin));
+        memcpy(&pin_info, handle->info, sizeof(struct gpio_pin));
 
         pin_info.mode = PIN_MODE_INPUT;
 
@@ -739,15 +603,9 @@ void gpio_input_configure(
 
 bool gpio_input_is_active(void *pin_handle)
 {
-    struct pin_context *handle =
-        (struct pin_context *)pin_handle;
+    struct pin_context *handle = (struct pin_context *)pin_handle;
 
-    bool level =
-        LL_GPIO_IsInputPinSet(
-            (GPIO_TypeDef *)handle->info->port,
-            handle->info->pin);
+    bool level = LL_GPIO_IsInputPinSet((GPIO_TypeDef *)handle->info->port, handle->info->pin);
 
-    return (handle->info->polarity == ACTIVE_HIGH)
-               ? level
-               : !level;
+    return (handle->info->polarity == ACTIVE_HIGH) ? level : !level;
 }

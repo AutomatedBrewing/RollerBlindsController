@@ -1,0 +1,7 @@
+#ifndef CMSIS_CONFIG_H
+#define CMSIS_CONFIG_H
+
+#define CMSIS_OS_MAX_THREADS (1U)
+#define CMSIS_OS_TICK_FREQ   (1000U)
+
+#endif /* CMSIS_CONFIG_H */

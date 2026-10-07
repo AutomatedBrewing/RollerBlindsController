@@ -3,7 +3,7 @@
 #include "soft_timer.h"
 #include "soft_queue.h"
 
-#include "stm32f0xx_ll_utils.h"
+#include "stm32c0xx_ll_utils.h"
 
 #include <stdint.h>
 #include <string.h>

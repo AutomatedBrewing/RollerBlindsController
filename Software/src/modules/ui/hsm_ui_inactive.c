@@ -35,7 +35,7 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 {
     struct hsm_ui_context *ui = CONTAINER_OF(pmachine, struct hsm_ui_context, machine);
 
-    ui->buzzer.finished_repetitions++;
+    ui->finished_repetitions++;
 
     return EVENT_HANDLED;
 }

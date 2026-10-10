@@ -8,4 +8,5 @@ target_sources(${FW_LIBRARY_TARGET} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/hsm_ui_active.c
     ${CMAKE_CURRENT_LIST_DIR}/hsm_ui_inactive.c)
 
+add_subdirectory(buzzer)
 add_subdirectory(tests)

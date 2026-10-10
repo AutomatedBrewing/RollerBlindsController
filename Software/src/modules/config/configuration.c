@@ -101,6 +101,7 @@ static const struct device_configuration motor_devices_list[] = {
 /*-------------------   BUZZER */
 static const struct buzzer_configuration buzzer_config = {
     .pin_id = BUZZER_PIN_ID,
+    .frequency_hz = 4000,
     .timings =
         {
             .on_time = 100,

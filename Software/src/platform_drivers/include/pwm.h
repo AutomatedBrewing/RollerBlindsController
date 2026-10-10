@@ -1,34 +1,27 @@
-/*
- * utils.h
- *
- *  Created on: 12 Mar 2023
- *      Author: dev
- */
-
-#ifndef UI_CONFIGURATION_H_
-#define UI_CONFIGURATION_H_
+#ifndef PWM_H
+#define PWM_H
 
 /* Private includes ----------------------------------------------------------*/
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "gpio_pins.h"
 
 /* Public define -------------------------------------------------------------*/
 /* Public typedef ------------------------------------------------------------*/
-struct notification_timings
-{
-    uint32_t on_time;
-    uint32_t off_time;
-    uint32_t repetitions;
-};
-
-struct buzzer_configuration
-{
-    const enum board_input_pin_id pin_id;
-    const uint32_t frequency_hz;
-    const struct notification_timings timings;
-};
-
 /* Public macro --------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
-/* Public function prototypes ------------------------------------------------*/
 
-#endif /* UI_CONFIGURATION_H_ */
+typedef void *pwm_handle_t;
+
+/* Public function prototypes ------------------------------------------------*/
+pwm_handle_t pwm_init(enum board_input_pin_id pin_id,
+                      uint32_t frequency_hz);
+
+bool pwm_start(pwm_handle_t handle);
+bool pwm_stop(pwm_handle_t handle);
+
+bool pwm_set_frequency(pwm_handle_t handle,
+                       uint32_t frequency_hz);
+
+#endif /* PWM_H */

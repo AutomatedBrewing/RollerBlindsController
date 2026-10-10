@@ -394,6 +394,7 @@ static uint32_t convert_pin_mode_to_driver_output_type(enum board_pin_mode mode)
 {
     switch (mode)
     {
+    case PIN_MODE_ALTERNATE:
     case PIN_MODE_OUTPUT_PUSH_PULL:
         return LL_GPIO_OUTPUT_PUSHPULL;
 

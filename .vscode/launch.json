@@ -13,14 +13,14 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug NUCLEO-F091RC",
+            "name": "Debug NUCLEO-C011F4P6",
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "jlink",
-            "device": "STM32F091RC",
+            "device": "STM32C011F4",
             "interface": "swd",
             "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/SourceCode/build/rbc_F091/rbc_F091.elf",
+            "executable": "${workspaceFolder}/Software/build/rbc_C0/rbc_C0.elf",
             "gdbPath": "/usr/bin/gdb-multiarch",
             "runToEntryPoint": "main"
         }

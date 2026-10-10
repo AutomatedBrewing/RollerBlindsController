@@ -13,6 +13,7 @@
 
 #include "hsm_ui.h"
 #include "hsm_ui_states.h"
+#include "buzzer.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -27,7 +28,7 @@ static state_machine_result_t entry_handler(state_machine_t *const pmachine)
 
     em_timer_set_period(&ui->timer, ui->configuration->timings.on_time);
     em_timer_start(&ui->timer);
-    gpio_output_set(ui->buzzer.gpio_handle);
+    buzzer_on(&ui->buzzer);
 
     return EVENT_HANDLED;
 }
@@ -36,7 +37,7 @@ static state_machine_result_t exit_handler(state_machine_t *const pmachine)
 {
     struct hsm_ui_context *ui = CONTAINER_OF(pmachine, struct hsm_ui_context, machine);
 
-    gpio_output_clear(ui->buzzer.gpio_handle);
+    buzzer_off(&ui->buzzer);
 
     return EVENT_HANDLED;
 }

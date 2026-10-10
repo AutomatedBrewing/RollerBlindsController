@@ -25,6 +25,7 @@
 #include "ui_configuration.h"
 
 #include "utils.h"
+#include "buzzer.h"
 
 /* Private define ------------------------------------------------------------*/
 
@@ -50,18 +51,23 @@ static void create_ui_timer(struct em_timer *timer, void *context)
     em_timer_set_event_id(timer, UI_TIMER_EVENT_ID);
 }
 
-static void configure_gpio(struct buzzer *buzzer, const enum board_input_pin_id buzzer_pin_id)
-{
-    buzzer->gpio_info = find_gpio_pin_context(buzzer_pin_id);
-    gpio_pin_init(buzzer->gpio_info, &buzzer->gpio_handle);
-    gpio_output_configure(buzzer->gpio_handle, buzzer->gpio_info->mode);
-    gpio_output_clear(buzzer->gpio_handle);
-}
+// static void configure_gpio(struct buzzer *buzzer, const enum board_input_pin_id buzzer_pin_id)
+// {
+//     buzzer->gpio_info = find_gpio_pin_context(buzzer_pin_id);
+//     gpio_pin_init(buzzer->gpio_info, &buzzer->gpio_handle);
+//     gpio_output_configure(buzzer->gpio_handle, buzzer->gpio_info->mode);
+//     gpio_output_clear(buzzer->gpio_handle);
+// }
 
 static void configure_buzzers(struct hsm_ui_context *hsm, const struct buzzer_configuration *config)
 {
     hsm->configuration = config;
-    configure_gpio(&hsm->buzzer, config->pin_id);
+    //configure_gpio(&hsm->buzzer, config->pin_id);
+    const struct buzzer_config buzzer_cfg = {
+        .pin_id = hsm->configuration->pin_id,
+        .frequency_hz = hsm->configuration->frequency_hz,
+    };
+    (void)buzzer_init(&hsm->buzzer, &buzzer_cfg);
     create_ui_timer(&hsm->timer, hsm);
 }
 

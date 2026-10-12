@@ -18,6 +18,8 @@ osTimerId_t __wrap_osTimerNew (osTimerFunc_t func, osTimerType_t type, void *arg
 osStatus_t __wrap_osTimerStart (osTimerId_t timer_id, uint32_t ticks);
 uint32_t __wrap_osTimerIsRunning (osTimerId_t timer_id);
 osStatus_t __wrap_osTimerStop (osTimerId_t timer_id);
+uint32_t __wrap_osKernelGetTickCount (void);
+uint32_t __wrap__osKernelGetTickFreq (void);
 
 void expect_osThreadNew(void *argument, const osThreadAttr_t *attr, osThreadId_t returned_thread_id);
 
@@ -29,6 +31,8 @@ void expect_osTimerNew(osTimerType_t type, void *argument, osTimerId_t returned_
 void expect_osTimerStart(osTimerId_t expected_timer_id, uint32_t expected_ticks, osStatus_t returned_status);
 void expect_osTimerStop(osTimerId_t expected_timer_id, uint32_t returned_status);
 void expect_osTimerIsRunning(osTimerId_t expected_timer_id, uint32_t returned_status);
+void expect_osKernelGetTickCount (uint32_t expected_tick_count);
+void expect_osKernelGetTickFreq (uint32_t expected_tick_frequency);
 
 
 

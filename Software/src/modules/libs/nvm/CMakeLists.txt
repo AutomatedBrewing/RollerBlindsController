@@ -3,4 +3,5 @@ target_include_directories(${FW_LIBRARY_TARGET} PUBLIC
 
 target_sources(${FW_LIBRARY_TARGET} PRIVATE 
     ${CMAKE_CURRENT_LIST_DIR}/nvm.c
-    ${CMAKE_CURRENT_LIST_DIR}/nvm_crc16.c)
+    ${CMAKE_CURRENT_LIST_DIR}/nvm_crc16.c
+    ${CMAKE_CURRENT_LIST_DIR}/nvm_flash_backend.c)

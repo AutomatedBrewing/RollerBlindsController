@@ -48,7 +48,7 @@ bool flash_program_and_verify(uint32_t addr, uint8_t *p_data, uint32_t size);
  *         HAL_ERROR_INVALID_PARAM Data read mismath data written.
  *         HAL_SUCCESS             Data written with success.
  */
-bool flash_program(uint32_t addr, uint8_t *p_data, uint32_t size);
+bool flash_program(uint32_t addr, const uint8_t *p_data, uint32_t size);
 
 /**
  * @brief  Function reads data from flash memory and copies them to the buffer.

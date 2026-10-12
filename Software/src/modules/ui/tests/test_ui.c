@@ -155,8 +155,48 @@ void expect_gpio_output_clear(void *expected_gpio_handle)
     expect_uint_value(__wrap_gpio_output_clear, gpio_handle, (uintmax_t)expected_gpio_handle);
 }
 
-/*----------------------------------GPIO MOCKS TO BE EXPORTED -----------------*/
+/*----------------------------------BUZZER MOCKS TO BE EXPORTED -----------------*/
 
+bool __wrap_buzzer_init(struct buzzer *buzzer, const struct buzzer_config *config)
+{
+    (void)(buzzer);
+    (void)(config);
+    function_called();
+    return mock_type(bool);
+}
+
+void expect_buzzer_init(bool expected_result)
+{
+    expect_function_call(__wrap_buzzer_init);
+    will_return(__wrap_buzzer_init, expected_result);
+}
+
+bool __wrap_buzzer_on(struct buzzer *buzzer)
+{
+    (void)(buzzer);
+    function_called();
+    return mock_type(bool);
+}
+
+void expect_buzzer_on(bool expected_result)
+{
+    expect_function_call(__wrap_buzzer_on);
+    will_return(__wrap_buzzer_on, expected_result);
+}
+
+bool __wrap_buzzer_off(struct buzzer *buzzer)
+{
+    (void)(buzzer);
+    function_called();
+    return mock_type(bool);
+}
+
+void expect_buzzer_off(bool expected_result)
+{
+    expect_function_call(__wrap_buzzer_off);
+    will_return(__wrap_buzzer_off, expected_result);
+}
+/*----------------------------------BUZZER MOCKS TO BE EXPORTED -----------------*/
 static void send_ui_timer_event(void *context)
 {
     union timer_message message = {0};
@@ -186,12 +226,12 @@ static int test_setup(void **state)
     return 0;
 }
 
-static void init_buzzer_entry(struct buzzer *buzzer, void *gpio_info, void *gpio_handle)
-{
-    buzzer->gpio_handle = gpio_handle;
-    buzzer->gpio_info = gpio_info;
-    buzzer->finished_repetitions = 0;
-}
+// static void init_buzzer_entry(struct buzzer *buzzer, void *gpio_info, void *gpio_handle)
+// {
+//     buzzer->gpio_handle = gpio_handle;
+//     buzzer->gpio_info = gpio_info;
+//     buzzer->finished_repetitions = 0;
+// }
 
 static void setup_test_harness(struct test_harness *harness, const struct device_configuration *buzzers_list,
                                uint32_t list_size)
@@ -199,7 +239,7 @@ static void setup_test_harness(struct test_harness *harness, const struct device
     uintptr_t initial_gpio_info = 0x69;
     uintptr_t initial_gpio_handle = 0x100;
 
-    init_buzzer_entry(&harness->buzzer, (void *)initial_gpio_info++, (void *)initial_gpio_handle++);
+   // init_buzzer_entry(&harness->buzzer, (void *)initial_gpio_info++, (void *)initial_gpio_handle++);
 
     harness->ui_list = buzzers_list;
     harness->config = buzzers_list->config;
@@ -210,11 +250,7 @@ static void expect_init_all_buzzers(struct test_harness *test)
 {
     expect_get_list_of_devices_by_type(DEVICE_TYPE_BUZZER, test->ui_list, test->buzzers_count);
 
-    expect_find_gpio_pin_context(test->config->pin_id, &test->buzzer.gpio_info);
-    expect_gpio_pin_init(&test->buzzer.gpio_info, test->buzzer.gpio_handle, GPIO_OK);
-    expect_gpio_output_configure(test->buzzer.gpio_handle);
-    expect_gpio_output_clear(test->buzzer.gpio_handle);
-
+    expect_buzzer_init(true);
     expect_em_timer_create(true);
     expect_em_timer_set_event_id();
 }
@@ -248,16 +284,18 @@ static void given_one_buzzer_in_device_list_when_initializing_then_init_it(void 
     test_subscriber->init(0);
 }
 
-static void expect_activation(uint32_t expected_active_period, void *expected_gpio_handle)
+static void expect_activation(uint32_t expected_active_period)
 {
     expect_em_timer_set_period(expected_active_period);
     expect_em_timer_start();
-    expect_gpio_output_set(expected_gpio_handle);
+    //expect_gpio_output_set(expected_gpio_handle);
+    expect_buzzer_on(true);
 }
 
-static void expect_deactivation(uint32_t expected_inactive_period, void *expected_gpio_handle)
+static void expect_deactivation(uint32_t expected_inactive_period)
 {
-    expect_gpio_output_clear(expected_gpio_handle);
+    //expect_gpio_output_clear(expected_gpio_handle);
+    expect_buzzer_off(true);
     expect_em_timer_set_period(expected_inactive_period);
     expect_em_timer_start();
 }
@@ -277,14 +315,14 @@ static void given_idled_ui_when_received_notify_event_then_perform_notification_
 
     /*----------------------- Expected buzzer activation on notification event*/
     /* ARRANGE */
-    expect_activation(test.config->timings.on_time, test.buzzer.gpio_handle);
+    expect_activation(test.config->timings.on_time);
 
     /* ACT */
     send_ui_notify_event();
 
     /*----------------------- Expected buzzer deactivation on timer event*/
     /* ARRANGE */
-    expect_deactivation(test.config->timings.off_time, test.buzzer.gpio_handle);
+    expect_deactivation(test.config->timings.off_time);
 
     /* ACT */
     send_ui_timer_event(&ui);

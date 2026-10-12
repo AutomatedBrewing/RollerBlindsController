@@ -17,6 +17,8 @@ struct nvm_backend
      * For EEPROM it can be 1.
      */
     uint16_t erase_size;
+    
+    uint8_t program_size;
 
     /*
      * Read bytes from NVM.

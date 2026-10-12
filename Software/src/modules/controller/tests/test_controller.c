@@ -30,6 +30,7 @@
 #include "gpio_pins.h"
 
 #include "configuration_mock.h"
+#include "cmsis_mock.h"
 
 #include "utils.h"
 #include <string.h>
@@ -586,7 +587,7 @@ static void given_controller_in_idle_mode_when_two_very_long_buttons_pressed_the
     /* ARRANGE */
     /* On button press, time measurements starts and motor is moving. */
     expect_motor_up_event();
-
+    expect_osKernelGetTickCount(0);
     /* ACT */
     send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, SHORT_PRESS);
     send_button_pressed_event(BUTTON_LOCAL_UP_PIN_ID, LONG_PRESS);
@@ -595,7 +596,10 @@ static void given_controller_in_idle_mode_when_two_very_long_buttons_pressed_the
     /* ARRANGE*/
     /* Button is released -> shutter is closed. Stop motor & notify user. */
     expect_motor_stop_event();
+    expect_osKernelGetTickCount(1000);
+    expect_osKernelGetTickFreq(1000);
     expect_ui_notify_event();
+    
 
     /* ACT */
     send_button_released_event(BUTTON_LOCAL_UP_PIN_ID);

@@ -18,4 +18,6 @@ mock_function(test_controller nvm_read)
 # configuration.h
 mock_function(test_controller get_list_of_devices_by_type)
 
-
+# CMSIS
+mock_function(test_controller osKernelGetTickCount)
+mock_function(test_controller osKernelGetTickFreq)

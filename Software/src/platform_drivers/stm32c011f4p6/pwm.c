@@ -28,10 +28,10 @@
 #define PWM_DUTY_CYCLE_PERCENT 50U
 
 struct pwm_instance {
-    bool allocated;
-    bool running;
     enum board_input_pin_id pin_id;
     uint32_t frequency_hz;
+    bool allocated;
+    bool running;
 };
 
 static struct pwm_instance pwm_instance;

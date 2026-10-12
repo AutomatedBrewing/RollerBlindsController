@@ -4,6 +4,11 @@ add_unit_test(${FW_LIBRARY_TARGET} test_ui
 
 mock_function(test_ui em_publish_message)
 
+# buzzer
+mock_function(test_ui buzzer_init)
+mock_function(test_ui buzzer_on)
+mock_function(test_ui buzzer_off)
+
 # em_timer.h
 mock_function(test_ui em_timer_create)
 mock_function(test_ui em_timer_set_period)

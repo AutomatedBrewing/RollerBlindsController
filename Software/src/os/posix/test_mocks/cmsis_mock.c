@@ -183,3 +183,26 @@ void expect_osTimerIsRunning(osTimerId_t expected_timer_id, uint32_t returned_st
 }
 
 
+uint32_t __wrap_osKernelGetTickCount (void)
+{
+    function_called();
+    return mock_type(uint32_t);
+}
+
+void expect_osKernelGetTickCount (uint32_t expected_tick_count)
+{
+    expect_function_call(__wrap_osKernelGetTickCount);
+    will_return(__wrap_osKernelGetTickCount, expected_tick_count);
+}
+
+uint32_t __wrap_osKernelGetTickFreq (void)
+{
+    function_called();
+    return mock_type(uint32_t);
+}
+
+void expect_osKernelGetTickFreq (uint32_t expected_tick_frequency)
+{
+    expect_function_call(__wrap_osKernelGetTickFreq);
+    will_return(__wrap_osKernelGetTickFreq, expected_tick_frequency);
+}

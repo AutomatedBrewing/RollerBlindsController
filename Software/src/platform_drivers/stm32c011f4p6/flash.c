@@ -332,7 +332,7 @@ bool flash_program_and_verify(uint32_t addr, uint8_t *p_data, uint32_t size)
     return false;
 }
 
-bool flash_program(uint32_t addr, uint8_t *p_data, uint32_t size)
+bool flash_program(uint32_t addr, const uint8_t *p_data, uint32_t size)
 {
     if ((p_data == NULL) || (size == 0U))
     {

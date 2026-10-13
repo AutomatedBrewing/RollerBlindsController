@@ -28,7 +28,7 @@ void app_init()
     clock_initialize();
     interrupt_initialize();
     clock_configure();
-    gpio_initialize();
+
     log_initialize();
 
     osKernelInitialize();

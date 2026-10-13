@@ -1,36 +1,63 @@
 #include "flash.h"
 #include "cmsis_os.h"
 #include "stm32c0xx.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
-#define PAGE_SIZE 2048U
-#define WRITE_SIZE 8U
-
-#define FLASH_FKEY1 0x45670123U
-#define FLASH_FKEY2 0xCDEF89ABU
-
-#define PAGE_ERASE_TIMEOUT 50U /* ms */
-#define PAGE_WRITE_TIMEOUT 1U  /* ms */
-#define PAGE_UNLOCK_TIMEOUT 1U /* ms */
-
 /* -------------------------------------------------------------------------- */
-/* Private functions                                                          */
+/* Configuration                                                              */
 /* -------------------------------------------------------------------------- */
 
-static uint32_t flash_no_of_iterations_get(uint32_t size, uint32_t block_size)
-{
-    return (size + block_size - 1U) / block_size;
-}
+#define FLASH_SIZE_BYTES        16384U
+#define FLASH_PAGE_SIZE         2048U
+#define FLASH_WRITE_SIZE        8U
 
-static bool flash_wait_until_ready(uint32_t timeout)
-{
-    uint32_t tickstart = osKernelGetTickCount();
+#define FLASH_FKEY1             0x45670123U
+#define FLASH_FKEY2             0xCDEF89ABU
 
-    while ((READ_BIT(FLASH->SR, FLASH_SR_BSY1) != 0U) || (READ_BIT(FLASH->SR, FLASH_SR_CFGBSY) != 0U))
+#define FLASH_PAGE_ERASE_TIMEOUT_MS  50U
+#define FLASH_PAGE_WRITE_TIMEOUT_MS  5U
+#define FLASH_UNLOCK_TIMEOUT_MS      1U
+
+#define FLASH_ERROR_FLAGS \
+    (FLASH_SR_OPERR   | FLASH_SR_PROGERR | FLASH_SR_WRPERR | \
+     FLASH_SR_PGAERR  | FLASH_SR_SIZERR | FLASH_SR_PGSERR | \
+     FLASH_SR_MISERR  | FLASH_SR_FASTERR)
+
+/* -------------------------------------------------------------------------- */
+/* Timeout and status helpers                                                 */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * All public functions return:
+ * false - success
+ * true  - error
+ */
+
+static bool flash_wait_flag_clear(uint32_t flag, uint32_t timeout_ms)
+{
+    uint32_t start;
+    uint32_t frequency;
+    uint32_t timeout_ticks;
+
+    frequency = osKernelGetTickFreq();
+
+    if (frequency == 0U)
     {
-        if ((timeout == 0U) || ((osKernelGetTickCount() - tickstart) > timeout))
+        return true;
+    }
+
+    timeout_ticks = (uint32_t)
+        ((((uint64_t)timeout_ms * frequency) + 999U) / 1000U);
+
+    start = osKernelGetTickCount();
+
+    while (READ_BIT(FLASH->SR, flag) != 0U)
+    {
+        if ((timeout_ticks == 0U) ||
+            ((uint32_t)(osKernelGetTickCount() - start) >= timeout_ticks))
         {
             return true;
         }
@@ -39,20 +66,69 @@ static bool flash_wait_until_ready(uint32_t timeout)
     return false;
 }
 
-static void flash_clear_status_flags(void)
+/*
+ * Before starting an operation:
+ *
+ * 1. Wait for BSY1 to clear.
+ * 2. Clear previous EOP and programming error flags.
+ * 3. Check CFGBSY.
+ *
+ * This ordering follows the standard programming/erase procedure.
+ */
+static bool flash_prepare_operation(uint32_t timeout_ms)
 {
-    /*
-     * Clear EOP and all programming/erase error flags.
-     *
-     * On STM32C0 these flags are cleared by writing 1.
-     */
-    FLASH->SR = FLASH_SR_EOP | FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR |
-                FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR;
+    if (flash_wait_flag_clear(FLASH_SR_BSY1, timeout_ms))
+    {
+        return true;
+    }
+
+    WRITE_REG(FLASH->SR, FLASH_SR_EOP | FLASH_ERROR_FLAGS);
+
+    if (flash_wait_flag_clear(FLASH_SR_CFGBSY, timeout_ms))
+    {
+        return true;
+    }
+
+    return false;
 }
 
-static bool flash_unlock(uint32_t timeout)
+static bool flash_address_range_valid(uint32_t addr, uint32_t size)
 {
-    if (flash_wait_until_ready(timeout))
+    const uint32_t flash_end = FLASH_BASE + FLASH_SIZE_BYTES;
+
+    if ((size == 0U) ||
+        (addr < FLASH_BASE) ||
+        (addr >= flash_end))
+    {
+        return false;
+    }
+
+    return (size <= (flash_end - addr));
+}
+
+static bool flash_program_range_valid(uint32_t addr, uint32_t size)
+{
+    uint32_t padded_size;
+
+    if (size == 0U)
+    {
+        return false;
+    }
+
+    if (size > (UINT32_MAX - (FLASH_WRITE_SIZE - 1U)))
+    {
+        return false;
+    }
+
+    padded_size = (size + FLASH_WRITE_SIZE - 1U) &
+                  ~(FLASH_WRITE_SIZE - 1U);
+
+    return flash_address_range_valid(addr, padded_size);
+}
+
+static bool flash_unlock(uint32_t timeout_ms)
+{
+    if (flash_wait_flag_clear(FLASH_SR_BSY1, timeout_ms))
     {
         return true;
     }
@@ -71,162 +147,198 @@ static void flash_lock(void)
     SET_BIT(FLASH->CR, FLASH_CR_LOCK);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Flash programming                                                          */
-/* -------------------------------------------------------------------------- */
-
-static bool flash_write(uint64_t data, uint32_t addr, uint32_t timeout)
+static bool flash_status_has_error(void)
 {
-    /*
-     * STM32C0 can only program 64-bit double words.
-     */
-    if ((addr & 0x7U) != 0U)
+    return (READ_BIT(FLASH->SR, FLASH_ERROR_FLAGS) != 0U);
+}
+
+/*
+ * Wait for the operation to finish.
+ *
+ * IMPORTANT:
+ * If a timeout occurs, do not clear PG/PER while the Flash interface
+ * is busy. Wait for the hardware operation to finish before modifying CR.
+ * The function reports an error even if the operation later completes.
+ */
+static bool flash_finish_operation(uint32_t operation_bit,
+                                   uint32_t timeout_ms)
+{
+    bool timed_out = false;
+    bool failed;
+
+    if (flash_wait_flag_clear(FLASH_SR_CFGBSY, timeout_ms))
     {
-        return true;
+        timed_out = true;
+
+        /*
+         * Nie zmieniaj FLASH_CR, dopóki operacja trwa.
+         */
+        while (READ_BIT(FLASH->SR, FLASH_SR_CFGBSY) != 0U)
+        {
+        }
     }
 
-    if (flash_wait_until_ready(timeout))
+    if (flash_wait_flag_clear(FLASH_SR_BSY1, timeout_ms))
     {
-        return true;
-    }
+        timed_out = true;
 
-    flash_clear_status_flags();
-
-    /*
-     * Enable programming.
-     */
-    SET_BIT(FLASH->CR, FLASH_CR_PG);
-
-    /*
-     * STM32C0 requires two consecutive 32-bit writes.
-     */
-    *(__IO uint32_t *)addr = (uint32_t)(data & 0xFFFFFFFFULL);
-
-    __ISB();
-
-    *(__IO uint32_t *)(addr + 4U) = (uint32_t)(data >> 32);
-
-    /*
-     * Wait for completion.
-     *
-     * CFGBSY is the important flag for completion of the
-     * programming sequence.
-     */
-    if (flash_wait_until_ready(timeout))
-    {
-        CLEAR_BIT(FLASH->CR, FLASH_CR_PG);
-        return true;
+        while (READ_BIT(FLASH->SR, FLASH_SR_BSY1) != 0U)
+        {
+        }
     }
 
     /*
-     * Check EOP.
+     * Sukces określają flagi błędów.
+     * EOP nie jest wymagane jako warunek sukcesu.
      */
-    if (READ_BIT(FLASH->SR, FLASH_SR_EOP) == 0U)
-    {
-        CLEAR_BIT(FLASH->CR, FLASH_CR_PG);
-        return true;
-    }
+    failed = flash_status_has_error();
 
-    /*
-     * Clear EOP.
-     */
-    SET_BIT(FLASH->SR, FLASH_SR_EOP);
+    CLEAR_BIT(FLASH->CR, operation_bit);
 
-    /*
-     * Disable programming.
-     */
-    CLEAR_BIT(FLASH->CR, FLASH_CR_PG);
+    WRITE_REG(FLASH->SR, FLASH_SR_EOP | FLASH_ERROR_FLAGS);
 
-    /*
-     * Check for programming errors.
-     */
-    if ((FLASH->SR & (FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR |
-                      FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR)) != 0U)
-    {
-        return true;
-    }
-
-    return false;
+    return (timed_out || failed);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Flash page erase                                                           */
+/* Double-word programming                                                    */
 /* -------------------------------------------------------------------------- */
 
-static bool flash_page_erase(uint32_t page_addr, uint32_t timeout)
+static bool flash_write(uint64_t data, uint32_t addr, uint32_t timeout_ms)
+{
+    if ((addr & (FLASH_WRITE_SIZE - 1U)) != 0U)
+    {
+        return true;
+    }
+
+    if (!flash_address_range_valid(addr, FLASH_WRITE_SIZE))
+    {
+        return true;
+    }
+
+    if (flash_prepare_operation(timeout_ms))
+    {
+        return true;
+    }
+
+    SET_BIT(FLASH->CR, FLASH_CR_PG);
+
+    /*
+     * Standard STM32C0 programming sequence:
+     * two consecutive 32-bit writes to one aligned double word.
+     */
+    *(__IO uint32_t *)addr = (uint32_t)data;
+    *(__IO uint32_t *)(addr + 4U) = (uint32_t)(data >> 32);
+
+    return flash_finish_operation(FLASH_CR_PG, timeout_ms);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Page erase                                                                 */
+/* -------------------------------------------------------------------------- */
+
+static bool flash_page_erase(uint32_t page_addr, uint32_t timeout_ms)
 {
     uint32_t page_number;
 
-    if (flash_wait_until_ready(timeout))
+    if (!flash_address_range_valid(page_addr, FLASH_PAGE_SIZE))
+    {
+        return true;
+    }
+
+    if (((page_addr - FLASH_BASE) % FLASH_PAGE_SIZE) != 0U)
+    {
+        return true;
+    }
+
+    page_number = (page_addr - FLASH_BASE) / FLASH_PAGE_SIZE;
+
+    if (page_number >= (FLASH_SIZE_BYTES / FLASH_PAGE_SIZE))
+    {
+        return true;
+    }
+
+    if (flash_prepare_operation(timeout_ms))
     {
         return true;
     }
 
     /*
-     * Convert address to page number.
-     *
-     * STM32C0 uses FLASH_CR.PNB instead of FLASH->AR.
+     * Select page erase and page number.
      */
-    page_number = (page_addr - FLASH_BASE) / PAGE_SIZE;
+    MODIFY_REG(FLASH->CR,
+               FLASH_CR_PNB,
+               page_number << FLASH_CR_PNB_Pos);
 
-    /*
-     * PNB occupies bits 9:3.
-     */
-    if (page_number > 0x7FU)
-    {
-        return true;
-    }
-
-    flash_clear_status_flags();
-
-    /*
-     * Select page erase.
-     */
     SET_BIT(FLASH->CR, FLASH_CR_PER);
-
-    MODIFY_REG(FLASH->CR, FLASH_CR_PNB, page_number << FLASH_CR_PNB_Pos);
-
-    /*
-     * Start erase.
-     */
     SET_BIT(FLASH->CR, FLASH_CR_STRT);
 
-    /*
-     * Wait until erase/configuration operation is complete.
-     */
-    if (flash_wait_until_ready(timeout))
-    {
-        CLEAR_BIT(FLASH->CR, FLASH_CR_PER);
-        return true;
-    }
+    return flash_finish_operation(FLASH_CR_PER, timeout_ms);
+}
 
-    /*
-     * Check EOP.
-     */
-    if (READ_BIT(FLASH->SR, FLASH_SR_EOP) == 0U)
-    {
-        CLEAR_BIT(FLASH->CR, FLASH_CR_PER);
-        return true;
-    }
+/* -------------------------------------------------------------------------- */
+/* Shared programming implementation                                          */
+/* -------------------------------------------------------------------------- */
 
-    /*
-     * Clear EOP.
-     */
-    SET_BIT(FLASH->SR, FLASH_SR_EOP);
+static bool flash_program_internal(uint32_t addr,
+                                   const uint8_t *p_data,
+                                   uint32_t size,
+                                   bool verify)
+{
+    uint32_t remaining;
+    uint32_t write_size;
+    uint64_t data;
+    uint64_t read_data;
 
-    /*
-     * Disable page erase.
-     */
-    CLEAR_BIT(FLASH->CR, FLASH_CR_PER);
-
-    /*
-     * Check errors.
-     */
-    if ((FLASH->SR & (FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR |
-                      FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR)) != 0U)
+    if ((p_data == NULL) ||
+        ((addr & (FLASH_WRITE_SIZE - 1U)) != 0U) ||
+        !flash_program_range_valid(addr, size))
     {
         return true;
     }
+
+    if (flash_unlock(FLASH_UNLOCK_TIMEOUT_MS))
+    {
+        return true;
+    }
+
+    remaining = size;
+
+    while (remaining > 0U)
+    {
+        data = UINT64_MAX;
+
+        write_size = (remaining >= FLASH_WRITE_SIZE)
+                         ? FLASH_WRITE_SIZE
+                         : remaining;
+
+        memcpy(&data, p_data, write_size);
+
+        if (flash_write(data, addr, FLASH_PAGE_WRITE_TIMEOUT_MS))
+        {
+            flash_lock();
+            return true;
+        }
+
+        if (verify)
+        {
+            read_data = (uint64_t)(*(__IO uint32_t *)addr);
+            read_data |=
+                ((uint64_t)(*(__IO uint32_t *)(addr + 4U))) << 32;
+
+            if (read_data != data)
+            {
+                flash_lock();
+                return true;
+            }
+        }
+
+        p_data += write_size;
+        addr += FLASH_WRITE_SIZE;
+        remaining -= write_size;
+    }
+
+    flash_lock();
 
     return false;
 }
@@ -237,35 +349,54 @@ static bool flash_page_erase(uint32_t page_addr, uint32_t timeout)
 
 bool flash_erase(uint32_t addr, uint32_t size)
 {
-    if (size == 0U)
-    {
-        return false;
-    }
+    uint32_t pages;
+    uint32_t remaining_flash;
 
-    /*
-     * Erase starts at a page boundary.
-     */
-    if ((addr - FLASH_BASE) % PAGE_SIZE != 0U)
+    if ((size == 0U) ||
+        (addr < FLASH_BASE) ||
+        (addr >= (FLASH_BASE + FLASH_SIZE_BYTES)))
     {
         return true;
     }
 
-    if (flash_unlock(PAGE_UNLOCK_TIMEOUT))
+    if (((addr - FLASH_BASE) % FLASH_PAGE_SIZE) != 0U)
     {
         return true;
     }
 
-    uint32_t iterations = flash_no_of_iterations_get(size, PAGE_SIZE);
+    remaining_flash = (FLASH_BASE + FLASH_SIZE_BYTES) - addr;
 
-    for (uint32_t i = 0U; i < iterations; i++)
+    if (size > remaining_flash)
     {
-        if (flash_page_erase(addr, PAGE_ERASE_TIMEOUT))
+        return true;
+    }
+
+    pages = size / FLASH_PAGE_SIZE;
+
+    if ((size % FLASH_PAGE_SIZE) != 0U)
+    {
+        pages++;
+    }
+
+    if (pages > (remaining_flash / FLASH_PAGE_SIZE))
+    {
+        return true;
+    }
+
+    if (flash_unlock(FLASH_UNLOCK_TIMEOUT_MS))
+    {
+        return true;
+    }
+
+    for (uint32_t i = 0U; i < pages; i++)
+    {
+        if (flash_page_erase(addr, FLASH_PAGE_ERASE_TIMEOUT_MS))
         {
             flash_lock();
             return true;
         }
 
-        addr += PAGE_SIZE;
+        addr += FLASH_PAGE_SIZE;
     }
 
     flash_lock();
@@ -273,116 +404,26 @@ bool flash_erase(uint32_t addr, uint32_t size)
     return false;
 }
 
-bool flash_program_and_verify(uint32_t addr, uint8_t *p_data, uint32_t size)
+bool flash_program_and_verify(uint32_t addr,
+                              uint8_t *p_data,
+                              uint32_t size)
 {
-    if ((p_data == NULL) || (size == 0U))
-    {
-        return false;
-    }
-
-    /*
-     * STM32C0 requires 64-bit aligned programming addresses.
-     */
-    if ((addr & 0x7U) != 0U)
-    {
-        return true;
-    }
-
-    if (flash_unlock(PAGE_UNLOCK_TIMEOUT))
-    {
-        return true;
-    }
-
-    uint32_t remaining = size;
-
-    while (remaining > 0U)
-    {
-        uint64_t data = UINT64_MAX;
-        uint32_t write_size = (remaining >= WRITE_SIZE) ? WRITE_SIZE : remaining;
-
-        /*
-         * Fill missing bytes with 0xFF.
-         */
-        memcpy(&data, p_data, write_size);
-
-        if (flash_write(data, addr, PAGE_WRITE_TIMEOUT))
-        {
-            flash_lock();
-            return true;
-        }
-
-        uint64_t read = *(__IO uint32_t *)addr;
-
-        read |= ((uint64_t) * (__IO uint32_t *)(addr + 4U)) << 32;
-
-        if (read != data)
-        {
-            flash_lock();
-            return true;
-        }
-
-        p_data += write_size;
-        addr += WRITE_SIZE;
-
-        remaining -= write_size;
-    }
-
-    flash_lock();
-
-    return false;
+    return flash_program_internal(addr, p_data, size, true);
 }
 
-bool flash_program(uint32_t addr, const uint8_t *p_data, uint32_t size)
+bool flash_program(uint32_t addr,
+                   const uint8_t *p_data,
+                   uint32_t size)
 {
-    if ((p_data == NULL) || (size == 0U))
-    {
-        return false;
-    }
-
-    if ((addr & 0x7U) != 0U)
-    {
-        return true;
-    }
-
-    if (flash_unlock(PAGE_UNLOCK_TIMEOUT))
-    {
-        return true;
-    }
-
-    uint32_t remaining = size;
-
-    while (remaining > 0U)
-    {
-        uint64_t data = UINT64_MAX;
-        uint32_t write_size = (remaining >= WRITE_SIZE) ? WRITE_SIZE : remaining;
-
-        /*
-         * For a partial final double-word, remaining bytes stay 0xFF.
-         */
-        memcpy(&data, p_data, write_size);
-
-        if (flash_write(data, addr, PAGE_WRITE_TIMEOUT))
-        {
-            flash_lock();
-            return true;
-        }
-
-        p_data += write_size;
-        addr += WRITE_SIZE;
-
-        remaining -= write_size;
-    }
-
-    flash_lock();
-
-    return false;
+    return flash_program_internal(addr, p_data, size, false);
 }
 
 bool flash_read(uint32_t addr, uint8_t *p_data, uint32_t size)
 {
-    if ((p_data == NULL) || (size == 0U))
+    if ((p_data == NULL) ||
+        !flash_address_range_valid(addr, size))
     {
-        return false;
+        return true;
     }
 
     memcpy(p_data, (const void *)addr, size);

@@ -22,7 +22,8 @@ if(HAS_OS_EXTERNAL_LIB)
 endif()
  			
 if(BUILD_INTEGRATION_TESTS)
-    list(APPEND LINKED_LIBS cmocka)
+    #list(APPEND LINKED_LIBS cmocka)
+    list(APPEND LINKED_LIBS unity)
 endif()
 
 if(LOGS_ENABLED)

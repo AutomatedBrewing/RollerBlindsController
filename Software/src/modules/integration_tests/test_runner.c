@@ -18,16 +18,17 @@
 /* Private function bodies ---------------------------------------------------*/
 static void RunAllTests(void)
 {
-    RUN_TEST_GROUP(test_blink);
+    RUN_TEST_GROUP(test_flash);
 }
 
-static void itest_task(void *argument)
-{
-    (void)(argument);
-    UnityMain(0, NULL, RunAllTests);
-}
+// static void itest_task(void *argument)
+// {
+//     (void)(argument);
+//     UnityMain(0, NULL, RunAllTests);
+// }
 
 void itest_initialize(void)
 {
-    osThreadNew(itest_task, NULL, NULL);
+    //osThreadNew(itest_task, NULL, NULL);
+    UnityMain(0, NULL, RunAllTests);
 }

@@ -25,7 +25,7 @@ static const struct nvm_object nvm_objects[] = {
 };
 
 static const struct nvm_backend nvm_backend = {
-    .size = 2048U, .erase_size = 256U,
+
     /*
         .read = flash_read,
         .write = flash_program,
@@ -34,7 +34,7 @@ static const struct nvm_backend nvm_backend = {
 };
 
 static const struct nvm_configuration nvm_config = {
-    .configuration = {.backend = &nvm_backend,
+    .configuration = {.backend_api = &nvm_backend,
                       .objects = nvm_objects,
                       .object_count = sizeof(nvm_objects) / sizeof(nvm_objects[0])},
     .default_time = 69,

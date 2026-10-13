@@ -183,13 +183,13 @@ static const struct nvm_object *find_object(const struct nvm_config *config,
 /* Normalize the backend's zero-on-success read result to a boolean. */
 static bool read_bytes(uint32_t address, void *data, uint16_t size)
 {
-    return nvm.config->backend->read(address, data, size) == 0;
+    return nvm.config->backend_api->read(address, data, size) == 0;
 }
 
-/* Normalize the backend's zero-on-success write result to a boolean. */
+/* Normalize the backend_api's zero-on-success write result to a boolean. */
 static bool write_bytes(uint32_t address, const void *data, uint16_t size)
 {
-    return nvm.config->backend->write(address, data, size) == 0;
+    return nvm.config->backend_api->write(address, data, size) == 0;
 }
 
 /* Return true only if every byte of the header is still erased. */
@@ -211,20 +211,20 @@ static bool is_header_erased(const uint8_t *header)
 /* Check the configuration and object descriptors before touching flash. */
 static enum nvm_result validate_config(const struct nvm_config *config)
 {
-    const struct nvm_backend *backend;
+    const struct nvm_backend *backend_api;
     uint8_t index;
     uint8_t previous_index;
 
-    if ((config == NULL) || (config->backend == NULL) || (config->objects == NULL) ||
+    if ((config == NULL) || (config->backend_api == NULL) || (config->objects == NULL) ||
         (config->object_count == 0U) || (config->object_count > NVM_ID_COUNT))
     {
         return NVM_INVALID_ARGUMENT;
     }
 
-    backend = config->backend;
-    if ((backend->read == NULL) || (backend->write == NULL) || (backend->erase == NULL) ||
-        (backend->size == 0U) || (backend->size != backend->erase_size) ||
-        ((backend->size % NVM_PROGRAM_UNIT_SIZE) != 0U))
+    backend_api = config->backend_api;
+    if ((backend_api->read == NULL) || (backend_api->write == NULL) || (backend_api->erase == NULL) ||
+        (config->backend_config->size == 0U) || (config->backend_config->size != config->backend_config->size) ||
+        ((config->backend_config->size% NVM_PROGRAM_UNIT_SIZE) != 0U))
     {
         return NVM_INVALID_ARGUMENT;
     }
@@ -299,7 +299,7 @@ static bool write_commit_unit(uint32_t address)
 /* Mark the remainder of the page unavailable after a possibly partial write. */
 static void abandon_remaining_storage(void)
 {
-    nvm.write_offset = nvm.config->backend->size;
+    nvm.write_offset = nvm.config->backend_config->size;
 }
 
 /* Append one record; commit is programmed last to reject interrupted writes. */
@@ -307,7 +307,7 @@ static enum nvm_result append_record(enum nvm_id id, const void *data,
                                      uint32_t sequence)
 {
     const struct nvm_object *object = find_object(nvm.config, id);
-    const uint32_t storage_size = nvm.config->backend->size;
+    const uint32_t storage_size = nvm.config->backend_config->size;
     const uint16_t object_size = (object != NULL) ? object->size : 0U;
     const uint32_t padded_size = align_size(object_size);
     const uint32_t total_size = record_size(object_size);
@@ -395,7 +395,7 @@ static void recover_record(enum nvm_id id, const uint8_t *payload,
 /* Stop scanning at a damaged/incomplete record to avoid programming over it. */
 static void stop_scan_at_corruption(void)
 {
-    nvm.write_offset = nvm.config->backend->size;
+    nvm.write_offset = nvm.config->backend_config->size;
 }
 
 /* Read and validate one record, then update the cache and advance the scan offset. */
@@ -430,8 +430,8 @@ static enum nvm_result scan_one_record(uint8_t *header,
 
     padded_size = align_size(object_size);
     total_size = record_size(object_size);
-    if ((total_size > nvm.config->backend->size) ||
-        (address > nvm.config->backend->size - total_size))
+    if ((total_size > nvm.config->backend_config->size) ||
+        (address > nvm.config->backend_config->size - total_size))
     {
         stop_scan_at_corruption();
         return NVM_OK;
@@ -467,7 +467,7 @@ static enum nvm_result scan_records(void)
     union nvm_record_buffer buffer;
     bool record_found;
     enum nvm_result result;
-    const uint32_t storage_size = nvm.config->backend->size;
+    const uint32_t storage_size = nvm.config->backend_config->size;
 
     nvm.write_offset = NVM_STORAGE_START;
     while ((nvm.write_offset <= storage_size) &&
@@ -495,7 +495,7 @@ static enum nvm_result compact_storage(void)
     enum nvm_id id;
     enum nvm_result result;
 
-    if (nvm.config->backend->erase(NVM_STORAGE_START) != 0)
+    if (nvm.config->backend_api->erase(NVM_STORAGE_START) != 0)
     {
         return NVM_IO_ERROR;
     }
@@ -543,6 +543,8 @@ enum nvm_result nvm_init(const struct nvm_config *config)
     {
         return result;
     }
+
+    config->backend_api->init(config->backend_config);
 
     nvm.config = config;
     clear_cache();
@@ -648,7 +650,7 @@ enum nvm_result nvm_format(void)
         return NVM_INVALID_ARGUMENT;
     }
 
-    if (nvm.config->backend->erase(NVM_STORAGE_START) != 0)
+    if (nvm.config->backend_api->erase(NVM_STORAGE_START) != 0)
     {
         return NVM_IO_ERROR;
     }

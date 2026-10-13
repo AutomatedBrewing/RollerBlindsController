@@ -9,7 +9,6 @@
 enum nvm_id
 {
     NVM_ID_TRAVEL_TIME,
-
     NVM_ID_COUNT
 };
 
@@ -32,8 +31,8 @@ struct nvm_object
 
 struct nvm_config
 {
-    const struct nvm_backend *backend;
-
+    const struct nvm_backend *backend_api;
+    const struct nvm_backend_config *backend_config;
     const struct nvm_object *objects;
     uint8_t object_count;
 };

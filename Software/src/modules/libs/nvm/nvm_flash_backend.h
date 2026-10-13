@@ -3,6 +3,12 @@
 
 #include "nvm_backend.h"
 
-extern const struct nvm_backend nvm_flash_backend;
+
+int nvm_flash_init(const struct nvm_backend_config * config);
+int nvm_flash_read(uint32_t address, void *data, uint16_t size);
+int nvm_flash_write(uint32_t address,
+                           const void *data,
+                           uint16_t size);
+int nvm_flash_erase(uint32_t address);
 
 #endif

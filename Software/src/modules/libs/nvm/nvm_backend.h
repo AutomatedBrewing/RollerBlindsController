@@ -3,8 +3,14 @@
 
 #include <stdint.h>
 
-struct nvm_backend
+struct nvm_backend_config
 {
+    /*
+     * Base address of the storage area.
+     * For memory-mapped flash, this is an absolute address.
+     */
+    uint32_t base_address;
+
     /*
      * Total size of the storage area.
      */
@@ -12,13 +18,21 @@ struct nvm_backend
 
     /*
      * Erase unit.
-     *
-     * For flash this is usually a page/sector.
-     * For EEPROM it can be 1.
      */
     uint16_t erase_size;
-    
+
+    /*
+     * Minimum programming unit.
+     */
     uint8_t program_size;
+};
+
+struct nvm_backend
+{
+    /*
+     * Read bytes from NVM.
+     */
+    int (*init)(const struct nvm_backend_config * config);
 
     /*
      * Read bytes from NVM.

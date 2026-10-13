@@ -124,8 +124,23 @@ static const struct nvm_object nvm_objects[] = {
     {.id = NVM_ID_TRAVEL_TIME, .size = sizeof(struct travel_time)},
 };
 
+static const struct nvm_backend_config backend_configuration =
+{
+    .base_address = 0,
+    .size = 2048,
+    .erase_size = 2048,
+    .program_size = 8,
+};
+const struct nvm_backend backend_api = {
+    .init = nvm_flash_init,
+    .read = nvm_flash_read,
+    .write = nvm_flash_write,
+    .erase = nvm_flash_erase,
+};
+
 static const struct nvm_configuration nvm_config = {
-    .configuration = {.backend = &nvm_flash_backend,
+    .configuration = {.backend_api = &backend_api,
+                      .backend_config = &backend_configuration,
                       .objects = nvm_objects,
                       .object_count = sizeof(nvm_objects) / sizeof(nvm_objects[0])},
     .default_time = DEFAULT_TRAVEL_TIME,

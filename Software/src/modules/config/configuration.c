@@ -31,9 +31,13 @@
 
 // #define DEFAULT_TRAVEL_TIME MINUTES(1)
 #define DEFAULT_TRAVEL_TIME (5000)
+#define NVM_ERASE_SIZE   2048U
+#define NVM_PROGRAM_SIZE 8U
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
+
 /*-------------------   BUTTONS */
 static const struct button_configuration button_local_up = {
     .pin_id = BUTTON_LOCAL_UP_PIN_ID,
@@ -124,13 +128,17 @@ static const struct nvm_object nvm_objects[] = {
     {.id = NVM_ID_TRAVEL_TIME, .size = sizeof(struct travel_time)},
 };
 
+extern uint8_t __nvm_start__;
+extern uint8_t __nvm_size__;
+
 static const struct nvm_backend_config backend_configuration =
 {
-    .base_address = 0,
-    .size = 2048,
-    .erase_size = 2048,
-    .program_size = 8,
+    .base_address = (uint32_t)(uintptr_t)&__nvm_start__,
+    .size = (uint32_t)(uintptr_t)&__nvm_size__,
+    .erase_size = NVM_ERASE_SIZE,
+    .program_size = NVM_PROGRAM_SIZE,
 };
+
 const struct nvm_backend backend_api = {
     .init = nvm_flash_init,
     .read = nvm_flash_read,

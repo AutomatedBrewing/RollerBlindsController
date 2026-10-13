@@ -215,16 +215,32 @@ static enum nvm_result validate_config(const struct nvm_config *config)
     uint8_t index;
     uint8_t previous_index;
 
-    if ((config == NULL) || (config->backend_api == NULL) || (config->objects == NULL) ||
-        (config->object_count == 0U) || (config->object_count > NVM_ID_COUNT))
+    if ((config == NULL) ||
+        (config->backend_api == NULL) ||
+        (config->backend_config == NULL) ||
+        (config->objects == NULL) ||
+        (config->object_count == 0U) ||
+        (config->object_count > NVM_ID_COUNT))
     {
         return NVM_INVALID_ARGUMENT;
     }
 
     backend_api = config->backend_api;
-    if ((backend_api->read == NULL) || (backend_api->write == NULL) || (backend_api->erase == NULL) ||
-        (config->backend_config->size == 0U) || (config->backend_config->size != config->backend_config->size) ||
-        ((config->backend_config->size% NVM_PROGRAM_UNIT_SIZE) != 0U))
+
+    /*
+     * This implementation uses fixed 8-byte programming units and manages
+     * exactly one erase unit. Keep the configured geometry consistent with
+     * those assumptions before calling the backend or accessing its storage.
+     */
+    if ((backend_api->init == NULL) ||
+        (backend_api->read == NULL) ||
+        (backend_api->write == NULL) ||
+        (backend_api->erase == NULL) ||
+        (config->backend_config->size == 0U) ||
+        (config->backend_config->erase_size == 0U) ||
+        (config->backend_config->size != config->backend_config->erase_size) ||
+        (config->backend_config->program_size != NVM_PROGRAM_UNIT_SIZE) ||
+        ((config->backend_config->size % NVM_PROGRAM_UNIT_SIZE) != 0U))
     {
         return NVM_INVALID_ARGUMENT;
     }
@@ -544,7 +560,10 @@ enum nvm_result nvm_init(const struct nvm_config *config)
         return result;
     }
 
-    config->backend_api->init(config->backend_config);
+    if (config->backend_api->init(config->backend_config) != 0)
+    {
+        return NVM_IO_ERROR;
+    }
 
     nvm.config = config;
     clear_cache();

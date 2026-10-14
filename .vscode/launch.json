@@ -24,5 +24,17 @@
             "gdbPath": "/usr/bin/gdb-multiarch",
             "runToEntryPoint": "main"
         }
+                {
+            "name": "Itest NUCLEO-C011F4P6",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "jlink",
+            "device": "STM32C011F4",
+            "interface": "swd",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/Software/build/itest_C0/itest_C0.elf",
+            "gdbPath": "/usr/bin/gdb-multiarch",
+            "runToEntryPoint": "main"
+        }
     ]
 }

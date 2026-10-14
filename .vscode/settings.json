@@ -1,6 +1,6 @@
 {
     "cmake.buildDirectory": "${workspaceFolder}/SourceCode/build/test",
-    "cmake.sourceDirectory": "${workspaceFolder}/SourceCode",
+    "cmake.sourceDirectory": "/home/dev/Documents/RollerBlindsController/Software",
     "cmake.configureArgs": ["-DCONFIG=test", "-DCMAKE_BUILD_TYPE=Debug"],
     "cmake.ctest.debugLaunchTarget": "(ctest) Debug test",
     "cmake.ctest.enabled": true,

@@ -9,7 +9,6 @@
 #include "buzzer.h"
 #include <stddef.h>
 
-
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -17,15 +16,15 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private function bodies ---------------------------------------------------*/
 
-
-bool buzzer_init(struct buzzer *buzzer,
-                 const struct buzzer_config *config)
+bool buzzer_init(struct buzzer *buzzer, const struct buzzer_config *config)
 {
-    if (buzzer == NULL || config == NULL) {
+    if (buzzer == NULL || config == NULL)
+    {
         return false;
     }
 
-    if (config->frequency_hz == 0U) {
+    if (config->frequency_hz == 0U)
+    {
         return false;
     }
 
@@ -34,28 +33,30 @@ bool buzzer_init(struct buzzer *buzzer,
     buzzer->is_on = false;
     buzzer->pwm_handle = NULL;
 
-    buzzer->pwm_handle = pwm_init(config->pin_id,
-                                  config->frequency_hz);
+    buzzer->pwm_handle = pwm_init(config->pin_id, config->frequency_hz);
 
-    if (buzzer->pwm_handle == NULL) {
+    if (buzzer->pwm_handle == NULL)
+    {
         return false;
     }
 
     return true;
 }
 
-
 bool buzzer_on(struct buzzer *buzzer)
 {
-    if (buzzer == NULL || buzzer->pwm_handle == NULL) {
+    if (buzzer == NULL || buzzer->pwm_handle == NULL)
+    {
         return false;
     }
 
-    if (buzzer->is_on) {
+    if (buzzer->is_on)
+    {
         return true;
     }
 
-    if (!pwm_start(buzzer->pwm_handle)) {
+    if (!pwm_start(buzzer->pwm_handle))
+    {
         return false;
     }
 
@@ -64,18 +65,20 @@ bool buzzer_on(struct buzzer *buzzer)
     return true;
 }
 
-
 bool buzzer_off(struct buzzer *buzzer)
 {
-    if (buzzer == NULL || buzzer->pwm_handle == NULL) {
+    if (buzzer == NULL || buzzer->pwm_handle == NULL)
+    {
         return false;
     }
 
-    if (!buzzer->is_on) {
+    if (!buzzer->is_on)
+    {
         return true;
     }
 
-    if (!pwm_stop(buzzer->pwm_handle)) {
+    if (!pwm_stop(buzzer->pwm_handle))
+    {
         return false;
     }
 

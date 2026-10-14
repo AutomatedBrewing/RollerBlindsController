@@ -11,7 +11,6 @@
 #include "button_released_event.h"
 #include "nvm_flash_backend.h"
 
-
 #include "nvm.h"
 
 #include "utils.h"
@@ -31,12 +30,11 @@
 
 // #define DEFAULT_TRAVEL_TIME MINUTES(1)
 #define DEFAULT_TRAVEL_TIME (5000)
-#define NVM_ERASE_SIZE   2048U
+#define NVM_ERASE_SIZE 2048U
 #define NVM_PROGRAM_SIZE 8U
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
 
 /*-------------------   BUTTONS */
 static const struct button_configuration button_local_up = {
@@ -131,8 +129,7 @@ static const struct nvm_object nvm_objects[] = {
 extern uint8_t __nvm_start__;
 extern uint8_t __nvm_size__;
 
-static const struct nvm_backend_config backend_configuration =
-{
+static const struct nvm_backend_config backend_configuration = {
     .base_address = (uint32_t)(uintptr_t)&__nvm_start__,
     .size = (uint32_t)(uintptr_t)&__nvm_size__,
     .erase_size = NVM_ERASE_SIZE,

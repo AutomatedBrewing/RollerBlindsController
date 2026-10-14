@@ -11,9 +11,9 @@
 
 #include "em_event.h"
 
+#include "buzzer.h"
 #include "hsm_ui.h"
 #include "hsm_ui_states.h"
-#include "buzzer.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/

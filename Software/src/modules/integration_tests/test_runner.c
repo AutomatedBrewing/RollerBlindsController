@@ -29,6 +29,6 @@ static void RunAllTests(void)
 
 void itest_initialize(void)
 {
-    //osThreadNew(itest_task, NULL, NULL);
+    // osThreadNew(itest_task, NULL, NULL);
     UnityMain(0, NULL, RunAllTests);
 }

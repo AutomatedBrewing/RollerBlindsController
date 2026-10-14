@@ -27,7 +27,8 @@
 
 #define PWM_DUTY_CYCLE_PERCENT 50U
 
-struct pwm_instance {
+struct pwm_instance
+{
     enum board_input_pin_id pin_id;
     uint32_t frequency_hz;
     bool allocated;
@@ -43,27 +44,28 @@ static bool pwm_pin_supported(enum board_input_pin_id pin_id)
 {
     const struct gpio_pin *pin = find_gpio_pin_context(pin_id);
 
-    if (pin == NULL) {
+    if (pin == NULL)
+    {
         return false;
     }
 
-    return pin_id == BUZZER_PIN_ID
-        && pin->port == (uint32_t)GPIOC
-        && pin->pin == LL_GPIO_PIN_15
-        && pin->alternate_function == LL_GPIO_AF_3;
+    return pin_id == BUZZER_PIN_ID && pin->port == (uint32_t)GPIOC && pin->pin == LL_GPIO_PIN_15 &&
+           pin->alternate_function == LL_GPIO_AF_3;
 }
 
 static bool pwm_configure_gpio(enum board_input_pin_id pin_id)
 {
     const struct gpio_pin *pin = find_gpio_pin_context(pin_id);
 
-    if (pin == NULL) {
+    if (pin == NULL)
+    {
         return false;
     }
-    void * handle;
+    void *handle;
     enum gpio_pin_status status = gpio_pin_init(pin, &handle);
 
-    if (status != GPIO_OK || handle == NULL) {
+    if (status != GPIO_OK || handle == NULL)
+    {
         return false;
     }
 
@@ -74,8 +76,8 @@ static bool pwm_configure_timer(uint32_t frequency_hz)
 {
     uint32_t period_ticks;
 
-    if (frequency_hz == 0U ||
-        frequency_hz > PWM_TIM3_CLOCK_HZ) {
+    if (frequency_hz == 0U || frequency_hz > PWM_TIM3_CLOCK_HZ)
+    {
         return false;
     }
 
@@ -85,7 +87,8 @@ static bool pwm_configure_timer(uint32_t frequency_hz)
      */
     period_ticks = PWM_TIM3_CLOCK_HZ / frequency_hz;
 
-    if (period_ticks == 0U || period_ticks > 65536U) {
+    if (period_ticks == 0U || period_ticks > 65536U)
+    {
         return false;
     }
 
@@ -98,14 +101,9 @@ static bool pwm_configure_timer(uint32_t frequency_hz)
     LL_TIM_SetAutoReload(TIM3, period_ticks - 1U);
     LL_TIM_SetCounter(TIM3, 0U);
 
-    LL_TIM_OC_SetMode(TIM3, LL_TIM_CHANNEL_CH3,
-                      LL_TIM_OCMODE_PWM1);
-    LL_TIM_OC_SetPolarity(TIM3, LL_TIM_CHANNEL_CH3,
-                           LL_TIM_OCPOLARITY_HIGH);
-    LL_TIM_OC_SetCompareCH3(
-        TIM3,
-        (period_ticks * PWM_DUTY_CYCLE_PERCENT) / 100U
-    );
+    LL_TIM_OC_SetMode(TIM3, LL_TIM_CHANNEL_CH3, LL_TIM_OCMODE_PWM1);
+    LL_TIM_OC_SetPolarity(TIM3, LL_TIM_CHANNEL_CH3, LL_TIM_OCPOLARITY_HIGH);
+    LL_TIM_OC_SetCompareCH3(TIM3, (period_ticks * PWM_DUTY_CYCLE_PERCENT) / 100U);
 
     LL_TIM_OC_EnablePreload(TIM3, LL_TIM_CHANNEL_CH3);
     LL_TIM_EnableARRPreload(TIM3);
@@ -116,12 +114,10 @@ static bool pwm_configure_timer(uint32_t frequency_hz)
     return true;
 }
 
-pwm_handle_t pwm_init(enum board_input_pin_id pin_id,
-                      uint32_t frequency_hz)
+pwm_handle_t pwm_init(enum board_input_pin_id pin_id, uint32_t frequency_hz)
 {
-    if (pwm_instance.allocated ||
-        !pwm_pin_supported(pin_id) ||
-        frequency_hz == 0U) {
+    if (pwm_instance.allocated || !pwm_pin_supported(pin_id) || frequency_hz == 0U)
+    {
         return NULL;
     }
 
@@ -130,8 +126,8 @@ pwm_handle_t pwm_init(enum board_input_pin_id pin_id,
     pwm_instance.pin_id = pin_id;
     pwm_instance.frequency_hz = frequency_hz;
 
-    if (!pwm_configure_gpio(pin_id) ||
-        !pwm_configure_timer(frequency_hz)) {
+    if (!pwm_configure_gpio(pin_id) || !pwm_configure_timer(frequency_hz))
+    {
         pwm_instance.allocated = false;
         return NULL;
     }
@@ -148,9 +144,8 @@ bool pwm_start(pwm_handle_t handle)
 {
     struct pwm_instance *instance = handle;
 
-    if (instance == NULL ||
-        instance != &pwm_instance ||
-        !instance->allocated) {
+    if (instance == NULL || instance != &pwm_instance || !instance->allocated)
+    {
         return false;
     }
 
@@ -165,9 +160,8 @@ bool pwm_stop(pwm_handle_t handle)
 {
     struct pwm_instance *instance = handle;
 
-    if (instance == NULL ||
-        instance != &pwm_instance ||
-        !instance->allocated) {
+    if (instance == NULL || instance != &pwm_instance || !instance->allocated)
+    {
         return false;
     }
 
@@ -178,19 +172,17 @@ bool pwm_stop(pwm_handle_t handle)
     return true;
 }
 
-bool pwm_set_frequency(pwm_handle_t handle,
-                       uint32_t frequency_hz)
+bool pwm_set_frequency(pwm_handle_t handle, uint32_t frequency_hz)
 {
     struct pwm_instance *instance = handle;
 
-    if (instance == NULL ||
-        instance != &pwm_instance ||
-        !instance->allocated ||
-        frequency_hz == 0U) {
+    if (instance == NULL || instance != &pwm_instance || !instance->allocated || frequency_hz == 0U)
+    {
         return false;
     }
 
-    if (!pwm_configure_timer(frequency_hz)) {
+    if (!pwm_configure_timer(frequency_hz))
+    {
         return false;
     }
 

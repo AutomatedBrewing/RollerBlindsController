@@ -10,14 +10,16 @@
 
 /* Public define -------------------------------------------------------------*/
 /* Public typedef ------------------------------------------------------------*/
-struct buzzer {
+struct buzzer
+{
     enum board_input_pin_id pin_id;
     uint32_t frequency_hz;
     pwm_handle_t pwm_handle;
     bool is_on;
 };
 
-struct buzzer_config {
+struct buzzer_config
+{
     enum board_input_pin_id pin_id;
     uint32_t frequency_hz;
 };
@@ -25,8 +27,7 @@ struct buzzer_config {
 /* Public macro --------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
 /* Public function prototypes ------------------------------------------------*/
-bool buzzer_init(struct buzzer *buzzer,
-                 const struct buzzer_config *config);
+bool buzzer_init(struct buzzer *buzzer, const struct buzzer_config *config);
 
 bool buzzer_on(struct buzzer *buzzer);
 bool buzzer_off(struct buzzer *buzzer);

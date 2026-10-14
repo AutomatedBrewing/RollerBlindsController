@@ -12,8 +12,8 @@
 #include "em_timer.h"
 #include "hsm.h"
 
-#include "ui_configuration.h"
 #include "buzzer.h"
+#include "ui_configuration.h"
 
 /* Public define -------------------------------------------------------------*/
 DECLARE_EVENT(UI_TIMER_EVENT)

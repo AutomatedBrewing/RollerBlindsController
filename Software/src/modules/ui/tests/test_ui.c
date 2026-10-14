@@ -239,7 +239,7 @@ static void setup_test_harness(struct test_harness *harness, const struct device
     uintptr_t initial_gpio_info = 0x69;
     uintptr_t initial_gpio_handle = 0x100;
 
-   // init_buzzer_entry(&harness->buzzer, (void *)initial_gpio_info++, (void *)initial_gpio_handle++);
+    // init_buzzer_entry(&harness->buzzer, (void *)initial_gpio_info++, (void *)initial_gpio_handle++);
 
     harness->ui_list = buzzers_list;
     harness->config = buzzers_list->config;
@@ -288,13 +288,13 @@ static void expect_activation(uint32_t expected_active_period)
 {
     expect_em_timer_set_period(expected_active_period);
     expect_em_timer_start();
-    //expect_gpio_output_set(expected_gpio_handle);
+    // expect_gpio_output_set(expected_gpio_handle);
     expect_buzzer_on(true);
 }
 
 static void expect_deactivation(uint32_t expected_inactive_period)
 {
-    //expect_gpio_output_clear(expected_gpio_handle);
+    // expect_gpio_output_clear(expected_gpio_handle);
     expect_buzzer_off(true);
     expect_em_timer_set_period(expected_inactive_period);
     expect_em_timer_start();

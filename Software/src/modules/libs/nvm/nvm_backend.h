@@ -32,7 +32,7 @@ struct nvm_backend
     /*
      * Read bytes from NVM.
      */
-    int (*init)(const struct nvm_backend_config * config);
+    int (*init)(const struct nvm_backend_config *config);
 
     /*
      * Read bytes from NVM.

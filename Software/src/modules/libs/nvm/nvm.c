@@ -59,36 +59,35 @@
 #include <string.h>
 
 /* Persistent record format and flash programming constraints. */
-#define NVM_MAGIC_VALUE                 UINT16_C(0x4E56)
-#define NVM_COMMIT_VALUE                UINT32_C(0xC04D17ED)
-#define NVM_ERASED_BYTE                 UINT8_C(0xFF)
-#define NVM_PROGRAM_UNIT_SIZE           UINT32_C(8)
-#define NVM_HEADER_SIZE                 UINT32_C(8)
-#define NVM_CRC_SIZE                    UINT32_C(2)
-#define NVM_COMMIT_MARKER_SIZE          UINT32_C(4)
-#define NVM_FOOTER_UNIT_SIZE            NVM_PROGRAM_UNIT_SIZE
-#define NVM_FOOTER_SIZE                 (NVM_FOOTER_UNIT_SIZE * UINT32_C(2))
-#define NVM_CRC_RESERVED_SIZE           (NVM_FOOTER_UNIT_SIZE - NVM_CRC_SIZE)
-#define NVM_COMMIT_RESERVED_SIZE        (NVM_FOOTER_UNIT_SIZE - NVM_COMMIT_MARKER_SIZE)
-#define NVM_MAX_OBJECT_SIZE             UINT32_C(64)
-#define NVM_HEADER_MAGIC_OFFSET         UINT32_C(0)
-#define NVM_HEADER_ID_OFFSET            UINT32_C(2)
-#define NVM_HEADER_OBJECT_SIZE_OFFSET   UINT32_C(3)
-#define NVM_HEADER_SEQUENCE_OFFSET      UINT32_C(4)
-#define NVM_FOOTER_CRC_OFFSET           UINT32_C(0)
-#define NVM_FOOTER_COMMIT_OFFSET        NVM_FOOTER_UNIT_SIZE
-#define NVM_COMMIT_UNIT_VALUE_OFFSET    UINT32_C(0)
-#define NVM_SEQUENCE_INITIAL            UINT32_C(0)
-#define NVM_SEQUENCE_STEP               UINT32_C(1)
-#define NVM_STORAGE_START               UINT32_C(0)
-#define NVM_BITS_PER_BYTE               UINT32_C(8)
-#define NVM_U16_HIGH_BYTE_SHIFT         NVM_BITS_PER_BYTE
-#define NVM_U32_BYTE2_SHIFT             (NVM_BITS_PER_BYTE * UINT32_C(2))
-#define NVM_U32_BYTE3_SHIFT             (NVM_BITS_PER_BYTE * UINT32_C(3))
-#define NVM_CRC_INPUT_SIZE              (NVM_HEADER_SIZE + NVM_MAX_OBJECT_SIZE)
+#define NVM_MAGIC_VALUE UINT16_C(0x4E56)
+#define NVM_COMMIT_VALUE UINT32_C(0xC04D17ED)
+#define NVM_ERASED_BYTE UINT8_C(0xFF)
+#define NVM_PROGRAM_UNIT_SIZE UINT32_C(8)
+#define NVM_HEADER_SIZE UINT32_C(8)
+#define NVM_CRC_SIZE UINT32_C(2)
+#define NVM_COMMIT_MARKER_SIZE UINT32_C(4)
+#define NVM_FOOTER_UNIT_SIZE NVM_PROGRAM_UNIT_SIZE
+#define NVM_FOOTER_SIZE (NVM_FOOTER_UNIT_SIZE * UINT32_C(2))
+#define NVM_CRC_RESERVED_SIZE (NVM_FOOTER_UNIT_SIZE - NVM_CRC_SIZE)
+#define NVM_COMMIT_RESERVED_SIZE (NVM_FOOTER_UNIT_SIZE - NVM_COMMIT_MARKER_SIZE)
+#define NVM_MAX_OBJECT_SIZE UINT32_C(64)
+#define NVM_HEADER_MAGIC_OFFSET UINT32_C(0)
+#define NVM_HEADER_ID_OFFSET UINT32_C(2)
+#define NVM_HEADER_OBJECT_SIZE_OFFSET UINT32_C(3)
+#define NVM_HEADER_SEQUENCE_OFFSET UINT32_C(4)
+#define NVM_FOOTER_CRC_OFFSET UINT32_C(0)
+#define NVM_FOOTER_COMMIT_OFFSET NVM_FOOTER_UNIT_SIZE
+#define NVM_COMMIT_UNIT_VALUE_OFFSET UINT32_C(0)
+#define NVM_SEQUENCE_INITIAL UINT32_C(0)
+#define NVM_SEQUENCE_STEP UINT32_C(1)
+#define NVM_STORAGE_START UINT32_C(0)
+#define NVM_BITS_PER_BYTE UINT32_C(8)
+#define NVM_U16_HIGH_BYTE_SHIFT NVM_BITS_PER_BYTE
+#define NVM_U32_BYTE2_SHIFT (NVM_BITS_PER_BYTE * UINT32_C(2))
+#define NVM_U32_BYTE3_SHIFT (NVM_BITS_PER_BYTE * UINT32_C(3))
+#define NVM_CRC_INPUT_SIZE (NVM_HEADER_SIZE + NVM_MAX_OBJECT_SIZE)
 
-#define NVM_ALIGN_UP(value, alignment) \
-    (((value) + ((alignment) - UINT32_C(1))) & ~((alignment) - UINT32_C(1)))
+#define NVM_ALIGN_UP(value, alignment) (((value) + ((alignment) - UINT32_C(1))) & ~((alignment) - UINT32_C(1)))
 
 /* Only persistent module state belongs here; temporary data stays local. */
 struct nvm_context
@@ -103,8 +102,7 @@ struct nvm_context
 };
 
 /* Scratch buffer reused by append_record() and scan_records(), never retained. */
-union nvm_record_buffer
-{
+union nvm_record_buffer {
     uint8_t payload[NVM_MAX_OBJECT_SIZE];
     uint8_t crc_input[NVM_CRC_INPUT_SIZE];
 };
@@ -116,17 +114,14 @@ extern uint16_t nvm_crc16(const void *data, size_t size);
 /* Decode a little-endian 16-bit value from a serialized record. */
 static uint16_t get_u16(const uint8_t *data)
 {
-    return (uint16_t)((uint16_t)data[0] |
-                      ((uint16_t)data[1] << NVM_U16_HIGH_BYTE_SHIFT));
+    return (uint16_t)((uint16_t)data[0] | ((uint16_t)data[1] << NVM_U16_HIGH_BYTE_SHIFT));
 }
 
 /* Decode a little-endian 32-bit value from a serialized record. */
 static uint32_t get_u32(const uint8_t *data)
 {
-    return (uint32_t)data[0] |
-           ((uint32_t)data[1] << NVM_U16_HIGH_BYTE_SHIFT) |
-           ((uint32_t)data[2] << NVM_U32_BYTE2_SHIFT) |
-           ((uint32_t)data[3] << NVM_U32_BYTE3_SHIFT);
+    return (uint32_t)data[0] | ((uint32_t)data[1] << NVM_U16_HIGH_BYTE_SHIFT) |
+           ((uint32_t)data[2] << NVM_U32_BYTE2_SHIFT) | ((uint32_t)data[3] << NVM_U32_BYTE3_SHIFT);
 }
 
 /* Encode a 16-bit value in little-endian byte order. */
@@ -158,13 +153,11 @@ static uint32_t record_size(uint16_t object_size)
 }
 
 /* Find an object's descriptor in a configuration without changing module state. */
-static const struct nvm_object *find_object(const struct nvm_config *config,
-                                            enum nvm_id id)
+static const struct nvm_object *find_object(const struct nvm_config *config, enum nvm_id id)
 {
     uint8_t index;
 
-    if ((config == NULL) || (config->objects == NULL) ||
-        ((unsigned)id >= NVM_ID_COUNT))
+    if ((config == NULL) || (config->objects == NULL) || ((unsigned)id >= NVM_ID_COUNT))
     {
         return NULL;
     }
@@ -215,12 +208,8 @@ static enum nvm_result validate_config(const struct nvm_config *config)
     uint8_t index;
     uint8_t previous_index;
 
-    if ((config == NULL) ||
-        (config->backend_api == NULL) ||
-        (config->backend_config == NULL) ||
-        (config->objects == NULL) ||
-        (config->object_count == 0U) ||
-        (config->object_count > NVM_ID_COUNT))
+    if ((config == NULL) || (config->backend_api == NULL) || (config->backend_config == NULL) ||
+        (config->objects == NULL) || (config->object_count == 0U) || (config->object_count > NVM_ID_COUNT))
     {
         return NVM_INVALID_ARGUMENT;
     }
@@ -232,11 +221,8 @@ static enum nvm_result validate_config(const struct nvm_config *config)
      * exactly one erase unit. Keep the configured geometry consistent with
      * those assumptions before calling the backend or accessing its storage.
      */
-    if ((backend_api->init == NULL) ||
-        (backend_api->read == NULL) ||
-        (backend_api->write == NULL) ||
-        (backend_api->erase == NULL) ||
-        (config->backend_config->size == 0U) ||
+    if ((backend_api->init == NULL) || (backend_api->read == NULL) || (backend_api->write == NULL) ||
+        (backend_api->erase == NULL) || (config->backend_config->size == 0U) ||
         (config->backend_config->erase_size == 0U) ||
         (config->backend_config->size != config->backend_config->erase_size) ||
         (config->backend_config->program_size != NVM_PROGRAM_UNIT_SIZE) ||
@@ -249,8 +235,8 @@ static enum nvm_result validate_config(const struct nvm_config *config)
     {
         const struct nvm_object *object = &config->objects[index];
 
-        if (((unsigned)object->id >= NVM_ID_COUNT) || (object->size == 0U) ||
-            (object->size > NVM_MAX_OBJECT_SIZE) || (object->size > UINT8_MAX))
+        if (((unsigned)object->id >= NVM_ID_COUNT) || (object->size == 0U) || (object->size > NVM_MAX_OBJECT_SIZE) ||
+            (object->size > UINT8_MAX))
         {
             return NVM_INVALID_ARGUMENT;
         }
@@ -268,8 +254,7 @@ static enum nvm_result validate_config(const struct nvm_config *config)
 }
 
 /* Serialize the fixed-size header, including object ID, size, and sequence. */
-static void build_header(uint8_t *header, enum nvm_id id,
-                         uint16_t object_size, uint32_t sequence)
+static void build_header(uint8_t *header, enum nvm_id id, uint16_t object_size, uint32_t sequence)
 {
     memset(header, NVM_ERASED_BYTE, NVM_HEADER_SIZE);
     put_u16(&header[NVM_HEADER_MAGIC_OFFSET], NVM_MAGIC_VALUE);
@@ -279,9 +264,7 @@ static void build_header(uint8_t *header, enum nvm_id id,
 }
 
 /* Prepare CRC input and calculate CRC over the header plus actual payload bytes. */
-static uint16_t calculate_record_crc(union nvm_record_buffer *buffer,
-                                     const uint8_t *header,
-                                     const void *data,
+static uint16_t calculate_record_crc(union nvm_record_buffer *buffer, const uint8_t *header, const void *data,
                                      uint16_t object_size)
 {
     memcpy(buffer->crc_input, header, NVM_HEADER_SIZE);
@@ -319,8 +302,7 @@ static void abandon_remaining_storage(void)
 }
 
 /* Append one record; commit is programmed last to reject interrupted writes. */
-static enum nvm_result append_record(enum nvm_id id, const void *data,
-                                     uint32_t sequence)
+static enum nvm_result append_record(enum nvm_id id, const void *data, uint32_t sequence)
 {
     const struct nvm_object *object = find_object(nvm.config, id);
     const uint32_t storage_size = nvm.config->backend_config->size;
@@ -364,8 +346,7 @@ static enum nvm_result append_record(enum nvm_id id, const void *data,
 }
 
 /* Decode and validate a header before using its ID or size to access arrays. */
-static bool parse_header(const uint8_t *header, enum nvm_id *id,
-                         uint16_t *object_size, uint32_t *sequence)
+static bool parse_header(const uint8_t *header, enum nvm_id *id, uint16_t *object_size, uint32_t *sequence)
 {
     const struct nvm_object *object;
 
@@ -374,28 +355,23 @@ static bool parse_header(const uint8_t *header, enum nvm_id *id,
     *sequence = get_u32(&header[NVM_HEADER_SEQUENCE_OFFSET]);
     object = find_object(nvm.config, *id);
 
-    return (get_u16(&header[NVM_HEADER_MAGIC_OFFSET]) == NVM_MAGIC_VALUE) &&
-           (object != NULL) && (*object_size == object->size) && (*object_size != 0U) &&
-           (*object_size <= NVM_MAX_OBJECT_SIZE);
+    return (get_u16(&header[NVM_HEADER_MAGIC_OFFSET]) == NVM_MAGIC_VALUE) && (object != NULL) &&
+           (*object_size == object->size) && (*object_size != 0U) && (*object_size <= NVM_MAX_OBJECT_SIZE);
 }
 
 /* Verify the stored commit marker and CRC against a header and payload. */
-static bool validate_record(const uint8_t *crc_input, const uint8_t *footer,
-                            uint16_t object_size)
+static bool validate_record(const uint8_t *crc_input, const uint8_t *footer, uint16_t object_size)
 {
-    const uint16_t calculated_crc =
-        nvm_crc16(crc_input, NVM_HEADER_SIZE + object_size);
+    const uint16_t calculated_crc = nvm_crc16(crc_input, NVM_HEADER_SIZE + object_size);
 
     return (get_u32(&footer[NVM_FOOTER_COMMIT_OFFSET]) == NVM_COMMIT_VALUE) &&
            (get_u16(&footer[NVM_FOOTER_CRC_OFFSET]) == calculated_crc);
 }
 
 /* Cache a valid record only when its sequence is newer than the cached value. */
-static void recover_record(enum nvm_id id, const uint8_t *payload,
-                           uint16_t object_size, uint32_t record_sequence)
+static void recover_record(enum nvm_id id, const uint8_t *payload, uint16_t object_size, uint32_t record_sequence)
 {
-    if ((!nvm.valid[id]) ||
-        ((int32_t)(record_sequence - nvm.object_sequences[id]) > 0))
+    if ((!nvm.valid[id]) || ((int32_t)(record_sequence - nvm.object_sequences[id]) > 0))
     {
         memcpy(nvm.values[id], payload, object_size);
         nvm.object_sequences[id] = record_sequence;
@@ -415,9 +391,7 @@ static void stop_scan_at_corruption(void)
 }
 
 /* Read and validate one record, then update the cache and advance the scan offset. */
-static enum nvm_result scan_one_record(uint8_t *header,
-                                       union nvm_record_buffer *buffer,
-                                       uint8_t *footer,
+static enum nvm_result scan_one_record(uint8_t *header, union nvm_record_buffer *buffer, uint8_t *footer,
                                        bool *record_found)
 {
     const uint32_t address = nvm.write_offset;
@@ -446,8 +420,7 @@ static enum nvm_result scan_one_record(uint8_t *header,
 
     padded_size = align_size(object_size);
     total_size = record_size(object_size);
-    if ((total_size > nvm.config->backend_config->size) ||
-        (address > nvm.config->backend_config->size - total_size))
+    if ((total_size > nvm.config->backend_config->size) || (address > nvm.config->backend_config->size - total_size))
     {
         stop_scan_at_corruption();
         return NVM_OK;
@@ -455,10 +428,8 @@ static enum nvm_result scan_one_record(uint8_t *header,
 
     /* Build the CRC input in-place: header followed by the actual payload bytes. */
     memcpy(buffer->crc_input, header, NVM_HEADER_SIZE);
-    if (!read_bytes(address + NVM_HEADER_SIZE,
-                    &buffer->crc_input[NVM_HEADER_SIZE], object_size) ||
-        !read_bytes(address + NVM_HEADER_SIZE + padded_size, footer,
-                    (uint16_t)NVM_FOOTER_SIZE))
+    if (!read_bytes(address + NVM_HEADER_SIZE, &buffer->crc_input[NVM_HEADER_SIZE], object_size) ||
+        !read_bytes(address + NVM_HEADER_SIZE + padded_size, footer, (uint16_t)NVM_FOOTER_SIZE))
     {
         return NVM_IO_ERROR;
     }
@@ -486,8 +457,7 @@ static enum nvm_result scan_records(void)
     const uint32_t storage_size = nvm.config->backend_config->size;
 
     nvm.write_offset = NVM_STORAGE_START;
-    while ((nvm.write_offset <= storage_size) &&
-           ((storage_size - nvm.write_offset) >= NVM_HEADER_SIZE))
+    while ((nvm.write_offset <= storage_size) && ((storage_size - nvm.write_offset) >= NVM_HEADER_SIZE))
     {
         result = scan_one_record(header, &buffer, footer, &record_found);
         if (result != NVM_OK)

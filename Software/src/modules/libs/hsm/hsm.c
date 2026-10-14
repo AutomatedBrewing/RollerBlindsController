@@ -17,8 +17,8 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "hsm.h"
 

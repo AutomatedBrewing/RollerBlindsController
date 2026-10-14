@@ -13,29 +13,15 @@
 #define RECORD_COMMIT_OFFSET 24U
 #define RECORD_SIZE_FOR_U32 32U
 
-static const struct nvm_backend_config backend_config =
-{
-    .base_address = 0U,
-    .size = RAMDISK_SIZE,
-    .erase_size = RAMDISK_SIZE,
-    .program_size = 8U
-};
+static const struct nvm_backend_config backend_config = {
+    .base_address = 0U, .size = RAMDISK_SIZE, .erase_size = RAMDISK_SIZE, .program_size = 8U};
 
-static const struct nvm_object objects[] =
-{
-    {
-        .id = NVM_ID_TRAVEL_TIME,
-        .size = sizeof(uint32_t)
-    }
-};
+static const struct nvm_object objects[] = {{.id = NVM_ID_TRAVEL_TIME, .size = sizeof(uint32_t)}};
 
-static const struct nvm_config nvm_config =
-{
-    .backend_api = &ramdisk_backend,
-    .backend_config = &backend_config,
-    .objects = objects,
-    .object_count = (uint8_t)(sizeof(objects) / sizeof(objects[0]))
-};
+static const struct nvm_config nvm_config = {.backend_api = &ramdisk_backend,
+                                             .backend_config = &backend_config,
+                                             .objects = objects,
+                                             .object_count = (uint8_t)(sizeof(objects) / sizeof(objects[0]))};
 
 static int test_setup(void **state)
 {
@@ -116,10 +102,7 @@ static void test_GivenBackendInitFailure_WhenNvmInit_ThenReturnsIoError(void **s
 static void test_GivenInvalidObjectId_WhenNvmInit_ThenReturnsInvalidArgument(void **state)
 {
     (void)state;
-    const struct nvm_object invalid_objects[] =
-    {
-        { .id = (enum nvm_id)NVM_ID_COUNT, .size = sizeof(uint32_t) }
-    };
+    const struct nvm_object invalid_objects[] = {{.id = (enum nvm_id)NVM_ID_COUNT, .size = sizeof(uint32_t)}};
     struct nvm_config config = nvm_config;
 
     /* ARRANGE */
@@ -135,10 +118,7 @@ static void test_GivenInvalidObjectId_WhenNvmInit_ThenReturnsInvalidArgument(voi
 static void test_GivenZeroSizedObject_WhenNvmInit_ThenReturnsInvalidArgument(void **state)
 {
     (void)state;
-    const struct nvm_object invalid_objects[] =
-    {
-        { .id = NVM_ID_TRAVEL_TIME, .size = 0U }
-    };
+    const struct nvm_object invalid_objects[] = {{.id = NVM_ID_TRAVEL_TIME, .size = 0U}};
     struct nvm_config config = nvm_config;
 
     /* ARRANGE */
@@ -154,10 +134,7 @@ static void test_GivenZeroSizedObject_WhenNvmInit_ThenReturnsInvalidArgument(voi
 static void test_GivenObjectLargerThanMaximum_WhenNvmInit_ThenReturnsInvalidArgument(void **state)
 {
     (void)state;
-    const struct nvm_object invalid_objects[] =
-    {
-        { .id = NVM_ID_TRAVEL_TIME, .size = 65U }
-    };
+    const struct nvm_object invalid_objects[] = {{.id = NVM_ID_TRAVEL_TIME, .size = 65U}};
     struct nvm_config config = nvm_config;
 
     /* ARRANGE */
@@ -504,8 +481,7 @@ static void test_GivenRepeatedWrites_WhenReinitialized_ThenRecoversLastValue(voi
 
 int main(void)
 {
-    const struct CMUnitTest tests[] =
-    {
+    const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_GivenEmptyRamDisk_WhenNvmInit_ThenReturnsOk, test_setup),
         cmocka_unit_test_setup(test_GivenNullConfig_WhenNvmInit_ThenReturnsInvalidArgument, test_setup),
         cmocka_unit_test_setup(test_GivenMissingBackendConfig_WhenNvmInit_ThenReturnsInvalidArgument, test_setup),
@@ -530,8 +506,7 @@ int main(void)
         cmocka_unit_test_setup(test_GivenEraseFailure_WhenFormat_ThenReturnsIoErrorAndKeepsCache, test_setup),
         cmocka_unit_test_setup(test_GivenFullPage_WhenWritingAnotherValue_ThenCompactsAndKeepsLatestValue, test_setup),
         cmocka_unit_test_setup(test_GivenUninitializedNvm_WhenFormat_ThenReturnsInvalidArgument, test_setup),
-        cmocka_unit_test_setup(test_GivenRepeatedWrites_WhenReinitialized_ThenRecoversLastValue, test_setup)
-    };
+        cmocka_unit_test_setup(test_GivenRepeatedWrites_WhenReinitialized_ThenRecoversLastValue, test_setup)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

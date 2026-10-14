@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define RAMDISK_ERASED_BYTE UINT8_C(0xFF)
-#define FAULT_DISABLED      (-1)
+#define FAULT_DISABLED (-1)
 
 static uint8_t storage[RAMDISK_SIZE];
 static const struct nvm_backend_config *configuration;
@@ -55,10 +55,7 @@ static int ramdisk_init(const struct nvm_backend_config *config)
         return -1;
     }
 
-    if ((config == NULL) ||
-        (config->size == 0U) ||
-        (config->size > sizeof(storage)) ||
-        (config->erase_size == 0U) ||
+    if ((config == NULL) || (config->size == 0U) || (config->size > sizeof(storage)) || (config->erase_size == 0U) ||
         (config->program_size == 0U))
     {
         return -1;
@@ -75,8 +72,7 @@ static int ramdisk_read(uint32_t address, void *data, uint16_t size)
         return -1;
     }
 
-    if ((data == NULL) || (size == 0U) ||
-        !is_range_valid(address, size))
+    if ((data == NULL) || (size == 0U) || !is_range_valid(address, size))
     {
         return -1;
     }
@@ -95,14 +91,12 @@ static int ramdisk_write(uint32_t address, const void *data, uint16_t size)
         return -1;
     }
 
-    if ((data == NULL) || (size == 0U) ||
-        !is_range_valid(address, size))
+    if ((data == NULL) || (size == 0U) || !is_range_valid(address, size))
     {
         return -1;
     }
 
-    if (((address % configuration->program_size) != 0U) ||
-        ((size % configuration->program_size) != 0U))
+    if (((address % configuration->program_size) != 0U) || ((size % configuration->program_size) != 0U))
     {
         return -1;
     }
@@ -141,8 +135,7 @@ static int ramdisk_erase(uint32_t address)
         return -1;
     }
 
-    if ((address > configuration->size) ||
-        (configuration->erase_size > configuration->size - address))
+    if ((address > configuration->size) || (configuration->erase_size > configuration->size - address))
     {
         return -1;
     }
@@ -151,13 +144,8 @@ static int ramdisk_erase(uint32_t address)
     return 0;
 }
 
-const struct nvm_backend ramdisk_backend =
-{
-    .init = ramdisk_init,
-    .read = ramdisk_read,
-    .write = ramdisk_write,
-    .erase = ramdisk_erase
-};
+const struct nvm_backend ramdisk_backend = {
+    .init = ramdisk_init, .read = ramdisk_read, .write = ramdisk_write, .erase = ramdisk_erase};
 
 void ramdisk_reset(void)
 {

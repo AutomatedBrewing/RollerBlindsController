@@ -10,21 +10,20 @@
 /* Configuration                                                              */
 /* -------------------------------------------------------------------------- */
 
-#define FLASH_SIZE_BYTES        16384U
-#define FLASH_PAGE_SIZE         2048U
-#define FLASH_WRITE_SIZE        8U
+#define FLASH_SIZE_BYTES 16384U
+#define FLASH_PAGE_SIZE 2048U
+#define FLASH_WRITE_SIZE 8U
 
-#define FLASH_FKEY1             0x45670123U
-#define FLASH_FKEY2             0xCDEF89ABU
+#define FLASH_FKEY1 0x45670123U
+#define FLASH_FKEY2 0xCDEF89ABU
 
-#define FLASH_PAGE_ERASE_TIMEOUT_MS  50U
-#define FLASH_PAGE_WRITE_TIMEOUT_MS  5U
-#define FLASH_UNLOCK_TIMEOUT_MS      1U
+#define FLASH_PAGE_ERASE_TIMEOUT_MS 50U
+#define FLASH_PAGE_WRITE_TIMEOUT_MS 5U
+#define FLASH_UNLOCK_TIMEOUT_MS 1U
 
-#define FLASH_ERROR_FLAGS \
-    (FLASH_SR_OPERR   | FLASH_SR_PROGERR | FLASH_SR_WRPERR | \
-     FLASH_SR_PGAERR  | FLASH_SR_SIZERR | FLASH_SR_PGSERR | \
-     FLASH_SR_MISERR  | FLASH_SR_FASTERR)
+#define FLASH_ERROR_FLAGS                                                                                              \
+    (FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_PGSERR |       \
+     FLASH_SR_MISERR | FLASH_SR_FASTERR)
 
 /* -------------------------------------------------------------------------- */
 /* Timeout and status helpers                                                 */
@@ -49,15 +48,13 @@ static bool flash_wait_flag_clear(uint32_t flag, uint32_t timeout_ms)
         return true;
     }
 
-    timeout_ticks = (uint32_t)
-        ((((uint64_t)timeout_ms * frequency) + 999U) / 1000U);
+    timeout_ticks = (uint32_t)((((uint64_t)timeout_ms * frequency) + 999U) / 1000U);
 
     start = osKernelGetTickCount();
 
     while (READ_BIT(FLASH->SR, flag) != 0U)
     {
-        if ((timeout_ticks == 0U) ||
-            ((uint32_t)(osKernelGetTickCount() - start) >= timeout_ticks))
+        if ((timeout_ticks == 0U) || ((uint32_t)(osKernelGetTickCount() - start) >= timeout_ticks))
         {
             return true;
         }
@@ -96,9 +93,7 @@ static bool flash_address_range_valid(uint32_t addr, uint32_t size)
 {
     const uint32_t flash_end = FLASH_BASE + FLASH_SIZE_BYTES;
 
-    if ((size == 0U) ||
-        (addr < FLASH_BASE) ||
-        (addr >= flash_end))
+    if ((size == 0U) || (addr < FLASH_BASE) || (addr >= flash_end))
     {
         return false;
     }
@@ -120,8 +115,7 @@ static bool flash_program_range_valid(uint32_t addr, uint32_t size)
         return false;
     }
 
-    padded_size = (size + FLASH_WRITE_SIZE - 1U) &
-                  ~(FLASH_WRITE_SIZE - 1U);
+    padded_size = (size + FLASH_WRITE_SIZE - 1U) & ~(FLASH_WRITE_SIZE - 1U);
 
     return flash_address_range_valid(addr, padded_size);
 }
@@ -160,8 +154,7 @@ static bool flash_status_has_error(void)
  * is busy. Wait for the hardware operation to finish before modifying CR.
  * The function reports an error even if the operation later completes.
  */
-static bool flash_finish_operation(uint32_t operation_bit,
-                                   uint32_t timeout_ms)
+static bool flash_finish_operation(uint32_t operation_bit, uint32_t timeout_ms)
 {
     bool timed_out = false;
     bool failed;
@@ -266,9 +259,7 @@ static bool flash_page_erase(uint32_t page_addr, uint32_t timeout_ms)
     /*
      * Select page erase and page number.
      */
-    MODIFY_REG(FLASH->CR,
-               FLASH_CR_PNB,
-               page_number << FLASH_CR_PNB_Pos);
+    MODIFY_REG(FLASH->CR, FLASH_CR_PNB, page_number << FLASH_CR_PNB_Pos);
 
     SET_BIT(FLASH->CR, FLASH_CR_PER);
     SET_BIT(FLASH->CR, FLASH_CR_STRT);
@@ -280,19 +271,14 @@ static bool flash_page_erase(uint32_t page_addr, uint32_t timeout_ms)
 /* Shared programming implementation                                          */
 /* -------------------------------------------------------------------------- */
 
-static bool flash_program_internal(uint32_t addr,
-                                   const uint8_t *p_data,
-                                   uint32_t size,
-                                   bool verify)
+static bool flash_program_internal(uint32_t addr, const uint8_t *p_data, uint32_t size, bool verify)
 {
     uint32_t remaining;
     uint32_t write_size;
     uint64_t data;
     uint64_t read_data;
 
-    if ((p_data == NULL) ||
-        ((addr & (FLASH_WRITE_SIZE - 1U)) != 0U) ||
-        !flash_program_range_valid(addr, size))
+    if ((p_data == NULL) || ((addr & (FLASH_WRITE_SIZE - 1U)) != 0U) || !flash_program_range_valid(addr, size))
     {
         return true;
     }
@@ -308,9 +294,7 @@ static bool flash_program_internal(uint32_t addr,
     {
         data = UINT64_MAX;
 
-        write_size = (remaining >= FLASH_WRITE_SIZE)
-                         ? FLASH_WRITE_SIZE
-                         : remaining;
+        write_size = (remaining >= FLASH_WRITE_SIZE) ? FLASH_WRITE_SIZE : remaining;
 
         memcpy(&data, p_data, write_size);
 
@@ -323,8 +307,7 @@ static bool flash_program_internal(uint32_t addr,
         if (verify)
         {
             read_data = (uint64_t)(*(__IO uint32_t *)addr);
-            read_data |=
-                ((uint64_t)(*(__IO uint32_t *)(addr + 4U))) << 32;
+            read_data |= ((uint64_t)(*(__IO uint32_t *)(addr + 4U))) << 32;
 
             if (read_data != data)
             {
@@ -352,9 +335,7 @@ bool flash_erase(uint32_t addr, uint32_t size)
     uint32_t pages;
     uint32_t remaining_flash;
 
-    if ((size == 0U) ||
-        (addr < FLASH_BASE) ||
-        (addr >= (FLASH_BASE + FLASH_SIZE_BYTES)))
+    if ((size == 0U) || (addr < FLASH_BASE) || (addr >= (FLASH_BASE + FLASH_SIZE_BYTES)))
     {
         return true;
     }
@@ -404,24 +385,19 @@ bool flash_erase(uint32_t addr, uint32_t size)
     return false;
 }
 
-bool flash_program_and_verify(uint32_t addr,
-                              uint8_t *p_data,
-                              uint32_t size)
+bool flash_program_and_verify(uint32_t addr, uint8_t *p_data, uint32_t size)
 {
     return flash_program_internal(addr, p_data, size, true);
 }
 
-bool flash_program(uint32_t addr,
-                   const uint8_t *p_data,
-                   uint32_t size)
+bool flash_program(uint32_t addr, const uint8_t *p_data, uint32_t size)
 {
     return flash_program_internal(addr, p_data, size, false);
 }
 
 bool flash_read(uint32_t addr, uint8_t *p_data, uint32_t size)
 {
-    if ((p_data == NULL) ||
-        !flash_address_range_valid(addr, size))
+    if ((p_data == NULL) || !flash_address_range_valid(addr, size))
     {
         return true;
     }

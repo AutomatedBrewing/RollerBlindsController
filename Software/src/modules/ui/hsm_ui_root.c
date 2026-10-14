@@ -24,8 +24,8 @@
 #include "configuration.h"
 #include "ui_configuration.h"
 
-#include "utils.h"
 #include "buzzer.h"
+#include "utils.h"
 
 /* Private define ------------------------------------------------------------*/
 
@@ -62,7 +62,7 @@ static void create_ui_timer(struct em_timer *timer, void *context)
 static void configure_buzzers(struct hsm_ui_context *hsm, const struct buzzer_configuration *config)
 {
     hsm->configuration = config;
-    //configure_gpio(&hsm->buzzer, config->pin_id);
+    // configure_gpio(&hsm->buzzer, config->pin_id);
     const struct buzzer_config buzzer_cfg = {
         .pin_id = hsm->configuration->pin_id,
         .frequency_hz = hsm->configuration->frequency_hz,

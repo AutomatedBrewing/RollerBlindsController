@@ -19,7 +19,7 @@
 
 /* Private defines -----------------------------------------------------------*/
 
-#define MAX_NUMBER_OF_SUPPORTED_PINS (10U)
+#define MAX_NUMBER_OF_SUPPORTED_PINS (8U)
 
 /* Private types ------------------------------------------------------------*/
 

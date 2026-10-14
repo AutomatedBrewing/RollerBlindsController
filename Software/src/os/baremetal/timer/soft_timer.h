@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #ifndef SOFT_TIMER_MAX
-#define SOFT_TIMER_MAX 16U
+#define SOFT_TIMER_MAX 11U
 #endif
 
 typedef void (*soft_timer_callback_t)(void *argument);

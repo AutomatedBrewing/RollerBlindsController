@@ -7,7 +7,6 @@ set(DRIVERS_DIR STM32CubeC0/Drivers/STM32C0xx_HAL_Driver)
 set(CMSIS_DIR STM32CubeC0/Drivers/CMSIS)
 
 add_library(vendor_drivers STATIC
-    ${DRIVERS_DIR}/Src/stm32c0xx_ll_dma.c    
     ${DRIVERS_DIR}/Src/stm32c0xx_ll_exti.c
     ${DRIVERS_DIR}/Src/stm32c0xx_ll_gpio.c
     ${DRIVERS_DIR}/Src/stm32c0xx_ll_pwr.c

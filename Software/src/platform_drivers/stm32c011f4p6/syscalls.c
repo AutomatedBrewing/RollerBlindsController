@@ -23,8 +23,8 @@
 /* Includes */
 #include <errno.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <sys/reent.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/times.h>
@@ -76,6 +76,12 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
     return len;
 }
 
+int _read_r(struct _reent *r, int file, char *ptr, int len)
+{
+    (void)r;
+    return _read(file, ptr, len);
+}
+
 __attribute__((weak)) int _write(int file, char *ptr, int len)
 {
     (void)(file);
@@ -88,10 +94,22 @@ __attribute__((weak)) int _write(int file, char *ptr, int len)
     return len;
 }
 
+int _write_r(struct _reent *r, int file, char *ptr, int len)
+{
+    (void)r;
+    return _write(file, ptr, len);
+}
+
 int _close(int file)
 {
     (void)(file);
     return -1;
+}
+
+int _close_r(struct _reent *r, int file)
+{
+    (void)r;
+    return _close(file);
 }
 
 int _fstat(int file, struct stat *st)
@@ -113,6 +131,12 @@ int _lseek(int file, int ptr, int dir)
     (void)(ptr);
     (void)(dir);
     return 0;
+}
+
+int _lseek_r(struct _reent *r, int file, int ptr, int dir)
+{
+    (void)r;
+    return _lseek(file, ptr, dir);
 }
 
 int _open(char *path, int flags, ...)

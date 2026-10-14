@@ -8,7 +8,6 @@
 /* Private includes ----------------------------------------------------------*/
 #include "app.h"
 #include "cmsis_os.h"
-#include <stdio.h>
 
 #include "clock.h"
 #include "em_executor.h"

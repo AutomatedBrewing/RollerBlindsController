@@ -64,7 +64,7 @@ NVM (r) : ORIGIN = 0x08003800, LENGTH = 2K
 _estack = ORIGIN(RAM) + LENGTH(RAM);    /* end of RAM */
 _sstack = _estack - _Min_Stack_Size;
 /* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0x200;      /* required amount of heap  */
+_Min_Heap_Size = 0x00;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* NVM symbols visible in C */

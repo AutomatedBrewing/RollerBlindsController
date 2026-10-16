@@ -1,0 +1,6 @@
+#ifndef DRIVERS_CONFIG_H
+#define DRIVERS_CONFIG_H
+
+#define WATCHDOG_TIMEOUT_MS (30000)
+
+#endif /* DRIVERS_CONFIG_H */

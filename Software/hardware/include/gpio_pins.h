@@ -24,6 +24,7 @@ enum board_input_pin_id {
     MOTOR_UP_PIN_ID,
     MOTOR_DOWN_PIN_ID,
     BUZZER_PIN_ID,
+    USED_PINS_COUNT,
     INVALID_PIN_ID=0xFFFF,
 };
 

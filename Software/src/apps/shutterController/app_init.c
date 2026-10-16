@@ -12,10 +12,11 @@
 #include "clock.h"
 #include "em_executor.h"
 #include "interrupt.h"
+#include "iwdg.h"
 #include "rtc.h"
 
+#include "drivers_config.h"
 #include "executors.h"
-
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -31,6 +32,7 @@ void app_init()
 
     osKernelInitialize();
     create_executors();
+    iwdg_init(WATCHDOG_TIMEOUT_MS);
 }
 
 void app_start()

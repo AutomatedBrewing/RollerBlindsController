@@ -3,6 +3,7 @@
 #include "soft_timer.h"
 #include "soft_queue.h"
 
+#include "iwdg.h"
 #include "stm32c0xx_ll_utils.h"
 
 #include <stdint.h>
@@ -120,6 +121,7 @@ osStatus_t osKernelStart(void)
                 threads[i].function(threads[i].argument);
             }
         }
+        iwdg_refresh();
     }
 }
 
